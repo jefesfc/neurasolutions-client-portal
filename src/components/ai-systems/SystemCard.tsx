@@ -44,7 +44,7 @@ export function SystemCard({ system, index }: SystemCardProps) {
     >
       <Link
         to={`/systems/${system.id}`}
-        className="surface-card-hover flex flex-col p-5 h-full group"
+        className="bg-white border border-surface-200 rounded-xl shadow-sm hover:shadow-md hover:border-surface-300 transition-all duration-200 flex flex-col p-5 h-full group"
       >
         {/* Header */}
         <div className="flex items-start justify-between mb-3">

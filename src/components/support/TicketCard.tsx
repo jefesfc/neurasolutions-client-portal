@@ -25,7 +25,7 @@ interface TicketCardProps {
 
 export function TicketCard({ ticket }: TicketCardProps) {
   return (
-    <div className="surface-card-hover p-5">
+    <div className="bg-white border border-surface-200 rounded-xl shadow-sm hover:shadow-md hover:border-surface-300 transition-all duration-200 p-5">
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-medium text-surface-400 font-mono">{ticket.number}</span>
         <div className="flex items-center gap-2">

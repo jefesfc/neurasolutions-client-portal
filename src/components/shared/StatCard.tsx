@@ -32,7 +32,7 @@ export function StatCard({
   const ChangeIcon = isPositive ? TrendingUp : TrendingDown;
 
   return (
-    <div className={cn("surface-card p-5 flex flex-col gap-3", className)}>
+    <div className={cn("bg-white border border-surface-200 rounded-xl shadow-sm p-5 flex flex-col gap-3", className)}>
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-surface-500">{label}</span>
         <div className="rounded-lg bg-brand-50 p-2">
