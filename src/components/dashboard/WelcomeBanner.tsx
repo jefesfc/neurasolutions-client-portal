@@ -1,10 +1,9 @@
 import { useAuthStore } from "../../store/auth-store";
-import { formatDate } from "../../lib/formatters";
 import { Sparkles, ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export function WelcomeBanner() {
-  const client = useAuthStore((s) => s.client);
+  const user = useAuthStore((s) => s.user);
 
   return (
     <div className="relative overflow-hidden rounded-2xl bg-surface-900 p-6 lg:p-8 mb-6">
@@ -17,13 +16,10 @@ export function WelcomeBanner() {
             <span>Welcome back</span>
           </div>
           <h1 className="text-2xl lg:text-3xl font-bold text-white">
-            {client?.companyName}
+            {user?.name}
           </h1>
           <p className="text-surface-400 max-w-md">
             Your AI systems are performing at 99.9% uptime. Here's what's happening across your platform.
-          </p>
-          <p className="text-xs text-surface-500">
-            Member since {client ? formatDate(client.memberSince, "MMMM yyyy") : ""}
           </p>
         </div>
         <Link

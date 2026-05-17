@@ -1,16 +1,35 @@
-import { Link } from "react-router-dom";
-import { Bell, MessageSquare, Search, Menu } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Bell, MessageSquare, Search, Menu, LogOut, User } from "lucide-react";
 import { useNotificationStore } from "../../store/notification-store";
 import { useAuthStore } from "../../store/auth-store";
 import { useSidebarStore } from "../../store/sidebar-store";
 import { Avatar } from "../ui/Avatar";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 export function TopBar() {
   const unreadCount = useNotificationStore((s) => s.unreadCount);
-  const client = useAuthStore((s) => s.client);
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   const setMobileOpen = useSidebarStore((s) => s.setMobileOpen);
+  const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  function handleLogout() {
+    logout();
+    navigate("/login");
+  }
 
   return (
     <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-surface-200">
@@ -53,9 +72,35 @@ export function TopBar() {
             )}
           </Link>
 
-          <div className="hidden sm:flex items-center gap-2 ml-3 pl-3 border-l border-surface-200">
-            <Avatar fallback={client?.companyName} size="sm" className="bg-brand-100 text-brand-700" />
-            <span className="text-sm font-medium text-surface-700">{client?.companyName}</span>
+          <div ref={menuRef} className="relative hidden sm:flex items-center gap-2 ml-3 pl-3 border-l border-surface-200">
+            <button
+              onClick={() => setMenuOpen((v) => !v)}
+              className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-surface-100 transition-colors"
+            >
+              <Avatar fallback={user?.name} size="sm" className="bg-brand-100 text-brand-700" />
+              <span className="text-sm font-medium text-surface-700">{user?.name}</span>
+            </button>
+
+            {menuOpen && (
+              <div className="absolute right-0 top-10 w-44 bg-white rounded-xl shadow-lg border border-surface-200 py-1 z-50">
+                <Link
+                  to="/profile"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-surface-700 hover:bg-surface-50"
+                >
+                  <User className="w-4 h-4 text-surface-400" />
+                  Profile
+                </Link>
+                <hr className="my-1 border-surface-100" />
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

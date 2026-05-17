@@ -5,93 +5,74 @@ import { Avatar } from "../components/ui/Avatar";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { useAuthStore } from "../store/auth-store";
-import { formatDate } from "../lib/formatters";
-import { Building2, Mail, Phone, Globe, Calendar, Settings, Users } from "lucide-react";
+import { Mail, Shield, Settings, LogOut } from "lucide-react";
 
 export default function ProfilePage() {
-  const client = useAuthStore((s) => s.client);
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
 
-  if (!client) return null;
+  if (!user) return null;
+
+  const roleLabel: Record<string, string> = {
+    admin: 'Admin',
+    manager: 'Manager',
+    user: 'User',
+  };
 
   return (
     <PageTransition>
       <PageHeader
         title="Profile"
-        description="Company profile and account settings"
+        description="Your account and workspace settings"
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Company Info */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Company Information</CardTitle>
-            <CardDescription>Your company details and account information</CardDescription>
+            <CardTitle>Account Information</CardTitle>
+            <CardDescription>Your personal details</CardDescription>
           </CardHeader>
           <div className="space-y-6">
             <div className="flex items-center gap-4">
-              <Avatar fallback={client.companyName} size="lg" className="bg-brand-100 text-brand-700" />
+              <Avatar fallback={user.name} size="lg" className="bg-brand-100 text-brand-700" />
               <div>
-                <h3 className="text-xl font-bold text-surface-900">{client.companyName}</h3>
-                <Badge variant="neutral">{client.industry}</Badge>
+                <h3 className="text-xl font-bold text-surface-900">{user.name}</h3>
+                <Badge variant="neutral">{roleLabel[user.role] ?? user.role}</Badge>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex items-center gap-3 p-3 bg-surface-50 rounded-xl">
-                <Building2 className="h-5 w-5 text-surface-400" />
+                <Mail className="h-5 w-5 text-surface-400" />
                 <div>
-                  <p className="text-xs text-surface-400">Industry</p>
-                  <p className="text-sm font-medium text-surface-700">{client.industry}</p>
+                  <p className="text-xs text-surface-400">Email</p>
+                  <p className="text-sm font-medium text-surface-700">{user.email}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-surface-50 rounded-xl">
-                <Users className="h-5 w-5 text-surface-400" />
+                <Shield className="h-5 w-5 text-surface-400" />
                 <div>
-                  <p className="text-xs text-surface-400">Company Size</p>
-                  <p className="text-sm font-medium text-surface-700">{client.size}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 bg-surface-50 rounded-xl">
-                <Globe className="h-5 w-5 text-surface-400" />
-                <div>
-                  <p className="text-xs text-surface-400">Website</p>
-                  <p className="text-sm font-medium text-surface-700">{client.website}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 bg-surface-50 rounded-xl">
-                <Calendar className="h-5 w-5 text-surface-400" />
-                <div>
-                  <p className="text-xs text-surface-400">Member Since</p>
-                  <p className="text-sm font-medium text-surface-700">{formatDate(client.memberSince, "MMMM yyyy")}</p>
+                  <p className="text-xs text-surface-400">Role</p>
+                  <p className="text-sm font-medium text-surface-700">{roleLabel[user.role] ?? user.role}</p>
                 </div>
               </div>
             </div>
           </div>
         </Card>
 
-        {/* Account Manager */}
         <Card>
           <CardHeader>
-            <CardTitle>Account Manager</CardTitle>
-            <CardDescription>Your dedicated point of contact</CardDescription>
+            <CardTitle>Actions</CardTitle>
+            <CardDescription>Account management</CardDescription>
           </CardHeader>
-          <div className="flex flex-col items-center text-center">
-            <Avatar fallback={client.accountManager.name} size="lg" className="bg-brand-100 text-brand-700 mb-3" />
-            <h4 className="text-base font-semibold text-surface-900">{client.accountManager.name}</h4>
-            <p className="text-sm text-surface-500 mb-4">Solutions Architect</p>
-            <div className="w-full space-y-2">
-              <div className="flex items-center gap-2 text-sm text-surface-600 p-2 bg-surface-50 rounded-lg">
-                <Mail className="h-4 w-4 text-surface-400" />
-                {client.accountManager.email}
-              </div>
-              <div className="flex items-center gap-2 text-sm text-surface-600 p-2 bg-surface-50 rounded-lg">
-                <Phone className="h-4 w-4 text-surface-400" />
-                {client.accountManager.phone}
-              </div>
-            </div>
-            <Button variant="outline" className="w-full mt-4">
+          <div className="space-y-3">
+            <Button variant="outline" className="w-full justify-start gap-2">
               <Settings className="h-4 w-4" />
               Account Settings
+            </Button>
+            <Button variant="danger" className="w-full justify-start gap-2" onClick={logout}>
+              <LogOut className="h-4 w-4" />
+              Sign out
             </Button>
           </div>
         </Card>

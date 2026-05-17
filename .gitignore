@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Environment — never commit secrets
+.env
+.env.local
+backend/.env
+
+# Claude plugins
+.superpowers/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

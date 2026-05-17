@@ -1,6 +1,10 @@
 import { createBrowserRouter } from "react-router-dom";
 import { ROUTES } from "../config/routes";
 import { AppLayout } from "../components/layout/AppLayout";
+import { ProtectedRoute } from "../components/auth/ProtectedRoute";
+import { PlatformAdminRoute } from "../components/auth/PlatformAdminRoute";
+import LoginPage from "../pages/LoginPage";
+import AdminPage from "../pages/admin/AdminPage";
 import DashboardPage from "../pages/DashboardPage";
 import AISystemsPage from "../pages/AISystemsPage";
 import AISystemDetailPage from "../pages/AISystemDetailPage";
@@ -11,77 +15,61 @@ import BillingPage from "../pages/BillingPage";
 import ProfilePage from "../pages/ProfilePage";
 import NotFoundPage from "../pages/NotFoundPage";
 
+function Protected({ children }: { children: React.ReactNode }) {
+  return (
+    <ProtectedRoute>
+      <AppLayout>{children}</AppLayout>
+    </ProtectedRoute>
+  );
+}
+
 export const router = createBrowserRouter([
   {
-    path: "/",
+    path: ROUTES.Login,
+    element: <LoginPage />,
+  },
+  {
+    path: ROUTES.Admin,
     element: (
-      <AppLayout>
-        <DashboardPage />
-      </AppLayout>
+      <PlatformAdminRoute>
+        <AppLayout><AdminPage /></AppLayout>
+      </PlatformAdminRoute>
     ),
+  },
+  {
+    path: ROUTES.Dashboard,
+    element: <Protected><DashboardPage /></Protected>,
   },
   {
     path: ROUTES.AISystems,
-    element: (
-      <AppLayout>
-        <AISystemsPage />
-      </AppLayout>
-    ),
+    element: <Protected><AISystemsPage /></Protected>,
   },
   {
     path: ROUTES.AISystemDetail,
-    element: (
-      <AppLayout>
-        <AISystemDetailPage />
-      </AppLayout>
-    ),
+    element: <Protected><AISystemDetailPage /></Protected>,
   },
   {
     path: ROUTES.Analytics,
-    element: (
-      <AppLayout>
-        <AnalyticsPage />
-      </AppLayout>
-    ),
+    element: <Protected><AnalyticsPage /></Protected>,
   },
   {
     path: ROUTES.Reports,
-    element: (
-      <AppLayout>
-        <ReportsPage />
-      </AppLayout>
-    ),
+    element: <Protected><ReportsPage /></Protected>,
   },
   {
     path: ROUTES.Support,
-    element: (
-      <AppLayout>
-        <SupportPage />
-      </AppLayout>
-    ),
+    element: <Protected><SupportPage /></Protected>,
   },
   {
     path: ROUTES.Billing,
-    element: (
-      <AppLayout>
-        <BillingPage />
-      </AppLayout>
-    ),
+    element: <Protected><BillingPage /></Protected>,
   },
   {
     path: ROUTES.Profile,
-    element: (
-      <AppLayout>
-        <ProfilePage />
-      </AppLayout>
-    ),
+    element: <Protected><ProfilePage /></Protected>,
   },
   {
     path: "*",
-    element: (
-      <AppLayout>
-        <NotFoundPage />
-      </AppLayout>
-    ),
+    element: <Protected><NotFoundPage /></Protected>,
   },
 ]);
