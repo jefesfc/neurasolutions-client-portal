@@ -38,7 +38,6 @@ interface BubbleData {
 
 export function LeadsMap() {
   const { data: leads, loading } = useQuery<Lead>("leads");
-  const { data: contacts, loading: loadingC } = useQuery("contacts");
   const [tooltip, setTooltip] = useState<{ name: string; total: number; won: number } | null>(null);
 
   const bubbles = useMemo<BubbleData[]>(() => {
@@ -63,7 +62,7 @@ export function LeadsMap() {
 
   const maxBubble = Math.max(...bubbles.map((b) => b.total), 1);
 
-  if (loading || loadingC) {
+  if (loading) {
     return (
       <Card>
         <CardHeader><CardTitle>Leads by Country</CardTitle></CardHeader>
