@@ -1,5 +1,7 @@
 import {
   LayoutDashboard,
+  Users,
+  BookUser,
   Cpu,
   BarChart3,
   FileText,
@@ -22,11 +24,13 @@ export interface NavSection {
 }
 
 export const mainNavItems: NavItem[] = [
-  { label: "Dashboard", path: ROUTES.Dashboard, icon: LayoutDashboard },
-  { label: "AI Systems", path: ROUTES.AISystems, icon: Cpu },
-  { label: "Analytics", path: ROUTES.Analytics, icon: BarChart3 },
-  { label: "Reports", path: ROUTES.Reports, icon: FileText },
-  { label: "Support", path: ROUTES.Support, icon: LifeBuoy },
+  { label: "Dashboard",  path: ROUTES.Dashboard, icon: LayoutDashboard },
+  { label: "Leads",      path: ROUTES.Leads,     icon: Users           },
+  { label: "CRM",        path: ROUTES.Contacts,  icon: BookUser        },
+  { label: "AI Systems", path: ROUTES.AISystems, icon: Cpu             },
+  { label: "Analytics",  path: ROUTES.Analytics, icon: BarChart3       },
+  { label: "Reports",    path: ROUTES.Reports,   icon: FileText        },
+  { label: "Support",    path: ROUTES.Support,   icon: LifeBuoy        },
 ];
 
 export const bottomNavItems: NavItem[] = [

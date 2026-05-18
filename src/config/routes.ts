@@ -2,6 +2,8 @@ export const ROUTES = {
   Login: "/login",
   Admin: "/admin",
   Dashboard: "/",
+  Leads: "/leads",
+  Contacts: "/contacts",
   AISystems: "/systems",
   AISystemDetail: "/systems/:id",
   Analytics: "/analytics",

@@ -6,6 +6,8 @@ import { PlatformAdminRoute } from "../components/auth/PlatformAdminRoute";
 import LoginPage from "../pages/LoginPage";
 import AdminPage from "../pages/admin/AdminPage";
 import DashboardPage from "../pages/DashboardPage";
+import LeadsPage from "../pages/LeadsPage";
+import ContactsPage from "../pages/ContactsPage";
 import AISystemsPage from "../pages/AISystemsPage";
 import AISystemDetailPage from "../pages/AISystemDetailPage";
 import AnalyticsPage from "../pages/AnalyticsPage";
@@ -39,6 +41,14 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.Dashboard,
     element: <Protected><DashboardPage /></Protected>,
+  },
+  {
+    path: ROUTES.Leads,
+    element: <Protected><LeadsPage /></Protected>,
+  },
+  {
+    path: ROUTES.Contacts,
+    element: <Protected><ContactsPage /></Protected>,
   },
   {
     path: ROUTES.AISystems,
