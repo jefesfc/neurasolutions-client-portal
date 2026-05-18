@@ -1,6 +1,8 @@
 import { useAuthStore } from '../store/auth-store';
 
-const BASE_URL = import.meta.env.VITE_POSTGREST_URL ?? 'https://xneurasolutions-postgrest.9lagn8.easypanel.host';
+const BASE_URL = (window as Window & { __env__?: { POSTGREST_URL?: string } }).__env__?.POSTGREST_URL
+  ?? import.meta.env.VITE_POSTGREST_URL
+  ?? 'https://xneurasolutions-postgrest.9lagn8.easypanel.host';
 
 function getHeaders(): HeadersInit {
   const token = useAuthStore.getState().token;

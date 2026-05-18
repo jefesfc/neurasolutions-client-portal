@@ -5,7 +5,8 @@ import { Input } from '../components/ui/Input';
 import { useAuthStore } from '../store/auth-store';
 import type { AuthUser } from '../store/auth-store';
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+declare global { interface Window { __env__?: { API_URL?: string; POSTGREST_URL?: string } } }
+const API_URL = window.__env__?.API_URL ?? import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
 export default function LoginPage() {
   const navigate = useNavigate();
