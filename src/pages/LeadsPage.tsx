@@ -1,11 +1,14 @@
 import { useState } from "react";
+import { Download } from "lucide-react";
 import { useQuery } from "../hooks/useQuery";
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
 import { Badge } from "../components/ui/Badge";
+import { Button } from "../components/ui/Button";
 import { Skeleton } from "../components/ui/Skeleton";
 import { SearchInput } from "../components/shared/SearchInput";
 import { formatRelative } from "../lib/formatters";
+import { downloadLeadsPDF } from "../lib/pdf";
 import type { Lead } from "../types/aios";
 
 type LeadStatus = Lead["status"] | "all";
@@ -51,7 +54,21 @@ export default function LeadsPage() {
 
   return (
     <PageTransition>
-      <PageHeader title="Leads" description="Track and manage your sales pipeline" />
+      <PageHeader
+        title="Leads"
+        description="Track and manage your sales pipeline"
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void downloadLeadsPDF(filtered, activeStatus, search)}
+            disabled={filtered.length === 0}
+          >
+            <Download className="h-3.5 w-3.5" />
+            Export PDF
+          </Button>
+        }
+      />
 
       {/* Status tabs */}
       <div className="flex gap-1 bg-surface-100 rounded-xl p-1 w-fit mb-5 flex-wrap">

@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { FileText, Download, Sparkles } from "lucide-react";
 import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import type { Report } from "../../types";
 import { formatDate } from "../../lib/formatters";
+import { downloadReportPDF } from "../../lib/pdf";
 
 const typeBadges: Record<string, "default" | "success" | "info" | "warning"> = {
   monthly: "info",
@@ -24,6 +26,15 @@ interface ReportCardProps {
 }
 
 export function ReportCard({ report }: ReportCardProps) {
+  const [loading, setLoading] = useState(false);
+
+  const handleDownload = async () => {
+    setLoading(true);
+    await new Promise((r) => setTimeout(r, 50));
+    downloadReportPDF(report);
+    setLoading(false);
+  };
+
   return (
     <Card hover className="flex flex-col">
       <div className="flex items-start justify-between mb-3">
@@ -62,7 +73,7 @@ export function ReportCard({ report }: ReportCardProps) {
           <span className="mx-2">·</span>
           <span>{report.size}</span>
         </div>
-        <Button size="sm" variant="outline">
+        <Button size="sm" variant="outline" loading={loading} onClick={handleDownload}>
           <Download className="h-3.5 w-3.5" />
           Download PDF
         </Button>

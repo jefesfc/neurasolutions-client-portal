@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "../../lib/cn";
 import { useSidebarStore } from "../../store/sidebar-store";
 import { useIsMobile } from "../../hooks/use-media-query";
 import { mainNavItems, bottomNavItems } from "../../config/navigation";
+import logoWhite from "../../assets/neura-logo-white.png";
 
 export function Sidebar() {
   const { isCollapsed, toggle, isMobileOpen, close } = useSidebarStore();
@@ -42,20 +43,28 @@ export function Sidebar() {
     >
       {/* Logo */}
       <div className="flex items-center h-16 px-4 border-b border-surface-800">
-        <Link to="/" className="flex items-center gap-3 min-w-0">
-          <div className="h-8 w-8 rounded-lg bg-brand-500 flex items-center justify-center flex-shrink-0">
-            <Sparkles className="h-4 w-4 text-white" />
-          </div>
-          <AnimatePresence>
-            {(expanded || isMobile) && (
-              <motion.span
+        <Link to="/" className="flex items-center min-w-0">
+          <AnimatePresence mode="wait">
+            {!expanded && !isMobile ? (
+              <motion.div
+                key="collapsed"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="text-sm font-semibold text-white whitespace-nowrap"
+                className="h-8 w-8 rounded-lg bg-brand-500 flex items-center justify-center flex-shrink-0 overflow-hidden"
               >
-                NeuraSolutions
-              </motion.span>
+                <img src={logoWhite} className="h-5 w-auto object-contain" alt="NeuraSolutions" />
+              </motion.div>
+            ) : (
+              <motion.img
+                key="expanded"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                src={logoWhite}
+                className="h-8 w-auto max-w-[140px] object-contain"
+                alt="NeuraSolutions"
+              />
             )}
           </AnimatePresence>
         </Link>

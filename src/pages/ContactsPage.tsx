@@ -1,11 +1,14 @@
 import { useState } from "react";
+import { Download } from "lucide-react";
 import { useQuery } from "../hooks/useQuery";
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
 import { Badge } from "../components/ui/Badge";
+import { Button } from "../components/ui/Button";
 import { Skeleton } from "../components/ui/Skeleton";
 import { SearchInput } from "../components/shared/SearchInput";
 import { formatRelative } from "../lib/formatters";
+import { downloadContactsPDF } from "../lib/pdf";
 import type { Contact } from "../types/aios";
 
 export default function ContactsPage() {
@@ -22,7 +25,21 @@ export default function ContactsPage() {
 
   return (
     <PageTransition>
-      <PageHeader title="CRM" description="Manage your customer relationships" />
+      <PageHeader
+        title="CRM"
+        description="Manage your customer relationships"
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void downloadContactsPDF(filtered, statusFilter, search)}
+            disabled={filtered.length === 0}
+          >
+            <Download className="h-3.5 w-3.5" />
+            Export PDF
+          </Button>
+        }
+      />
 
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
         {/* Status filter */}

@@ -4,6 +4,7 @@ import { Button } from "../ui/Button";
 import { DataTable } from "../shared/DataTable";
 import type { Invoice } from "../../types";
 import { formatCurrency, formatDate } from "../../lib/formatters";
+import { downloadInvoicePDF } from "../../lib/pdf";
 import { Download } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -49,8 +50,8 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
     {
       key: "action",
       header: "",
-      accessor: (): ReactNode => (
-        <Button size="sm" variant="ghost">
+      accessor: (inv: Invoice): ReactNode => (
+        <Button size="sm" variant="ghost" onClick={() => void downloadInvoicePDF(inv)}>
           <Download className="h-3.5 w-3.5" />
         </Button>
       ),
