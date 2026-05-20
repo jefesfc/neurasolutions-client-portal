@@ -3,6 +3,7 @@ import cors from 'cors';
 import * as dotenv from 'dotenv';
 import authRouter from './routes/auth';
 import adminRouter from './routes/admin';
+import chatRouter from './routes/chat';
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 
 app.use('/auth', authRouter);
 app.use('/admin', adminRouter);
+app.use('/chat', chatRouter);
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
