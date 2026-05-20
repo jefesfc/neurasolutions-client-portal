@@ -4,6 +4,7 @@ export const ROUTES = {
   Dashboard: "/",
   Leads: "/leads",
   Contacts: "/contacts",
+  AIChat: "/chat",
   AISystems: "/systems",
   AISystemDetail: "/systems/:id",
   Analytics: "/analytics",
