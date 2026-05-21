@@ -12,4 +12,7 @@ export const ROUTES = {
   Support: "/support",
   Billing: "/billing",
   Profile: "/profile",
+  Usage: "/usage",
+  Team: "/team",
+  Settings: "/settings",
 } as const;

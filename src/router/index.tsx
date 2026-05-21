@@ -16,6 +16,9 @@ import ReportsPage from "../pages/ReportsPage";
 import SupportPage from "../pages/SupportPage";
 import BillingPage from "../pages/BillingPage";
 import ProfilePage from "../pages/ProfilePage";
+import UsagePage from "../pages/UsagePage";
+import TeamPage from "../pages/TeamPage";
+import SettingsPage from "../pages/SettingsPage";
 import NotFoundPage from "../pages/NotFoundPage";
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -82,6 +85,18 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.Profile,
     element: <Protected><ProfilePage /></Protected>,
+  },
+  {
+    path: ROUTES.Usage,
+    element: <Protected><UsagePage /></Protected>,
+  },
+  {
+    path: ROUTES.Team,
+    element: <Protected><TeamPage /></Protected>,
+  },
+  {
+    path: ROUTES.Settings,
+    element: <Protected><SettingsPage /></Protected>,
   },
   {
     path: "*",
