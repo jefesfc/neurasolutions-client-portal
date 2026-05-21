@@ -23,6 +23,18 @@ export interface Contact {
   created_at: string;
 }
 
+export interface User {
+  id: string;
+  tenant_id: string;
+  email: string;
+  name: string;
+  role: 'admin' | 'manager' | 'user';
+  avatar: string | null;
+  phone: string | null;
+  is_active: boolean;
+  created_at?: string;
+}
+
 export interface TokenUsage {
   id: string;
   tenant_id: string;
