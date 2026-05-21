@@ -96,4 +96,59 @@ router.get('/me', async (req: Request, res: Response) => {
   }
 });
 
+router.patch('/change-password', async (req: Request, res: Response) => {
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith('Bearer ')) {
+    res.status(401).json({ error: 'No token' });
+    return;
+  }
+
+  const { currentPassword, newPassword } = req.body as {
+    currentPassword: string;
+    newPassword: string;
+  };
+
+  if (!currentPassword || !newPassword) {
+    res.status(400).json({ error: 'currentPassword and newPassword are required' });
+    return;
+  }
+
+  if (newPassword.length < 8) {
+    res.status(400).json({ error: 'New password must be at least 8 characters' });
+    return;
+  }
+
+  try {
+    const token = auth.slice(7);
+    const payload = jwt.verify(token, JWT_SECRET) as { user_id: string };
+
+    const result = await db.query(
+      `SELECT id, password_hash FROM aios.users WHERE id = $1`,
+      [payload.user_id]
+    );
+
+    const user = result.rows[0];
+    if (!user) {
+      res.status(401).json({ error: 'User not found' });
+      return;
+    }
+
+    const valid = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!valid) {
+      res.status(400).json({ error: 'Current password is incorrect' });
+      return;
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await db.query(
+      `UPDATE aios.users SET password_hash = $1 WHERE id = $2`,
+      [newHash, user.id]
+    );
+
+    res.json({ ok: true });
+  } catch {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
 export default router;
