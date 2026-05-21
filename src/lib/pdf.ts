@@ -2,7 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { Report } from '../types/report';
 import type { Invoice } from '../types/client';
-import type { Lead, Contact } from '../types/aios';
+import type { Lead, Contact, TokenUsage } from '../types/aios';
 import logoSrc from '../assets/neura-logo-white.png';
 
 const _logoImg = new Promise<HTMLImageElement>((resolve) => {
@@ -378,4 +378,50 @@ export async function downloadContactsPDF(contacts: Contact[], statusFilter: str
 
   addPageFooters(doc);
   doc.save(`contacts-report-${new Date().toISOString().slice(0, 10)}.pdf`);
+}
+
+// ── Usage ──────────────────────────────────────────────────────────────────
+
+export async function downloadUsagePDF(rows: TokenUsage[], agentFilter: string): Promise<void> {
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const y = await addPageHeader(
+    doc,
+    'Usage & Tokens Report',
+    agentFilter ? `Agent: ${agentFilter}` : 'All Agents'
+  );
+
+  const totalCost = rows.reduce((s, r) => s + r.cost, 0);
+  const totalTokens = rows.reduce((s, r) => s + r.tokens_in + r.tokens_out, 0);
+
+  doc.setFontSize(10);
+  doc.setTextColor(TEXT_MID_HEX);
+  doc.text(
+    `Total records: ${rows.length}   |   Total tokens: ${totalTokens.toLocaleString()}   |   Total cost: $${totalCost.toFixed(4)}`,
+    14,
+    y + 8
+  );
+
+  autoTable(doc, {
+    startY: y + 14,
+    head: [['Agent', 'Model', 'Tokens In', 'Tokens Out', 'Cost (USD)', 'Date']],
+    body: rows.map((r) => [
+      r.agent_name,
+      r.model,
+      r.tokens_in.toLocaleString(),
+      r.tokens_out.toLocaleString(),
+      `$${r.cost.toFixed(4)}`,
+      new Date(r.created_at).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      }),
+    ]),
+    styles: { fontSize: 9, cellPadding: 3 },
+    headStyles: { fillColor: BRAND_RGB, textColor: [255, 255, 255], fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: SURFACE_RGB },
+    margin: { left: 14, right: 14 },
+  });
+
+  addPageFooters(doc);
+  doc.save(`usage-report-${new Date().toISOString().slice(0, 10)}.pdf`);
 }

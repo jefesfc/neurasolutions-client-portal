@@ -9,12 +9,8 @@ import { Skeleton } from "../components/ui/Skeleton";
 import { SearchInput } from "../components/shared/SearchInput";
 import { UsageChart } from "../components/usage/UsageChart";
 import { formatDate, formatNumber } from "../lib/formatters";
+import { downloadUsagePDF } from "../lib/pdf";
 import type { TokenUsage } from "../types/aios";
-
-// downloadUsagePDF will be implemented in Task 4
-async function downloadUsagePDF(_rows: TokenUsage[], _filter: string): Promise<void> {
-  console.warn("PDF export not yet implemented");
-}
 
 function KPICard({
   label,
