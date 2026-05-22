@@ -4,7 +4,7 @@ import { PageHeader } from '../../components/layout/PageHeader';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { useAuthStore } from '../../store/auth-store';
-import { Building2, Users, Zap } from 'lucide-react';
+import { Building2, Users, Zap, MessageCircle } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
@@ -29,14 +29,73 @@ export default function AdminPage() {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [expandedTenantId, setExpandedTenantId] = useState<string | null>(null);
+  const [botTokens, setBotTokens] = useState<Record<string, string>>({});
+  const [tgStatus, setTgStatus] = useState<Record<string, boolean>>({});
+  const [tgLoading, setTgLoading] = useState<Record<string, boolean>>({});
+  const [tgError, setTgError] = useState<Record<string, string>>({});
+
   useEffect(() => {
     fetch(`${API_URL}/admin/tenants`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
-      .then((data) => setTenants(data.tenants ?? []))
+      .then((data) => setTenants((data as { tenants?: Tenant[] }).tenants ?? []))
       .finally(() => setLoading(false));
   }, [token]);
+
+  async function fetchTgStatus(tenantId: string) {
+    const r = await fetch(`${API_URL}/telegram/activate/${tenantId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = (await r.json()) as { enabled: boolean };
+    setTgStatus((prev) => ({ ...prev, [tenantId]: data.enabled }));
+  }
+
+  function toggleTelegram(tenantId: string) {
+    if (expandedTenantId === tenantId) {
+      setExpandedTenantId(null);
+    } else {
+      setExpandedTenantId(tenantId);
+      void fetchTgStatus(tenantId);
+    }
+  }
+
+  async function activateTelegram(tenantId: string) {
+    const botToken = botTokens[tenantId];
+    if (!botToken) return;
+    setTgLoading((prev) => ({ ...prev, [tenantId]: true }));
+    setTgError((prev) => ({ ...prev, [tenantId]: '' }));
+    try {
+      const r = await fetch(`${API_URL}/telegram/activate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ tenant_id: tenantId, bot_token: botToken }),
+      });
+      const data = (await r.json()) as { ok?: boolean; error?: string };
+      if (data.ok) {
+        setTgStatus((prev) => ({ ...prev, [tenantId]: true }));
+        setBotTokens((prev) => ({ ...prev, [tenantId]: '' }));
+      } else {
+        setTgError((prev) => ({ ...prev, [tenantId]: data.error ?? 'Activation failed' }));
+      }
+    } finally {
+      setTgLoading((prev) => ({ ...prev, [tenantId]: false }));
+    }
+  }
+
+  async function deactivateTelegram(tenantId: string) {
+    setTgLoading((prev) => ({ ...prev, [tenantId]: true }));
+    try {
+      await fetch(`${API_URL}/telegram/activate/${tenantId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTgStatus((prev) => ({ ...prev, [tenantId]: false }));
+    } finally {
+      setTgLoading((prev) => ({ ...prev, [tenantId]: false }));
+    }
+  }
 
   return (
     <PageTransition>
@@ -77,6 +136,58 @@ export default function AdminPage() {
                   <Users className="w-3 h-3" />
                   {tenant.user_count ?? 0} users
                 </span>
+              </div>
+
+              {/* Telegram section */}
+              <div className="mt-3 pt-3 border-t border-surface-100">
+                <button
+                  onClick={() => toggleTelegram(tenant.id)}
+                  className="text-xs text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1"
+                >
+                  <MessageCircle className="w-3 h-3" />
+                  Telegram {tgStatus[tenant.id] ? '✅' : '⚪'}
+                </button>
+
+                {expandedTenantId === tenant.id && (
+                  <div className="mt-3 space-y-2">
+                    {tgStatus[tenant.id] ? (
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-positive font-medium">✅ Bot active</span>
+                        <button
+                          onClick={() => void deactivateTelegram(tenant.id)}
+                          disabled={tgLoading[tenant.id]}
+                          className="text-xs text-danger hover:underline disabled:opacity-50"
+                        >
+                          {tgLoading[tenant.id] ? '...' : 'Deactivate'}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex gap-2">
+                          <input
+                            type="password"
+                            placeholder="Bot token from BotFather"
+                            value={botTokens[tenant.id] ?? ''}
+                            onChange={(e) =>
+                              setBotTokens((prev) => ({ ...prev, [tenant.id]: e.target.value }))
+                            }
+                            className="flex-1 text-xs border border-surface-200 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                          />
+                          <button
+                            onClick={() => void activateTelegram(tenant.id)}
+                            disabled={tgLoading[tenant.id] || !botTokens[tenant.id]}
+                            className="text-xs bg-brand-500 text-white px-3 py-1.5 rounded hover:bg-brand-600 disabled:opacity-50 whitespace-nowrap"
+                          >
+                            {tgLoading[tenant.id] ? '...' : 'Activate'}
+                          </button>
+                        </div>
+                        {tgError[tenant.id] && (
+                          <p className="text-xs text-danger">{tgError[tenant.id]}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </Card>
           ))}

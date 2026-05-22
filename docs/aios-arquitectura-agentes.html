@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIOS — Arquitectura de Agentes</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  /* COVER */
+  .cover {
+    background: linear-gradient(135deg, #0f0f1a 0%, #1a1040 50%, #0f1a2e 100%);
+    color: white;
+    padding: 80px 60px;
+    min-height: 297mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    page-break-after: always;
+  }
+  .cover .badge {
+    display: inline-block;
+    background: rgba(167,139,250,0.2);
+    border: 1px solid rgba(167,139,250,0.4);
+    color: #a78bfa;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 20px;
+    margin-bottom: 32px;
+  }
+  .cover h1 {
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #ffffff, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .cover .subtitle {
+    font-size: 18px;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 48px;
+    max-width: 500px;
+  }
+  .cover .meta {
+    display: flex;
+    gap: 32px;
+    margin-top: auto;
+    padding-top: 48px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .cover .meta-item { color: rgba(255,255,255,0.5); font-size: 12px; }
+  .cover .meta-item strong { display: block; color: white; font-size: 14px; margin-bottom: 2px; }
+
+  /* CONTENT PAGES */
+  .page {
+    padding: 48px 60px;
+    page-break-after: always;
+    max-width: 210mm;
+    margin: 0 auto;
+  }
+  .page:last-child { page-break-after: avoid; }
+
+  /* SECTION HEADER */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f1f5f9;
+  }
+  .section-number {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #7c3aed, #a78bfa);
+    color: white;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .section-title { font-size: 22px; font-weight: 700; color: #0f172a; }
+  .section-desc { font-size: 13px; color: #64748b; margin-top: 2px; }
+
+  /* CARDS */
+  .card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-body { font-size: 12px; color: #475569; line-height: 1.6; }
+
+  /* ACCENT CARDS */
+  .card-purple { border-left: 4px solid #7c3aed; background: #faf5ff; }
+  .card-green { border-left: 4px solid #059669; background: #f0fdf4; }
+  .card-blue { border-left: 4px solid #2563eb; background: #eff6ff; }
+  .card-amber { border-left: 4px solid #d97706; background: #fffbeb; }
+  .card-red { border-left: 4px solid #dc2626; background: #fef2f2; }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+  /* BADGE */
+  .badge-purple { background: #ede9fe; color: #6d28d9; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge-green { background: #d1fae5; color: #065f46; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge-amber { background: #fef3c7; color: #92400e; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge-blue { background: #dbeafe; color: #1e40af; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* DIAGRAM */
+  .diagram {
+    background: #0f172a;
+    border-radius: 12px;
+    padding: 28px;
+    margin: 16px 0;
+    color: white;
+  }
+  .diag-box {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    padding: 12px 16px;
+    text-align: center;
+    font-size: 12px;
+  }
+  .diag-box-purple {
+    background: rgba(124,58,237,0.25);
+    border: 2px solid rgba(167,139,250,0.5);
+    border-radius: 8px;
+    padding: 12px 16px;
+    text-align: center;
+    font-size: 12px;
+  }
+  .diag-box-green {
+    background: rgba(5,150,105,0.2);
+    border: 1px solid rgba(52,211,153,0.4);
+    border-radius: 8px;
+    padding: 12px 16px;
+    text-align: center;
+    font-size: 12px;
+  }
+  .diag-label { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .diag-name { font-size: 13px; font-weight: 700; color: white; }
+  .diag-sub { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+  .diag-arrow { text-align: center; color: rgba(255,255,255,0.3); font-size: 16px; margin: 6px 0; }
+  .diag-row { display: flex; gap: 10px; align-items: center; }
+  .diag-agents-row { display: flex; gap: 8px; margin-top: 8px; }
+  .diag-agent {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+  }
+  .diag-agent .icon { font-size: 16px; margin-bottom: 4px; }
+  .diag-agent .name { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.85); }
+  .diag-agent .tools { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+
+  /* TABLE */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12px; }
+  th { background: #f1f5f9; color: #475569; font-weight: 700; text-align: left; padding: 10px 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; color: #334155; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+
+  /* FLOW */
+  .flow-item {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 14px;
+    align-items: flex-start;
+  }
+  .flow-step {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, #7c3aed, #a78bfa);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .flow-content h4 { font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 2px; }
+  .flow-content p { font-size: 12px; color: #64748b; }
+
+  /* HIGHLIGHT BOX */
+  .highlight {
+    background: linear-gradient(135deg, #faf5ff, #eff6ff);
+    border: 1px solid #c4b5fd;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+  .highlight h4 { font-size: 13px; font-weight: 700; color: #6d28d9; margin-bottom: 6px; }
+  .highlight p { font-size: 12px; color: #4c1d95; line-height: 1.6; }
+
+  /* PRINT */
+  @media print {
+    body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .page { page-break-after: always; }
+    .cover { page-break-after: always; }
+  }
+
+  h3 { font-size: 15px; font-weight: 700; color: #0f172a; margin: 20px 0 10px; }
+  p { margin-bottom: 8px; color: #475569; }
+  ul { padding-left: 18px; color: #475569; }
+  li { margin-bottom: 4px; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="badge">NeuraSolutions — Documento Técnico</div>
+  <h1>AIOS<br>AI Operating System</h1>
+  <p class="subtitle">Arquitectura de agentes inteligentes para empresas. Sistema multi-agente con orquestador central y agentes especializados por sección de negocio.</p>
+  <div class="meta">
+    <div class="meta-item"><strong>Versión</strong>1.0 — Mayo 2026</div>
+    <div class="meta-item"><strong>Estado</strong>Diseño / Pre-implementación</div>
+    <div class="meta-item"><strong>Producto</strong>Sistema 3 — AI Operating System</div>
+    <div class="meta-item"><strong>Precio base</strong>£10,000 setup + £400/mes</div>
+  </div>
+</div>
+
+<!-- PAGE 1: OVERVIEW -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-number">1</div>
+    <div>
+      <div class="section-title">Visión General del Sistema</div>
+      <div class="section-desc">Qué es el AIOS y cómo se diferencia del mercado</div>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <h4>¿Qué es el AIOS?</h4>
+    <p>El AIOS es una plataforma centralizada de operaciones empresariales impulsada por inteligencia artificial. Cada sección del negocio (Leads, Clientes, Emails, etc.) tiene su propio agente especializado con herramientas propias. Un agente orquestador general coordina todo y sirve como interfaz principal entre el negocio y sus operaciones.</p>
+  </div>
+
+  <div class="grid-2">
+    <div class="card card-purple">
+      <div class="card-title"><span class="badge-purple">Modelo</span></div>
+      <div class="card-body">
+        <strong>Híbrido multi-tenant</strong> — Plataforma central de NeuraSolutions. Cada cliente empresa ve su propio AIOS branded con datos completamente aislados. Un deployment central, múltiples clientes.
+      </div>
+    </div>
+    <div class="card card-green">
+      <div class="card-title"><span class="badge-green">Diferenciador</span></div>
+      <div class="card-body">
+        <strong>El AI Chat / Orquestador</strong> es lo que lo separa de un CRM normal. El cliente puede hablar con su sistema en lenguaje natural y el agente ejecuta acciones, genera reportes y coordina todos los módulos.
+      </div>
+    </div>
+  </div>
+
+  <h3>Usuarios del sistema</h3>
+  <table>
+    <tr>
+      <th>Rol</th>
+      <th>Acceso</th>
+      <th>Función principal</th>
+    </tr>
+    <tr>
+      <td><strong>Admin (Dueño)</strong></td>
+      <td>Todos los módulos + configuración</td>
+      <td>Vista global del negocio, KPIs, control de agentes</td>
+    </tr>
+    <tr>
+      <td><strong>Manager</strong></td>
+      <td>Módulos asignados + reportes de su área</td>
+      <td>Gestión de equipo en su sección</td>
+    </tr>
+    <tr>
+      <td><strong>User (Empleado)</strong></td>
+      <td>Solo su sección asignada</td>
+      <td>Trabajo operativo diario con soporte del agente</td>
+    </tr>
+    <tr>
+      <td><strong>NeuraSolutions</strong></td>
+      <td>NocoDB + Metabase (interno)</td>
+      <td>Monitoreo de todos los clientes, operaciones</td>
+    </tr>
+  </table>
+
+  <h3>Stack tecnológico</h3>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">Frontend</div>
+      <div class="card-body">React + TypeScript + Vite. Ya existe en <code>AIOS/src/</code>. Componentes UI base listos.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Base de datos</div>
+      <div class="card-body">PostgreSQL en EasyPanel (existente). Fuente de verdad única.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">API Layer</div>
+      <div class="card-body">PostgREST en EasyPanel. Genera API REST automática desde las tablas de PostgreSQL.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Automatización</div>
+      <div class="card-body">n8n (existente). Motor de workflows. Escribe directo a PostgreSQL.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Admin interno</div>
+      <div class="card-body">NocoDB en EasyPanel. Reemplaza Airtable para NeuraSolutions.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">IA de agentes</div>
+      <div class="card-body">Claude / GPT vía OpenRouter. API keys internas en n8n.</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 2: AGENT ARCHITECTURE OVERVIEW -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-number">2</div>
+    <div>
+      <div class="section-title">Arquitectura de Agentes</div>
+      <div class="section-desc">Sistema multi-agente con orquestador central y agentes especializados</div>
+    </div>
+  </div>
+
+  <div class="diagram">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px">Entradas al sistema</div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <div class="diag-box" style="padding:8px 14px;font-size:11px">💬 Chat AIOS</div>
+        <div class="diag-box" style="padding:8px 14px;font-size:11px">📱 WhatsApp</div>
+        <div class="diag-box" style="padding:8px 14px;font-size:11px">✈️ Telegram</div>
+        <div class="diag-box" style="padding:8px 14px;font-size:11px">🌐 Web Form</div>
+        <div class="diag-box" style="padding:8px 14px;font-size:11px">📧 Email</div>
+      </div>
+    </div>
+
+    <div class="diag-arrow">↓</div>
+
+    <div class="diag-box-purple" style="max-width:420px;margin:0 auto 8px">
+      <div class="diag-label">Agente Principal</div>
+      <div class="diag-name">🧠 Orquestador General</div>
+      <div class="diag-sub">Entiende la intención · Enruta al agente correcto · Responde al cliente</div>
+      <div style="margin-top:8px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+        <span style="background:rgba(167,139,250,0.2);color:#c4b5fd;font-size:10px;padding:2px 8px;border-radius:10px">Claude / GPT</span>
+        <span style="background:rgba(167,139,250,0.2);color:#c4b5fd;font-size:10px;padding:2px 8px;border-radius:10px">Tool Use</span>
+        <span style="background:rgba(167,139,250,0.2);color:#c4b5fd;font-size:10px;padding:2px 8px;border-radius:10px">Memoria conversacional</span>
+        <span style="background:rgba(167,139,250,0.2);color:#c4b5fd;font-size:10px;padding:2px 8px;border-radius:10px">RAG sobre base de conocimiento</span>
+      </div>
+    </div>
+
+    <div class="diag-arrow">↓ delega a agente especializado</div>
+
+    <div class="diag-agents-row">
+      <div class="diag-agent">
+        <div class="icon">🎯</div>
+        <div class="name">Agente Leads</div>
+        <div class="tools">Calificar · Puntuar · Asignar</div>
+      </div>
+      <div class="diag-agent">
+        <div class="icon">👥</div>
+        <div class="name">Agente Clients</div>
+        <div class="tools">Consultar · Actualizar · Notas</div>
+      </div>
+      <div class="diag-agent">
+        <div class="icon">📧</div>
+        <div class="name">Agente Emails</div>
+        <div class="tools">Leer · Redactar · Enviar</div>
+      </div>
+      <div class="diag-agent">
+        <div class="icon">📊</div>
+        <div class="name">Agente Analytics</div>
+        <div class="tools">Métricas · Reportes · Alertas</div>
+      </div>
+      <div class="diag-agent">
+        <div class="icon">⚡</div>
+        <div class="name">Agente Automations</div>
+        <div class="tools">n8n Status · Logs · Triggers</div>
+      </div>
+    </div>
+
+    <div class="diag-arrow">↓ cada agente dispara workflows n8n + lee/escribe PostgreSQL</div>
+
+    <div style="display:flex;gap:10px">
+      <div class="diag-box-green" style="flex:1">
+        <div class="diag-label">Motor de workflows</div>
+        <div class="diag-name">n8n</div>
+        <div class="diag-sub">Un workflow por agente-acción</div>
+      </div>
+      <div class="diag-box-green" style="flex:1">
+        <div class="diag-label">Fuente de verdad</div>
+        <div class="diag-name">PostgreSQL</div>
+        <div class="diag-sub">EasyPanel — todos los datos</div>
+      </div>
+      <div class="diag-box-green" style="flex:1">
+        <div class="diag-label">API Frontend</div>
+        <div class="diag-name">PostgREST</div>
+        <div class="diag-sub">EasyPanel — REST automático</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <h4>Principio de diseño: Un agente, un dominio</h4>
+    <p>Cada agente especializado tiene acceso exclusivo a su dominio de datos y sus herramientas n8n. El orquestador nunca accede directamente a los datos — siempre delega. Esto hace el sistema mantenible, escalable y fácil de depurar.</p>
+  </div>
+</div>
+
+<!-- PAGE 3: ORCHESTRATOR AGENT -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-number">3</div>
+    <div>
+      <div class="section-title">Agente Orquestador General</div>
+      <div class="section-desc">El cerebro del sistema — coordina todo y comunica con el cliente</div>
+    </div>
+  </div>
+
+  <div class="card card-purple" style="margin-bottom:16px">
+    <div class="card-title">¿Qué hace el Orquestador?</div>
+    <div class="card-body">
+      Recibe mensajes de cualquier canal (chat interno, WhatsApp, Telegram), entiende la intención usando LLM, decide qué agente especializado debe actuar, coordina la respuesta y la devuelve al canal correcto. También puede responder directamente si no necesita delegar (preguntas simples, saludos, status general).
+    </div>
+  </div>
+
+  <h3>Canales de entrada</h3>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">📱 Canal Interno — Chat AIOS</div>
+      <div class="card-body">
+        El equipo de la empresa usa el chat dentro del AIOS. El dueño puede preguntar <em>"¿cuántos leads nuevos tenemos esta semana?"</em> y el orquestador consulta al Agente Leads y responde con datos reales de PostgreSQL.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🌐 Canal Externo — WhatsApp / Telegram</div>
+      <div class="card-body">
+        El cliente final de la empresa escribe al número de WhatsApp del negocio. El orquestador recibe vía n8n webhook, procesa, y responde. Puede calificar un lead, agendar una cita, o escalar a un humano.
+      </div>
+    </div>
+  </div>
+
+  <h3>Herramientas disponibles del Orquestador</h3>
+  <table>
+    <tr>
+      <th>Herramienta</th>
+      <th>Descripción</th>
+      <th>Implementación</th>
+    </tr>
+    <tr>
+      <td><strong>route_to_agent</strong></td>
+      <td>Delegar tarea a agente especializado</td>
+      <td>n8n webhook por agente</td>
+    </tr>
+    <tr>
+      <td><strong>get_business_summary</strong></td>
+      <td>Resumen ejecutivo del negocio (KPIs)</td>
+      <td>Query PostgreSQL vía PostgREST</td>
+    </tr>
+    <tr>
+      <td><strong>search_knowledge_base</strong></td>
+      <td>Buscar en la base de conocimiento RAG</td>
+      <td>RAG sobre documentos del cliente</td>
+    </tr>
+    <tr>
+      <td><strong>send_notification</strong></td>
+      <td>Notificar a un miembro del equipo</td>
+      <td>n8n → Email/Telegram/WhatsApp</td>
+    </tr>
+    <tr>
+      <td><strong>escalate_to_human</strong></td>
+      <td>Escalar conversación a un agente humano</td>
+      <td>Flag en PostgreSQL + notificación</td>
+    </tr>
+    <tr>
+      <td><strong>create_task</strong></td>
+      <td>Crear tarea y asignar a miembro del equipo</td>
+      <td>Insert en tabla tasks de PostgreSQL</td>
+    </tr>
+  </table>
+
+  <h3>Flujo de una conversación típica</h3>
+  <div class="flow-item">
+    <div class="flow-step">1</div>
+    <div class="flow-content">
+      <h4>Mensaje entra</h4>
+      <p>El cliente escribe "hola, quiero saber el precio de vuestro servicio" por WhatsApp. n8n recibe el webhook y lo pasa al Orquestador.</p>
+    </div>
+  </div>
+  <div class="flow-item">
+    <div class="flow-step">2</div>
+    <div class="flow-content">
+      <h4>Clasificación de intención</h4>
+      <p>El LLM analiza el mensaje. Detecta: contacto nuevo, intención de compra, no es cliente existente. Decide: crear lead + responder con información del servicio.</p>
+    </div>
+  </div>
+  <div class="flow-item">
+    <div class="flow-step">3</div>
+    <div class="flow-content">
+      <h4>Delegación al Agente Leads</h4>
+      <p>Llama a <code>route_to_agent(leads, create_and_qualify)</code>. El Agente Leads crea el registro en PostgreSQL, le asigna un score inicial, y notifica al equipo de ventas.</p>
+    </div>
+  </div>
+  <div class="flow-item">
+    <div class="flow-step">4</div>
+    <div class="flow-content">
+      <h4>Respuesta al cliente</h4>
+      <p>El Orquestador usa <code>search_knowledge_base</code> para obtener información del servicio y responde al cliente por WhatsApp con un mensaje profesional y un call-to-action.</p>
+    </div>
+  </div>
+  <div class="flow-item">
+    <div class="flow-step">5</div>
+    <div class="flow-content">
+      <h4>Registro en el AIOS</h4>
+      <p>El equipo ve el nuevo lead en el módulo Leads del AIOS con el historial de conversación completo y el score asignado.</p>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 4: SPECIALIZED AGENTS -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-number">4</div>
+    <div>
+      <div class="section-title">Agentes Especializados</div>
+      <div class="section-desc">Un agente por sección, con herramientas y datos propios</div>
+    </div>
+  </div>
+
+  <div class="card card-purple" style="margin-bottom:10px">
+    <div class="card-title">🎯 Agente Leads <span class="badge-purple" style="margin-left:8px">Fase 1</span></div>
+    <div class="card-body">
+      <strong>Responsabilidad:</strong> Gestionar todo el ciclo de vida de un lead desde la captura hasta la conversión.<br><br>
+      <strong>Herramientas / n8n workflows:</strong>
+      <ul style="margin-top:6px">
+        <li><strong>qualify_lead</strong> — Analiza el lead con LLM y asigna score 0-100 según criterios del negocio</li>
+        <li><strong>create_lead</strong> — Inserta nuevo lead en PostgreSQL con todos sus campos</li>
+        <li><strong>update_lead_status</strong> — Mueve el lead en el pipeline (Nuevo → Contactado → Calificado → Cerrado)</li>
+        <li><strong>assign_lead</strong> — Asigna el lead a un miembro del equipo de ventas</li>
+        <li><strong>get_leads_summary</strong> — Retorna métricas: total, por estado, por fuente, conversión</li>
+        <li><strong>search_leads</strong> — Busca leads por nombre, email, empresa, estado</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card card-blue" style="margin-bottom:10px">
+    <div class="card-title">👥 Agente Clients / CRM <span class="badge-blue" style="margin-left:8px">Fase 1</span></div>
+    <div class="card-body">
+      <strong>Responsabilidad:</strong> Gestionar clientes activos, su historial y relación con la empresa.<br><br>
+      <strong>Herramientas / n8n workflows:</strong>
+      <ul style="margin-top:6px">
+        <li><strong>get_client_profile</strong> — Perfil completo del cliente con historial de interacciones</li>
+        <li><strong>update_client</strong> — Actualizar datos del cliente en PostgreSQL</li>
+        <li><strong>add_interaction_note</strong> — Añadir nota o resumen de interacción (generada por IA)</li>
+        <li><strong>get_client_history</strong> — Timeline completo de comunicaciones y acciones</li>
+        <li><strong>convert_lead_to_client</strong> — Convierte un lead ganado en cliente activo</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card card-green" style="margin-bottom:10px">
+    <div class="card-title">📧 Agente Emails <span class="badge-green" style="margin-left:8px">Fase 2</span></div>
+    <div class="card-body">
+      <strong>Responsabilidad:</strong> Gestión inteligente de emails. Respuestas automáticas, seguimientos y campañas.<br><br>
+      <strong>Herramientas / n8n workflows:</strong>
+      <ul style="margin-top:6px">
+        <li><strong>read_inbox</strong> — Lee emails nuevos y los clasifica por prioridad / tipo</li>
+        <li><strong>draft_reply</strong> — Genera borrador de respuesta con contexto del cliente desde PostgreSQL</li>
+        <li><strong>send_email</strong> — Envía email vía SMTP/SendGrid</li>
+        <li><strong>create_followup_sequence</strong> — Crea secuencia de seguimiento automatizada para un lead/cliente</li>
+        <li><strong>get_email_stats</strong> — Open rate, reply rate, métricas de campaña</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card card-amber">
+      <div class="card-title">📊 Agente Analytics <span class="badge-amber" style="margin-left:8px">Fase 2</span></div>
+      <div class="card-body">
+        <ul>
+          <li><strong>get_kpi_report</strong> — KPIs del período solicitado</li>
+          <li><strong>compare_periods</strong> — Comparativa semana/mes/año</li>
+          <li><strong>get_conversion_funnel</strong> — Embudo lead → cliente</li>
+          <li><strong>generate_ai_insight</strong> — Insight generado por LLM sobre los datos</li>
+          <li><strong>create_alert</strong> — Alerta cuando métrica baja de umbral</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚡ Agente Automations <span class="badge-amber" style="margin-left:8px">Fase 2</span></div>
+      <div class="card-body">
+        <ul>
+          <li><strong>get_workflow_status</strong> — Estado de workflows n8n activos</li>
+          <li><strong>get_workflow_logs</strong> — Últimas ejecuciones y errores</li>
+          <li><strong>trigger_workflow</strong> — Disparar workflow manualmente</li>
+          <li><strong>get_token_usage</strong> — Consumo de tokens por agente/período</li>
+          <li><strong>pause_workflow</strong> — Pausar workflow con problema</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 5: INFRASTRUCTURE & DATA -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-number">5</div>
+    <div>
+      <div class="section-title">Infraestructura y Datos</div>
+      <div class="section-desc">Stack completo, migración desde el sistema actual y esquema de base de datos</div>
+    </div>
+  </div>
+
+  <h3>Transición desde el sistema actual</h3>
+  <table>
+    <tr>
+      <th>Sistema actual</th>
+      <th>Estado</th>
+      <th>Reemplazado por</th>
+    </tr>
+    <tr>
+      <td>Airtable (CRM)</td>
+      <td><span style="color:#dc2626;font-weight:600">Deprecar</span></td>
+      <td>Módulos Leads + Clients sobre PostgreSQL</td>
+    </tr>
+    <tr>
+      <td>Mirror Airtable → PostgreSQL</td>
+      <td><span style="color:#dc2626;font-weight:600">Eliminar</span></td>
+      <td>n8n escribe directo a PostgreSQL</td>
+    </tr>
+    <tr>
+      <td>Metabase</td>
+      <td><span style="color:#d97706;font-weight:600">Opcional</span></td>
+      <td>Módulo Analytics del AIOS (para el cliente) + Metabase sigue para NeuraSolutions interno</td>
+    </tr>
+    <tr>
+      <td>PostgreSQL EasyPanel</td>
+      <td><span style="color:#059669;font-weight:600">Mantener + expandir</span></td>
+      <td>Se convierte en la fuente de verdad central</td>
+    </tr>
+    <tr>
+      <td>n8n</td>
+      <td><span style="color:#059669;font-weight:600">Mantener + expandir</span></td>
+      <td>Sigue siendo el motor de workflows, se amplía con nuevos workflows por agente</td>
+    </tr>
+  </table>
+
+  <h3>Nuevos containers en EasyPanel</h3>
+  <div class="grid-2">
+    <div class="card card-purple">
+      <div class="card-title">PostgREST</div>
+      <div class="card-body">
+        Genera automáticamente una API REST de todas las tablas de PostgreSQL. El AIOS frontend la consume para leer y escribir datos directamente. Sin código de backend. Configuración: apuntar al PostgreSQL existente + definir roles y permisos JWT.
+      </div>
+    </div>
+    <div class="card card-green">
+      <div class="card-title">NocoDB</div>
+      <div class="card-body">
+        Interfaz visual tipo Airtable sobre el PostgreSQL existente. Solo para uso interno de NeuraSolutions. Reemplaza Airtable para la gestión interna. Los clientes no lo ven ni tienen acceso.
+      </div>
+    </div>
+  </div>
+
+  <h3>Tablas PostgreSQL principales (Fase 1)</h3>
+  <table>
+    <tr>
+      <th>Tabla</th>
+      <th>Módulo</th>
+      <th>Campos clave</th>
+    </tr>
+    <tr>
+      <td><strong>tenants</strong></td>
+      <td>Sistema</td>
+      <td>id, name, subdomain, plan, created_at, settings</td>
+    </tr>
+    <tr>
+      <td><strong>users</strong></td>
+      <td>Team</td>
+      <td>id, tenant_id, email, role, section_permissions, created_at</td>
+    </tr>
+    <tr>
+      <td><strong>leads</strong></td>
+      <td>Leads</td>
+      <td>id, tenant_id, name, email, phone, source, status, score, assigned_to, created_at</td>
+    </tr>
+    <tr>
+      <td><strong>clients</strong></td>
+      <td>Clients</td>
+      <td>id, tenant_id, name, email, phone, company, status, notes, created_at</td>
+    </tr>
+    <tr>
+      <td><strong>interactions</strong></td>
+      <td>Clients / Chat</td>
+      <td>id, tenant_id, entity_type, entity_id, channel, content, created_at</td>
+    </tr>
+    <tr>
+      <td><strong>token_usage</strong></td>
+      <td>Usage</td>
+      <td>id, tenant_id, agent_name, tokens_in, tokens_out, model, created_at</td>
+    </tr>
+    <tr>
+      <td><strong>tasks</strong></td>
+      <td>Tasks (F3)</td>
+      <td>id, tenant_id, title, assigned_to, created_by_agent, status, due_date</td>
+    </tr>
+  </table>
+
+  <div class="highlight">
+    <h4>Multi-tenancy: Row Level Security</h4>
+    <p>Todas las tablas incluyen <strong>tenant_id</strong>. PostgREST aplica automáticamente filtros por tenant basados en el JWT del usuario autenticado. Ningún cliente puede ver datos de otro. Sin código extra en el frontend.</p>
+  </div>
+</div>
+
+<!-- PAGE 6: MODULE ROADMAP -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-number">6</div>
+    <div>
+      <div class="section-title">Roadmap de Módulos</div>
+      <div class="section-desc">Plan de construcción en 3 fases con base existente</div>
+    </div>
+  </div>
+
+  <h3 style="color:#7c3aed">FASE 1 — MVP Vendible</h3>
+  <table>
+    <tr>
+      <th>Módulo</th>
+      <th>Estado actual</th>
+      <th>Trabajo requerido</th>
+    </tr>
+    <tr>
+      <td><strong>Dashboard</strong></td>
+      <td><span class="badge-green">Existe</span></td>
+      <td>Adaptar KPIs a datos reales de PostgreSQL, conectar via PostgREST</td>
+    </tr>
+    <tr>
+      <td><strong>Leads</strong></td>
+      <td><span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px">Nuevo</span></td>
+      <td>Pipeline kanban, tabla de leads, formulario, integración Agente Leads</td>
+    </tr>
+    <tr>
+      <td><strong>Clients / CRM</strong></td>
+      <td><span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px">Nuevo</span></td>
+      <td>Perfil de cliente, historial, notas AI, integración Agente Clients</td>
+    </tr>
+    <tr>
+      <td><strong>AI Chat / Orquestador</strong></td>
+      <td><span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px">Nuevo ★</span></td>
+      <td>Interfaz de chat, WebSocket, integración orquestador + WhatsApp/Telegram</td>
+    </tr>
+    <tr>
+      <td><strong>Usage / Tokens</strong></td>
+      <td><span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px">Nuevo</span></td>
+      <td>Gráfica de consumo, tabla por agente, alertas de límite</td>
+    </tr>
+    <tr>
+      <td><strong>Team</strong></td>
+      <td><span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px">Nuevo</span></td>
+      <td>CRUD de usuarios, asignación de roles y permisos por sección</td>
+    </tr>
+    <tr>
+      <td><strong>Settings</strong></td>
+      <td><span style="background:#fee2e2;color:#991b1b;font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px">Nuevo</span></td>
+      <td>Canales externos (WA/Telegram), branding, notificaciones</td>
+    </tr>
+    <tr>
+      <td><strong>Billing</strong></td>
+      <td><span class="badge-green">Existe</span></td>
+      <td>Adaptar al modelo suscripción de NeuraSolutions</td>
+    </tr>
+  </table>
+
+  <h3 style="color:#059669">FASE 2 — Alto Valor</h3>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">Emails</div>
+      <div class="card-body">Bandeja integrada + respuestas automáticas AI + seguimientos y campañas</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Automations</div>
+      <div class="card-body">Vista de workflows n8n, logs de ejecución, estado en tiempo real. <em>AI Systems actual renombrado</em></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Analytics</div>
+      <div class="card-body">Métricas de agentes, conversiones, ROI del sistema. <em>Analytics actual adaptado</em></div>
+    </div>
+  </div>
+
+  <h3 style="color:#d97706">FASE 3 — Plataforma Completa</h3>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Reports</div>
+      <div class="card-body">Reportes generados por IA, exportables a PDF/CSV, programables semanalmente. <em>Reports actual adaptado</em></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Tasks</div>
+      <div class="card-body">Tareas creadas por agentes, asignadas al equipo, con deadlines y seguimiento. Nuevo módulo</div>
+    </div>
+  </div>
+
+  <div class="highlight" style="margin-top:16px">
+    <h4>Modelo de precios recomendado por fase</h4>
+    <p>
+      <strong>Plan Starter (Fase 1)</strong> — £10,000 setup + £400/mes · Módulos core, 1 canal externo, hasta 5 usuarios<br>
+      <strong>Plan Growth (Fase 2)</strong> — £15,000 setup + £700/mes · Todo Fase 1 + Emails + Analytics + hasta 15 usuarios<br>
+      <strong>Plan Enterprise (Fase 3)</strong> — £20,000+ setup + £1,200/mes · Sistema completo, usuarios ilimitados, SLA
+    </p>
+  </div>
+</div>
+
+</body>
+</html>

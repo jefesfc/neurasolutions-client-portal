@@ -23,11 +23,6 @@ const API_URL =
   import.meta.env.VITE_API_URL ??
   "http://localhost:3001";
 
-const TABS = [
-  { id: "company",  label: "Company"  },
-  { id: "security", label: "Security" },
-];
-
 function CompanyTab({ tenantId }: { tenantId: string }) {
   const { data, loading, error } = useQuery<Tenant>("tenants", {
     filters: { id: `eq.${tenantId}` },
@@ -263,9 +258,89 @@ function SecurityTab() {
   );
 }
 
+function TelegramTab() {
+  const { token } = useAuthStore();
+  const [status, setStatus] = useState<{ linked: boolean; chat_id: string | null } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [disconnecting, setDisconnecting] = useState(false);
+
+  useEffect(() => {
+    fetch(`${API_URL}/telegram/status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((data) => setStatus(data as { linked: boolean; chat_id: string | null }))
+      .finally(() => setLoading(false));
+  }, [token]);
+
+  async function handleDisconnect() {
+    setDisconnecting(true);
+    await fetch(`${API_URL}/telegram/link`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setStatus({ linked: false, chat_id: null });
+    setDisconnecting(false);
+  }
+
+  if (loading) return <Skeleton className="h-20 rounded-lg max-w-lg" />;
+
+  if (status?.linked) {
+    return (
+      <div className="max-w-lg space-y-4">
+        <div className="flex items-center gap-3 p-4 rounded-lg border border-green-200 bg-green-50">
+          <span className="text-green-600 text-lg">✅</span>
+          <div>
+            <p className="font-medium text-surface-900">Telegram connected</p>
+            <p className="text-xs text-surface-500">Chat ID: {status.chat_id}</p>
+          </div>
+        </div>
+        <Button variant="secondary" loading={disconnecting} onClick={() => void handleDisconnect()}>
+          Disconnect
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-lg space-y-5">
+      <p className="text-sm text-surface-600">
+        Connect your Telegram account to chat with AIOS directly from your phone.
+      </p>
+      <ol className="space-y-4">
+        <li className="flex gap-3 text-sm text-surface-700">
+          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-xs font-semibold">
+            1
+          </span>
+          Open Telegram and find your company's AIOS bot
+        </li>
+        <li className="flex gap-3 text-sm text-surface-700">
+          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-xs font-semibold">
+            2
+          </span>
+          Send the message{" "}
+          <code className="bg-surface-100 px-1.5 py-0.5 rounded text-xs font-mono">/start</code>
+        </li>
+        <li className="flex gap-3 text-sm text-surface-700">
+          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-xs font-semibold">
+            3
+          </span>
+          The bot will confirm your connection automatically
+        </li>
+      </ol>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("company");
   const { user } = useAuthStore();
+
+  const tabs = [
+    { id: "company", label: "Company" },
+    { id: "security", label: "Security" },
+    ...(user?.role === "admin" ? [{ id: "telegram", label: "Telegram" }] : []),
+  ];
 
   return (
     <PageTransition>
@@ -274,10 +349,11 @@ export default function SettingsPage() {
         description="Manage your account and company preferences"
       />
       <div className="w-fit mb-6">
-        <Tabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
+        <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
       </div>
       {activeTab === "company" && <CompanyTab tenantId={user?.tenant_id ?? ""} />}
       {activeTab === "security" && <SecurityTab />}
+      {activeTab === "telegram" && <TelegramTab />}
     </PageTransition>
   );
 }
