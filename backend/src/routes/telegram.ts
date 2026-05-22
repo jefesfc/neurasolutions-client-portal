@@ -214,7 +214,13 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
       `SELECT id FROM aios.users WHERE tenant_id = $1 AND telegram_user_id = $2`,
       [tenantId, String(chatId)]
     );
-    if (!userRes.rows.length) return;
+    if (!userRes.rows.length) {
+      await callTelegram(botToken, 'sendMessage', {
+        chat_id: chatId,
+        text: `⚠️ DEBUG: chat_id recibido = ${chatId}, no coincide con usuario vinculado. Envía /start para reconectar.`,
+      });
+      return;
+    }
     const userId = userRes.rows[0].id as string;
 
     // Typing indicator
