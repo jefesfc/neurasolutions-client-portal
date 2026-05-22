@@ -294,6 +294,17 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
     await callTelegram(botToken, 'sendMessage', { chat_id: chatId, text: assistantReply });
   } catch (err) {
     console.error('[telegram/webhook]', err);
+    try {
+      const tenantRes2 = await db.query(`SELECT settings FROM aios.tenants WHERE id = $1`, [tenantId]);
+      const botToken2 = (tenantRes2.rows[0]?.settings as TenantSettings | undefined)?.telegram?.bot_token;
+      if (botToken2) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        await callTelegram(botToken2, 'sendMessage', {
+          chat_id: message?.chat.id ?? 0,
+          text: `⚠️ Error interno: ${errMsg.slice(0, 200)}`,
+        });
+      }
+    } catch (_) { /* ignore */ }
   }
 });
 
