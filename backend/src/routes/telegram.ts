@@ -56,7 +56,11 @@ router.post('/activate', requireAuth, async (req: Request, res: Response) => {
   }
   try {
     const webhookUrl = `${BACKEND_URL}/telegram/webhook/${tenant_id}`;
-    const tgRes = await callTelegram(bot_token, 'setWebhook', { url: webhookUrl });
+    const tgRes = await callTelegram(bot_token, 'setWebhook', {
+      url: webhookUrl,
+      allowed_updates: ['message'],
+      drop_pending_updates: true,
+    });
     if (!tgRes.ok) {
       res.status(400).json({ error: `Telegram error: ${tgRes.description ?? 'unknown'}` });
       return;
