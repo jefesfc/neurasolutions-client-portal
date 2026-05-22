@@ -6,7 +6,10 @@ import { Badge } from '../../components/ui/Badge';
 import { useAuthStore } from '../../store/auth-store';
 import { Building2, Users, Zap, MessageCircle } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+const API_URL =
+  (window as Window & { __env__?: { API_URL?: string } }).__env__?.API_URL ??
+  import.meta.env.VITE_API_URL ??
+  'http://localhost:3001';
 
 interface Tenant {
   id: string;
