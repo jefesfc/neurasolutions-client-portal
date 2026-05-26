@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
+
+const TELEGRAM_NS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
 import { requireAuth } from '../middleware/requireAuth';
 import { openai } from '../lib/openai';
 import { toolDefinitions, executeTool } from '../lib/agentTools';
@@ -168,6 +170,7 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
 
   const chatId = message.chat.id;
   const text = message.text.trim();
+  const conversationId = uuidv5(String(chatId), TELEGRAM_NS);
 
   try {
     const tenantRes = await db.query(
@@ -231,7 +234,7 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
       `SELECT role, content FROM aios.interactions
        WHERE tenant_id = $1 AND channel = 'telegram' AND entity_type = 'conversation' AND entity_id = $2
        ORDER BY created_at ASC LIMIT 20`,
-      [tenantId, String(chatId)]
+      [tenantId, conversationId]
     );
     const history: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = historyRes.rows.map((r) => ({
       role: r.role as 'user' | 'assistant',
@@ -286,7 +289,7 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
       `INSERT INTO aios.interactions (id, tenant_id, user_id, channel, role, content, entity_type, entity_id)
        VALUES ($1,$2,$3,'telegram','user',$4,'conversation',$5),
               ($6,$2,$3,'telegram','assistant',$7,'conversation',$5)`,
-      [uuidv4(), tenantId, userId, text, String(chatId), uuidv4(), assistantReply]
+      [uuidv4(), tenantId, userId, text, conversationId, uuidv4(), assistantReply]
     );
 
     // Track cost
