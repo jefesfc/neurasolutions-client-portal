@@ -1,4 +1,4 @@
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { Card } from "../ui/Card";
 
 interface SpendingEntry {
@@ -22,21 +22,6 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: { name
   );
 }
 
-function CustomLegend({ payload }: { payload?: { value: string; color: string }[] }) {
-  if (!payload) return null;
-  return (
-    <div className="grid grid-cols-1 gap-1.5 mt-3">
-      {payload.map((entry) => (
-        <div key={entry.value} className="flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
-            <span className="text-surface-600">{entry.value}</span>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 export function TokenSpendingChart({ data }: Props) {
   const total = data.reduce((sum, d) => sum + d.value, 0);
