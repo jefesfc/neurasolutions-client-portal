@@ -55,34 +55,25 @@ export function SubscriptionCard({ subscription, usage }: SubscriptionCardProps)
 
         {/* Usage bars */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2 text-sm text-surface-500">
-              <Zap className="h-3.5 w-3.5" />
-              AI Interactions
+          {[
+            { icon: Zap, label: "AI Interactions", value: usage.aiInteractions.used, max: usage.aiInteractions.limit, variant: "brand" as const },
+            { icon: Database, label: "Storage", value: usage.storageUsed.used, max: usage.storageUsed.limit, variant: "success" as const, unit: "GB" },
+            { icon: Cpu, label: "Active Systems", value: usage.activeSystems.used, max: usage.activeSystems.limit, variant: "brand" as const },
+            { icon: Users, label: "Users", value: 3, max: subscription.limits.users, variant: "warning" as const },
+          ].map(({ icon: Icon, label, value, max, variant, unit }) => (
+            <div key={label} className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-xs text-surface-500">
+                  <Icon className="h-3.5 w-3.5" />
+                  {label}
+                </div>
+                <span className="text-xs font-medium text-surface-600 tabular-nums">
+                  {value.toLocaleString()}{unit ? ` ${unit}` : ""} / {max.toLocaleString()}{unit ? ` ${unit}` : ""}
+                </span>
+              </div>
+              <ProgressBar value={value} max={max} size="sm" variant={variant} />
             </div>
-            <ProgressBar value={usage.aiInteractions.used} max={usage.aiInteractions.limit} size="sm" showLabel labelFormat="fraction" />
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2 text-sm text-surface-500">
-              <Database className="h-3.5 w-3.5" />
-              Storage
-            </div>
-            <ProgressBar value={usage.storageUsed.used} max={usage.storageUsed.limit} size="sm" variant="success" showLabel labelFormat="fraction" />
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2 text-sm text-surface-500">
-              <Cpu className="h-3.5 w-3.5" />
-              Active Systems
-            </div>
-            <ProgressBar value={usage.activeSystems.used} max={usage.activeSystems.limit} size="sm" variant="brand" showLabel labelFormat="fraction" />
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2 text-sm text-surface-500">
-              <Users className="h-3.5 w-3.5" />
-              Users
-            </div>
-            <ProgressBar value={3} max={subscription.limits.users} size="sm" variant="warning" showLabel labelFormat="fraction" />
-          </div>
+          ))}
         </div>
 
         {/* Features grid */}
