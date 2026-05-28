@@ -36,7 +36,7 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
       key: "amount",
       header: "Amount",
       accessor: (inv: Invoice): ReactNode => (
-        <span className="font-medium">{formatCurrency(inv.amount)}</span>
+        <span className="font-medium">{formatCurrency(inv.amount, inv.currency || "GBP")}</span>
       ),
       align: "right" as const,
     },

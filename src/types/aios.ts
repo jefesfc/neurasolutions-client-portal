@@ -35,6 +35,21 @@ export interface User {
   created_at?: string;
 }
 
+export interface Email {
+  id: string;
+  tenant_id: string;
+  gmail_id: string;
+  from_email: string;
+  from_name: string | null;
+  subject: string | null;
+  snippet: string | null;
+  body_text: string | null;
+  labels: string[];
+  is_read: boolean;
+  received_at: string;
+  created_at: string;
+}
+
 export interface TokenUsage {
   id: string;
   tenant_id: string;

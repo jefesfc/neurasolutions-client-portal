@@ -2,6 +2,7 @@ import {
   LayoutDashboard,
   Users,
   BookUser,
+  Mail,
   Bot,
   Cpu,
   BarChart3,
@@ -19,6 +20,7 @@ export interface NavItem {
   label: string;
   path: string;
   icon: LucideIcon;
+  permission?: string;
 }
 
 export interface NavSection {
@@ -30,6 +32,7 @@ export const mainNavItems: NavItem[] = [
   { label: "Dashboard",  path: ROUTES.Dashboard, icon: LayoutDashboard },
   { label: "Leads",      path: ROUTES.Leads,     icon: Users           },
   { label: "CRM",        path: ROUTES.Contacts,  icon: BookUser        },
+  { label: "Emails",     path: ROUTES.Emails,    icon: Mail,   permission: "emails" },
   { label: "AI Chat",    path: ROUTES.AIChat,    icon: Bot             },
   { label: "Usage",      path: ROUTES.Usage,     icon: Zap             },
   { label: "AI Systems", path: ROUTES.AISystems, icon: Cpu             },

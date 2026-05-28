@@ -7,6 +7,7 @@ interface JWTPayload {
   app_role: string;
   is_platform_admin: boolean;
   email: string;
+  is_service?: boolean;
 }
 
 declare global {

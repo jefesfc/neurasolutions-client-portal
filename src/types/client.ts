@@ -18,6 +18,8 @@ export interface SubscriptionPlan {
   id: string;
   name: string;
   price: number;
+  currency?: string;
+  setupFee?: number;
   billingCycle: "monthly" | "annual";
   status: "active" | "past_due" | "canceled" | "trialing";
   renewalDate: string;

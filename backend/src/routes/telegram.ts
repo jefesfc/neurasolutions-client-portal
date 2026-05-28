@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
+import { toFile } from 'openai';
 
 const TELEGRAM_NS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
 import { requireAuth } from '../middleware/requireAuth';
@@ -25,6 +26,7 @@ interface TelegramUpdate {
   message?: {
     chat: { id: number };
     text?: string;
+    voice?: { file_id: string; duration: number; mime_type?: string };
   };
 }
 
@@ -60,7 +62,7 @@ router.post('/activate', requireAuth, async (req: Request, res: Response) => {
     const webhookUrl = `${BACKEND_URL}/telegram/webhook/${tenant_id}`;
     const tgRes = await callTelegram(bot_token, 'setWebhook', {
       url: webhookUrl,
-      allowed_updates: ['message'],
+      allowed_updates: ['message'],  // 'message' already includes voice, text, etc.
       drop_pending_updates: true,
     });
     if (!tgRes.ok) {
@@ -166,10 +168,9 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
   res.sendStatus(200);
 
   const message = update.message;
-  if (!message?.text) return;
+  if (!message?.text && !message?.voice) return;
 
   const chatId = message.chat.id;
-  const text = message.text.trim();
   const conversationId = uuidv5(String(chatId), TELEGRAM_NS);
 
   try {
@@ -180,6 +181,34 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
     const settings = tenantRes.rows[0]?.settings as TenantSettings | undefined;
     const botToken = settings?.telegram?.bot_token;
     if (!botToken || !settings?.telegram?.enabled) return;
+
+    // Resolve text: transcribe voice if needed
+    let text: string;
+    if (message.voice) {
+      const fileRes = await fetch(
+        `https://api.telegram.org/bot${botToken}/getFile?file_id=${message.voice.file_id}`
+      );
+      const fileData = (await fileRes.json()) as { ok: boolean; result?: { file_path: string } };
+      if (!fileData.ok || !fileData.result?.file_path) return;
+
+      const audioRes = await fetch(
+        `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`
+      );
+      const audioBuffer = Buffer.from(await audioRes.arrayBuffer());
+      const voiceFile = await toFile(audioBuffer, 'voice.ogg', { type: 'audio/ogg' });
+
+      const transcription = await openai.audio.transcriptions.create({
+        file: voiceFile,
+        model: 'whisper-1',
+      });
+      text = transcription.text.trim();
+      if (!text) return;
+
+      // Let the user know AIOS heard them
+      await callTelegram(botToken, 'sendChatAction', { chat_id: chatId, action: 'typing' });
+    } else {
+      text = message.text!.trim();
+    }
 
     // /start — linking flow
     if (text === '/start') {

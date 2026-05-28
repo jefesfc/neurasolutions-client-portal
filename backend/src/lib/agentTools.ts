@@ -64,6 +64,21 @@ export const toolDefinitions: OpenAI.Chat.Completions.ChatCompletionTool[] = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'get_recent_emails',
+      description: 'Get recent emails received in the company inbox, ordered by date descending.',
+      parameters: {
+        type: 'object',
+        properties: {
+          limit: { type: 'number', description: 'Max emails to return (default 5, max 20).' },
+          search: { type: 'string', description: 'Search by sender email or subject.' },
+        },
+        required: [],
+      },
+    },
+  },
 ];
 
 export async function executeTool(name: string, args: Record<string, unknown>, tenantId: string): Promise<unknown> {
@@ -152,6 +167,26 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
         [tenantId, limit]
       );
       return { recent_leads: res.rows };
+    }
+
+    case 'get_recent_emails': {
+      const limit = Math.min(+(args.limit ?? 5), 20);
+      const search = args.search as string | undefined;
+
+      let q = `SELECT from_name, from_email, subject, snippet, received_at, is_read
+               FROM aios.emails WHERE tenant_id = $1`;
+      const params: unknown[] = [tenantId];
+
+      if (search) {
+        params.push(`%${search.toLowerCase()}%`);
+        q += ` AND (LOWER(from_email) LIKE $${params.length} OR LOWER(COALESCE(subject,'')) LIKE $${params.length})`;
+      }
+
+      params.push(limit);
+      q += ` ORDER BY received_at DESC LIMIT $${params.length}`;
+
+      const emailRes = await db.query(q, params);
+      return { count: emailRes.rowCount, emails: emailRes.rows };
     }
 
     default:

@@ -36,27 +36,31 @@ export const mockClient: Client = {
 // ── Subscription ──
 
 export const mockSubscription: SubscriptionPlan = {
-  id: "sub_pro_001",
+  id: "sub_aios_001",
   name: "Professional",
-  price: 2499,
+  price: 850,
+  currency: "GBP",
+  setupFee: 14000,
   billingCycle: "monthly",
   status: "active",
-  renewalDate: "2026-06-01",
+  renewalDate: "2026-06-28",
   features: [
-    { id: "f1", name: "Lead Generation AI", description: "AI-powered lead discovery and enrichment", included: true },
-    { id: "f2", name: "Customer Support AI", description: "24/7 automated customer service agents", included: true },
-    { id: "f3", name: "Data Analysis Suite", description: "Real-time data processing and insights", included: true },
-    { id: "f4", name: "Workflow Automation", description: "End-to-end process automation", included: true },
-    { id: "f5", name: "Custom AI Model Training", description: "Tailored models for your business", included: true },
-    { id: "f6", name: "Priority API Access", description: "Dedicated API throughput and SLAs", included: true },
-    { id: "f7", name: "Advanced Analytics", description: "Custom dashboards and reports", included: true },
-    { id: "f8", name: "Dedicated Support", description: "24/7 priority support channel", included: true },
+    { id: "f1", name: "AI Operating System (AIOS)", description: "Full-stack AI-powered business operating system", included: true },
+    { id: "f2", name: "Lead Generation & CRM", description: "AI lead capture, contacts, pipeline management", included: true },
+    { id: "f3", name: "Gmail Inbox Sync", description: "Synced Gmail inbox with AI categorisation via n8n", included: true },
+    { id: "f4", name: "Telegram AI Chat (Text + Voice)", description: "Business assistant via Telegram with voice support", included: true },
+    { id: "f5", name: "Web AI Chat (GPT-4o)", description: "Multi-turn AI chat with live data tools", included: true },
+    { id: "f6", name: "Analytics & Report Generation", description: "KPI dashboards, trend charts, PDF reports", included: true },
+    { id: "f7", name: "Team & Role Management", description: "Multi-user portal with section permissions", included: true },
+    { id: "f8", name: "n8n Workflow Automation", description: "Automated email/CRM sync workflows", included: true },
+    { id: "f9", name: "Token Cost Tracking", description: "Real-time AI spend tracking per module in £", included: true },
+    { id: "f10", name: "Platform Admin Panel", description: "Multi-tenant management console", included: true },
   ],
   limits: {
     aiSystems: 10,
-    monthlyInteractions: 100000,
-    storageGb: 500,
-    users: 25,
+    monthlyInteractions: 50000,
+    storageGb: 100,
+    users: 10,
     apiAccess: true,
     customReports: true,
     prioritySupport: true,
@@ -64,25 +68,37 @@ export const mockSubscription: SubscriptionPlan = {
 };
 
 export const mockUsageStats: UsageStats = {
-  aiInteractions: { used: 78432, limit: 100000 },
-  storageUsed: { used: 312, limit: 500, unit: "GB" },
-  apiCalls: { used: 450210, limit: 1000000 },
-  activeSystems: { used: 6, limit: 10 },
+  aiInteractions: { used: 3842, limit: 50000 },
+  storageUsed: { used: 18, limit: 100, unit: "GB" },
+  apiCalls: { used: 12450, limit: 500000 },
+  activeSystems: { used: 4, limit: 10 },
 };
 
+export const mockTokenSpending = [
+  { name: "Web AI Chat", value: 12.40, color: "#6366f1" },
+  { name: "Telegram Bot", value: 8.20, color: "#3b82f6" },
+  { name: "Telegram Voice", value: 3.60, color: "#8b5cf6" },
+  { name: "Report Generation", value: 2.80, color: "#10b981" },
+  { name: "Lead Analysis", value: 4.10, color: "#f59e0b" },
+];
+
 export const mockInvoices: Invoice[] = [
-  { id: "inv_012", number: "INV-2026-05", date: "2026-05-01", dueDate: "2026-05-15", amount: 2499, currency: "USD", status: "pending", pdfUrl: "#", items: [] },
-  { id: "inv_011", number: "INV-2026-04", date: "2026-04-01", dueDate: "2026-04-15", amount: 2499, currency: "USD", status: "paid", pdfUrl: "#", items: [] },
-  { id: "inv_010", number: "INV-2026-03", date: "2026-03-01", dueDate: "2026-03-15", amount: 2499, currency: "USD", status: "paid", pdfUrl: "#", items: [] },
-  { id: "inv_009", number: "INV-2026-02", date: "2026-02-01", dueDate: "2026-02-15", amount: 2499, currency: "USD", status: "paid", pdfUrl: "#", items: [] },
-  { id: "inv_008", number: "INV-2026-01", date: "2026-01-01", dueDate: "2026-01-15", amount: 2499, currency: "USD", status: "paid", pdfUrl: "#", items: [] },
-  { id: "inv_007", number: "INV-2025-12", date: "2025-12-01", dueDate: "2025-12-15", amount: 1999, currency: "USD", status: "paid", pdfUrl: "#", items: [] },
-  { id: "inv_006", number: "INV-2025-11", date: "2025-11-01", dueDate: "2025-11-15", amount: 1999, currency: "USD", status: "paid", pdfUrl: "#", items: [] },
-  { id: "inv_005", number: "INV-2025-10", date: "2025-10-01", dueDate: "2025-10-15", amount: 1999, currency: "USD", status: "paid", pdfUrl: "#", items: [] },
-  { id: "inv_004", number: "INV-2025-09", date: "2025-09-01", dueDate: "2025-09-15", amount: 1999, currency: "USD", status: "paid", pdfUrl: "#", items: [] },
-  { id: "inv_003", number: "INV-2025-08", date: "2025-08-01", dueDate: "2025-08-15", amount: 1999, currency: "USD", status: "paid", pdfUrl: "#", items: [] },
-  { id: "inv_002", number: "INV-2025-07", date: "2025-07-01", dueDate: "2025-07-15", amount: 1999, currency: "USD", status: "paid", pdfUrl: "#", items: [] },
-  { id: "inv_001", number: "INV-2025-06", date: "2025-06-01", dueDate: "2025-06-15", amount: 1999, currency: "USD", status: "paid", pdfUrl: "#", items: [] },
+  { id: "inv_005", number: "INV-2026-05", date: "2026-05-28", dueDate: "2026-06-07", amount: 850, currency: "GBP", status: "pending", pdfUrl: "#", items: [
+    { description: "AIOS Professional — Monthly Maintenance (June 2026)", quantity: 1, unitPrice: 850, total: 850 },
+  ]},
+  { id: "inv_004", number: "INV-2026-04", date: "2026-04-28", dueDate: "2026-05-07", amount: 850, currency: "GBP", status: "paid", pdfUrl: "#", items: [
+    { description: "AIOS Professional — Monthly Maintenance (May 2026)", quantity: 1, unitPrice: 850, total: 850 },
+  ]},
+  { id: "inv_003", number: "INV-2026-03", date: "2026-03-28", dueDate: "2026-04-07", amount: 850, currency: "GBP", status: "paid", pdfUrl: "#", items: [
+    { description: "AIOS Professional — Monthly Maintenance (April 2026)", quantity: 1, unitPrice: 850, total: 850 },
+  ]},
+  { id: "inv_002", number: "INV-2026-02", date: "2026-02-28", dueDate: "2026-03-07", amount: 850, currency: "GBP", status: "paid", pdfUrl: "#", items: [
+    { description: "AIOS Professional — Monthly Maintenance (March 2026)", quantity: 1, unitPrice: 850, total: 850 },
+  ]},
+  { id: "inv_001", number: "INV-2026-01", date: "2026-01-28", dueDate: "2026-02-07", amount: 14850, currency: "GBP", status: "paid", pdfUrl: "#", items: [
+    { description: "AIOS Platform Setup & Development (one-time)", quantity: 1, unitPrice: 14000, total: 14000 },
+    { description: "AIOS Professional — Monthly Maintenance (February 2026)", quantity: 1, unitPrice: 850, total: 850 },
+  ]},
 ];
 
 // ── AI Systems ──

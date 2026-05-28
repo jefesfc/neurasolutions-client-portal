@@ -6,6 +6,7 @@ import adminRouter from './routes/admin';
 import chatRouter from './routes/chat';
 import teamRouter from './routes/team';
 import telegramRouter from './routes/telegram';
+import emailsRouter from './routes/emails';
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use('/admin', adminRouter);
 app.use('/chat', chatRouter);
 app.use('/team', teamRouter);
 app.use('/telegram', telegramRouter);
+app.use('/emails', emailsRouter);
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 

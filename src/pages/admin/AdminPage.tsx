@@ -4,7 +4,7 @@ import { PageHeader } from '../../components/layout/PageHeader';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { useAuthStore } from '../../store/auth-store';
-import { Building2, Users, Zap, MessageCircle } from 'lucide-react';
+import { Building2, Users, Zap, MessageCircle, Mail } from 'lucide-react';
 
 const API_URL =
   (window as Window & { __env__?: { API_URL?: string } }).__env__?.API_URL ??
@@ -37,6 +37,10 @@ export default function AdminPage() {
   const [tgStatus, setTgStatus] = useState<Record<string, boolean>>({});
   const [tgLoading, setTgLoading] = useState<Record<string, boolean>>({});
   const [tgError, setTgError] = useState<Record<string, string>>({});
+
+  const [gmailExpandedId, setGmailExpandedId] = useState<string | null>(null);
+  const [gmailStatus, setGmailStatus] = useState<Record<string, boolean>>({});
+  const [gmailLoading, setGmailLoading] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetch(`${API_URL}/admin/tenants`, {
@@ -97,6 +101,41 @@ export default function AdminPage() {
       setTgStatus((prev) => ({ ...prev, [tenantId]: false }));
     } finally {
       setTgLoading((prev) => ({ ...prev, [tenantId]: false }));
+    }
+  }
+
+  async function fetchGmailStatus(tenantId: string) {
+    try {
+      const r = await fetch(`${API_URL}/emails/activate/${tenantId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = (await r.json()) as { enabled: boolean };
+      setGmailStatus((prev) => ({ ...prev, [tenantId]: data.enabled }));
+    } catch {
+      setGmailStatus((prev) => ({ ...prev, [tenantId]: false }));
+    }
+  }
+
+  function toggleGmail(tenantId: string) {
+    if (gmailExpandedId === tenantId) {
+      setGmailExpandedId(null);
+    } else {
+      setGmailExpandedId(tenantId);
+      void fetchGmailStatus(tenantId);
+    }
+  }
+
+  async function activateGmail(tenantId: string) {
+    setGmailLoading((prev) => ({ ...prev, [tenantId]: true }));
+    try {
+      await fetch(`${API_URL}/emails/activate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ tenant_id: tenantId, enabled: true }),
+      });
+      setGmailStatus((prev) => ({ ...prev, [tenantId]: true }));
+    } finally {
+      setGmailLoading((prev) => ({ ...prev, [tenantId]: false }));
     }
   }
 
@@ -187,6 +226,46 @@ export default function AdminPage() {
                         {tgError[tenant.id] && (
                           <p className="text-xs text-danger">{tgError[tenant.id]}</p>
                         )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Gmail / Emails section */}
+              <div className="mt-2 pt-2 border-t border-surface-100">
+                <button
+                  onClick={() => toggleGmail(tenant.id)}
+                  className="text-xs text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1"
+                >
+                  <Mail className="w-3 h-3" />
+                  Gmail {gmailStatus[tenant.id] ? '✅' : '⚪'}
+                </button>
+
+                {gmailExpandedId === tenant.id && (
+                  <div className="mt-3 space-y-2">
+                    {gmailStatus[tenant.id] ? (
+                      <span className="text-xs text-positive font-medium">✅ Gmail active</span>
+                    ) : (
+                      <div className="space-y-2 text-xs text-surface-600">
+                        <p className="font-medium">Setup steps:</p>
+                        <ol className="space-y-1 list-decimal list-inside text-surface-500">
+                          <li>Create n8n workflow "AIOS Email Watcher" for this tenant</li>
+                          <li>Configure Gmail Trigger with the tenant's Gmail account</li>
+                          <li>Set HTTP Request node → POST /emails/ingest with service JWT</li>
+                          <li>
+                            Set tenant_id ={' '}
+                            <code className="bg-surface-100 px-1 rounded font-mono">{tenant.id}</code>
+                          </li>
+                          <li>Activate the workflow in n8n</li>
+                        </ol>
+                        <button
+                          onClick={() => void activateGmail(tenant.id)}
+                          disabled={gmailLoading[tenant.id]}
+                          className="text-xs bg-brand-500 text-white px-3 py-1.5 rounded hover:bg-brand-600 disabled:opacity-50"
+                        >
+                          {gmailLoading[tenant.id] ? '...' : 'Mark as Active'}
+                        </button>
                       </div>
                     )}
                   </div>

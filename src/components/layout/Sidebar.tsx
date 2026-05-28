@@ -6,12 +6,20 @@ import { cn } from "../../lib/cn";
 import { useSidebarStore } from "../../store/sidebar-store";
 import { useIsMobile } from "../../hooks/use-media-query";
 import { mainNavItems, bottomNavItems } from "../../config/navigation";
+import { useAuthStore } from "../../store/auth-store";
 import logoWhite from "../../assets/neura-logo-white.png";
 
 export function Sidebar() {
   const { isCollapsed, toggle, isMobileOpen, close } = useSidebarStore();
   const location = useLocation();
   const isMobile = useIsMobile();
+  const user = useAuthStore((s) => s.user);
+  const visibleMainNavItems = mainNavItems.filter(
+    (item) =>
+      !item.permission ||
+      user?.role === 'admin' ||
+      (user?.section_permissions ?? []).includes(item.permission)
+  );
   const hoverTimeout = useRef<ReturnType<typeof setTimeout>>(null!);
   const [hoverExpanded, setHoverExpanded] = useState(false);
 
@@ -84,7 +92,7 @@ export function Sidebar() {
           {(expanded || isMobile) && (
             <p className="px-3 text-xs font-medium text-surface-500 uppercase tracking-wider mb-2">Main</p>
           )}
-          {mainNavItems.map((item) => {
+          {visibleMainNavItems.map((item) => {
             const isActive = location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path));
             return (
               <Link
@@ -158,7 +166,7 @@ export function Sidebar() {
       {(expanded || isMobile) && (
         <div className="px-4 py-3 border-t border-surface-800">
           <div className="text-xs text-surface-500">
-            <p>Client Portal v2.4.1</p>
+            <p>Client Portal v2.5.0</p>
           </div>
         </div>
       )}

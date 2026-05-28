@@ -8,6 +8,7 @@ import AdminPage from "../pages/admin/AdminPage";
 import DashboardPage from "../pages/DashboardPage";
 import LeadsPage from "../pages/LeadsPage";
 import ContactsPage from "../pages/ContactsPage";
+import EmailsPage from "../pages/EmailsPage";
 import ChatPage from "../pages/ChatPage";
 import AISystemsPage from "../pages/AISystemsPage";
 import AISystemDetailPage from "../pages/AISystemDetailPage";
@@ -53,6 +54,10 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.Contacts,
     element: <Protected><ContactsPage /></Protected>,
+  },
+  {
+    path: ROUTES.Emails,
+    element: <Protected><EmailsPage /></Protected>,
   },
   {
     path: ROUTES.AIChat,

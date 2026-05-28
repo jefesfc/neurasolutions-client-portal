@@ -332,6 +332,77 @@ function TelegramTab() {
   );
 }
 
+function EmailTab() {
+  const { token } = useAuthStore();
+  const [labelFilter, setLabelFilter] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const res = await fetch(`${API_URL}/emails/settings`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ label_filter: labelFilter.trim() || null }),
+      });
+      if (!res.ok) {
+        const body = (await res.json()) as { error?: string };
+        throw new Error(body.error ?? 'Failed to save');
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="max-w-lg space-y-5">
+      <p className="text-sm text-surface-600">
+        Configure which Gmail labels are synced to AIOS. Leave blank to receive all incoming emails.
+      </p>
+      <form onSubmit={(e) => void handleSave(e)} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-surface-700 mb-1">
+            Gmail Label Filter
+          </label>
+          <Input
+            value={labelFilter}
+            onChange={(e) => setLabelFilter(e.target.value)}
+            placeholder="INBOX (leave blank for all emails)"
+          />
+          <p className="text-xs text-surface-400 mt-1">
+            Examples:{' '}
+            <code className="bg-surface-100 px-1 rounded">INBOX</code>,{' '}
+            <code className="bg-surface-100 px-1 rounded">Label_Clients</code>
+          </p>
+        </div>
+        {saveError && <p className="text-sm text-danger">{saveError}</p>}
+        {saved && <p className="text-sm text-positive">Saved successfully.</p>}
+        <div className="pt-1">
+          <Button type="submit" loading={saving}>
+            Save
+          </Button>
+        </div>
+      </form>
+      <div className="border-t border-surface-200 pt-4">
+        <p className="text-xs text-surface-500">
+          To connect Gmail, contact NeuraSolutions — we configure the n8n workflow for your account.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("company");
   const { user } = useAuthStore();
@@ -339,7 +410,12 @@ export default function SettingsPage() {
   const tabs = [
     { id: "company", label: "Company" },
     { id: "security", label: "Security" },
-    ...(user?.role === "admin" ? [{ id: "telegram", label: "Telegram" }] : []),
+    ...(user?.role === "admin"
+      ? [
+          { id: "telegram", label: "Telegram" },
+          { id: "email", label: "Email" },
+        ]
+      : []),
   ];
 
   return (
@@ -354,6 +430,7 @@ export default function SettingsPage() {
       {activeTab === "company" && <CompanyTab tenantId={user?.tenant_id ?? ""} />}
       {activeTab === "security" && <SecurityTab />}
       {activeTab === "telegram" && <TelegramTab />}
+      {activeTab === "email" && <EmailTab />}
     </PageTransition>
   );
 }
