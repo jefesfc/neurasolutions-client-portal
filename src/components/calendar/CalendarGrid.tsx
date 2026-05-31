@@ -30,7 +30,7 @@ export function CalendarGrid({ events, selectedDate, onSelectDate }: Props) {
     ...Array.from({ length: totalDays }, (_, i) => i + 1),
   ];
 
-  const monthLabel = monthStart.toLocaleString('default', { month: 'long', year: 'numeric' });
+  const monthLabel = monthStart.toLocaleString('en-US', { month: 'long', year: 'numeric' });
 
   function prevMonth() {
     if (viewMonth === 0) { setViewYear(y => y - 1); setViewMonth(11); }
@@ -51,14 +51,14 @@ export function CalendarGrid({ events, selectedDate, onSelectDate }: Props) {
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={prevMonth}
-          className="p-1.5 rounded-lg hover:bg-white/10 transition-colors text-surface-400 hover:text-white"
+          className="p-1.5 rounded-lg hover:bg-surface-100 transition-colors text-surface-400 hover:text-surface-700"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
         <span className="text-sm font-semibold">{monthLabel}</span>
         <button
           onClick={nextMonth}
-          className="p-1.5 rounded-lg hover:bg-white/10 transition-colors text-surface-400 hover:text-white"
+          className="p-1.5 rounded-lg hover:bg-surface-100 transition-colors text-surface-400 hover:text-surface-700"
         >
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -91,8 +91,8 @@ export function CalendarGrid({ events, selectedDate, onSelectDate }: Props) {
               className={[
                 'flex flex-col items-center rounded-lg p-1 text-xs transition-colors min-h-[38px] cursor-pointer',
                 isToday  ? 'bg-indigo-600 text-white font-semibold' : '',
-                isSel && !isToday ? 'bg-white/20 text-white' : '',
-                !isToday && !isSel ? 'hover:bg-white/10 text-surface-300' : '',
+                isSel && !isToday ? 'bg-indigo-100 text-indigo-700 font-medium' : '',
+                !isToday && !isSel ? 'hover:bg-surface-100 text-surface-600' : '',
               ].join(' ')}
             >
               <span>{day}</span>

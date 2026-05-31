@@ -33,7 +33,7 @@ export function AgendaList({ events, selectedDate, onSelectEvent, onClearDate }:
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold">{heading}</h3>
         {selectedDate && (
-          <button onClick={onClearDate} className="text-xs text-surface-400 hover:text-white transition-colors">
+          <button onClick={onClearDate} className="text-xs text-surface-400 hover:text-surface-700 transition-colors">
             Clear filter
           </button>
         )}
@@ -49,7 +49,7 @@ export function AgendaList({ events, selectedDate, onSelectEvent, onClearDate }:
             <button
               key={`${event.id}-${idx}`}
               onClick={() => onSelectEvent(event)}
-              className="w-full text-left p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border-l-2 group"
+              className="w-full text-left p-3 rounded-lg bg-surface-50 hover:bg-surface-100 transition-colors border-l-2 group"
               style={{ borderLeftColor: CATEGORY_CONFIG[event.category].color }}
             >
               <div className="flex items-center gap-2 mb-1">
@@ -58,14 +58,14 @@ export function AgendaList({ events, selectedDate, onSelectEvent, onClearDate }:
                 {event.status === 'cancelled' && <span className="text-[10px] text-red-400">Cancelled</span>}
                 {event.recurrence_rule && <span className="text-[10px] text-surface-500">↻</span>}
               </div>
-              <p className="text-sm font-medium text-white leading-snug">{event.title}</p>
+              <p className="text-sm font-medium text-surface-900 leading-snug">{event.title}</p>
               <p className="text-xs text-surface-400 mt-0.5">
                 {event.all_day
                   ? format(occurrenceDate, 'd MMM yyyy')
                   : format(occurrenceDate, 'd MMM yyyy · HH:mm')}
               </p>
               {event.amount != null && (
-                <p className="text-xs text-surface-300 mt-0.5">
+                <p className="text-xs text-surface-500 mt-0.5">
                   {event.currency} {event.amount.toLocaleString()}
                 </p>
               )}
