@@ -7,6 +7,7 @@ import chatRouter from './routes/chat';
 import teamRouter from './routes/team';
 import telegramRouter from './routes/telegram';
 import emailsRouter from './routes/emails';
+import calendarRouter from './routes/calendar';
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use('/chat', chatRouter);
 app.use('/team', teamRouter);
 app.use('/telegram', telegramRouter);
 app.use('/emails', emailsRouter);
+app.use('/calendar', calendarRouter);
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 

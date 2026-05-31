@@ -403,6 +403,91 @@ function EmailTab() {
   );
 }
 
+function CalendarTab() {
+  const { token } = useAuthStore();
+  const [telegramNotify, setTelegramNotify] = useState(false);
+  const [emailNotify, setEmailNotify]       = useState(false);
+  const [advanceDays, setAdvanceDays]       = useState(1);
+  const [loading, setLoading]               = useState(true);
+  const [saving, setSaving]                 = useState(false);
+  const [saved, setSaved]                   = useState(false);
+  const [saveError, setSaveError]           = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch(`${API_URL}/calendar/settings-read`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then((data: { telegram_notify?: boolean; email_notify?: boolean; advance_days?: number }) => {
+        setTelegramNotify(data.telegram_notify ?? false);
+        setEmailNotify(data.email_notify ?? false);
+        setAdvanceDays(data.advance_days ?? 1);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [token]);
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const res = await fetch(`${API_URL}/calendar/settings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ telegram_notify: telegramNotify, email_notify: emailNotify, advance_days: advanceDays }),
+      });
+      if (!res.ok) {
+        const body = (await res.json()) as { error?: string };
+        throw new Error(body.error ?? 'Failed to save');
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading) return <Skeleton className="h-32 rounded-lg max-w-lg" />;
+
+  return (
+    <div className="max-w-lg space-y-5">
+      <p className="text-sm text-surface-600">
+        Configure how AIOS notifies your team about upcoming calendar events.
+      </p>
+      <form onSubmit={(e) => void handleSave(e)} className="space-y-4">
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" checked={telegramNotify} onChange={e => setTelegramNotify(e.target.checked)} className="rounded" />
+          <span className="text-sm text-surface-700">Send Telegram reminders</span>
+        </label>
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" checked={emailNotify} onChange={e => setEmailNotify(e.target.checked)} className="rounded" />
+          <span className="text-sm text-surface-700">Send Email reminders</span>
+        </label>
+        <div>
+          <label className="block text-sm font-medium text-surface-700 mb-1">Advance notice</label>
+          <select
+            value={advanceDays}
+            onChange={e => setAdvanceDays(parseInt(e.target.value))}
+            className="rounded-lg border border-surface-200 bg-surface-50 px-3 py-2 text-sm text-surface-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          >
+            <option value={1}>1 day before</option>
+            <option value={3}>3 days before</option>
+            <option value={7}>1 week before</option>
+          </select>
+        </div>
+        {saveError && <p className="text-sm text-danger">{saveError}</p>}
+        {saved && <p className="text-sm text-positive">Saved successfully.</p>}
+        <div className="pt-1">
+          <Button type="submit" loading={saving}>Save</Button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("company");
   const { user } = useAuthStore();
@@ -414,6 +499,7 @@ export default function SettingsPage() {
       ? [
           { id: "telegram", label: "Telegram" },
           { id: "email", label: "Email" },
+          { id: "calendar", label: "Calendar" },
         ]
       : []),
   ];
@@ -431,6 +517,7 @@ export default function SettingsPage() {
       {activeTab === "security" && <SecurityTab />}
       {activeTab === "telegram" && <TelegramTab />}
       {activeTab === "email" && <EmailTab />}
+      {activeTab === "calendar" && <CalendarTab />}
     </PageTransition>
   );
 }
