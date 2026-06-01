@@ -8,6 +8,7 @@ import { Tabs } from "../components/ui/Tabs";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Skeleton } from "../components/ui/Skeleton";
+import { ThemeSelector } from "../components/settings/ThemeSelector";
 
 interface Tenant {
   id: string;
@@ -403,6 +404,17 @@ function EmailTab() {
   );
 }
 
+function AppearanceTab() {
+  return (
+    <div className="max-w-lg space-y-5">
+      <p className="text-sm text-surface-600">
+        Choose a premium theme for your AIOS workspace. The theme applies instantly.
+      </p>
+      <ThemeSelector />
+    </div>
+  );
+}
+
 function CalendarTab() {
   const { token } = useAuthStore();
   const [telegramNotify, setTelegramNotify] = useState(false);
@@ -476,6 +488,9 @@ function CalendarTab() {
             <option value={1}>1 day before</option>
             <option value={3}>3 days before</option>
             <option value={7}>1 week before</option>
+            <option value={30}>1 month before</option>
+            <option value={90}>3 months before</option>
+            <option value={180}>6 months before</option>
           </select>
         </div>
         {saveError && <p className="text-sm text-danger">{saveError}</p>}
@@ -493,6 +508,7 @@ export default function SettingsPage() {
   const { user } = useAuthStore();
 
   const tabs = [
+    { id: "appearance", label: "Appearance" },
     { id: "company", label: "Company" },
     { id: "security", label: "Security" },
     ...(user?.role === "admin"
@@ -513,6 +529,7 @@ export default function SettingsPage() {
       <div className="w-fit mb-6">
         <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
       </div>
+      {activeTab === "appearance" && <AppearanceTab />}
       {activeTab === "company" && <CompanyTab tenantId={user?.tenant_id ?? ""} />}
       {activeTab === "security" && <SecurityTab />}
       {activeTab === "telegram" && <TelegramTab />}
