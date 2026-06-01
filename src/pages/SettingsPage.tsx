@@ -9,6 +9,7 @@ import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Skeleton } from "../components/ui/Skeleton";
 import { ThemeSelector } from "../components/settings/ThemeSelector";
+import { useTheme, type AppTheme } from "../hooks/useTheme";
 
 interface Tenant {
   id: string;
@@ -405,12 +406,27 @@ function EmailTab() {
 }
 
 function AppearanceTab() {
+  const { theme, setTheme } = useTheme();
+  const [draft, setDraft] = useState<AppTheme>(theme);
+  const [saved, setSaved] = useState(false);
+
+  function handleSave() {
+    setTheme(draft);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  }
+
   return (
     <div className="max-w-lg space-y-5">
       <p className="text-sm text-surface-600">
-        Choose a premium theme for your AIOS workspace. The theme applies instantly.
+        Choose a premium theme for your AIOS workspace.
       </p>
-      <ThemeSelector />
+      <ThemeSelector value={draft} onChange={setDraft} />
+      <div className="pt-2">
+        <Button onClick={handleSave}>
+          {saved ? "Saved!" : "Save Changes"}
+        </Button>
+      </div>
     </div>
   );
 }

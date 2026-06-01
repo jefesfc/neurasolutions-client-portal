@@ -1,4 +1,4 @@
-import { useTheme, type AppTheme } from "../../hooks/useTheme";
+import { type AppTheme } from "../../hooks/useTheme";
 import { Check } from "lucide-react";
 import { cn } from "../../lib/cn";
 
@@ -54,17 +54,20 @@ const THEMES: ThemeOption[] = [
   },
 ];
 
-export function ThemeSelector() {
-  const { theme, setTheme } = useTheme();
+interface ThemeSelectorProps {
+  value: AppTheme;
+  onChange: (theme: AppTheme) => void;
+}
 
+export function ThemeSelector({ value, onChange }: ThemeSelectorProps) {
   return (
     <div className="space-y-3">
       {THEMES.map((t) => {
-        const isActive = theme === t.id;
+        const isActive = value === t.id;
         return (
           <button
             key={t.id}
-            onClick={() => setTheme(t.id)}
+            onClick={() => onChange(t.id)}
             className={cn(
               "w-full text-left rounded-xl border-2 p-4 transition-all duration-150",
               isActive
