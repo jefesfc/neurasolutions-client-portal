@@ -6,7 +6,6 @@ export const ROUTES = {
   Contacts: "/contacts",
   Calendar: "/calendar",
   Emails: "/emails",
-  AIChat: "/chat",
   AISystems: "/systems",
   AISystemDetail: "/systems/:id",
   Analytics: "/analytics",
