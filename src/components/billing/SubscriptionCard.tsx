@@ -105,6 +105,16 @@ export function SubscriptionCard({ subscription, usage }: SubscriptionCardProps)
             <span className="text-surface-500">Monthly maintenance</span>
             <span className="font-semibold text-surface-900">{fmt(subscription.price, currency)}</span>
           </div>
+          {subscription.contractMonths && (
+            <div className="flex justify-between text-sm">
+              <span className="text-surface-500">
+                Contract term ({subscription.contractMonths} mo × maint.)
+              </span>
+              <span className="font-medium text-surface-700">
+                {fmt(subscription.price * subscription.contractMonths, currency)}
+              </span>
+            </div>
+          )}
           <div className="flex justify-between text-sm">
             <span className="text-surface-500">Annual (×12)</span>
             <span className="font-medium text-surface-700">{fmt(subscription.price * 12, currency)}</span>
@@ -118,7 +128,9 @@ export function SubscriptionCard({ subscription, usage }: SubscriptionCardProps)
           <div className="border-t border-surface-100 pt-3">
             <div className="flex justify-between text-sm font-semibold">
               <span className="text-surface-700">First-year total</span>
-              <span className="text-surface-900">{fmt((subscription.price * 12) + (subscription.setupFee ?? 0), currency)}</span>
+              <span className="text-surface-900">
+                {fmt((subscription.price * 12) + (subscription.setupFee ?? 0), currency)}
+              </span>
             </div>
           </div>
         </div>

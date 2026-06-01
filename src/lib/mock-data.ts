@@ -41,6 +41,7 @@ export const mockSubscription: SubscriptionPlan = {
   price: 850,
   currency: "GBP",
   setupFee: 14000,
+  contractMonths: 12,
   billingCycle: "monthly",
   status: "active",
   renewalDate: "2026-06-28",
@@ -75,11 +76,11 @@ export const mockUsageStats: UsageStats = {
 };
 
 export const mockTokenSpending = [
-  { name: "Web AI Chat", value: 12.40, color: "#6366f1" },
-  { name: "Telegram Bot", value: 8.20, color: "#3b82f6" },
-  { name: "Telegram Voice", value: 3.60, color: "#8b5cf6" },
-  { name: "Report Generation", value: 2.80, color: "#10b981" },
-  { name: "Lead Analysis", value: 4.10, color: "#f59e0b" },
+  { name: "Web AI Chat",        value: 12.40, color: "#6366f1", model: "gpt-4o",    company: "OpenAI"  },
+  { name: "Telegram Bot",       value:  8.20, color: "#3b82f6", model: "gpt-4o",    company: "OpenAI"  },
+  { name: "Telegram Voice",     value:  3.60, color: "#8b5cf6", model: "whisper-1", company: "OpenAI"  },
+  { name: "Report Generation",  value:  2.80, color: "#10b981", model: "gpt-4o",    company: "OpenAI"  },
+  { name: "Lead Analysis",      value:  4.10, color: "#f59e0b", model: "gpt-4o",    company: "OpenAI"  },
 ];
 
 export const mockInvoices: Invoice[] = [

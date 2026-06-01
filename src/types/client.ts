@@ -20,6 +20,7 @@ export interface SubscriptionPlan {
   price: number;
   currency?: string;
   setupFee?: number;
+  contractMonths?: number;
   billingCycle: "monthly" | "annual";
   status: "active" | "past_due" | "canceled" | "trialing";
   renewalDate: string;
