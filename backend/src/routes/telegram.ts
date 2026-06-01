@@ -47,6 +47,23 @@ async function callTelegram(
   return res.json() as Promise<{ ok: boolean; description?: string }>;
 }
 
+async function sendVoiceTelegram(
+  botToken: string,
+  chatId: number,
+  buf: Buffer
+): Promise<void> {
+  const form = new FormData();
+  form.append('chat_id', String(chatId));
+  form.append('voice', new Blob([buf], { type: 'audio/mpeg' }), 'reply.mp3');
+  const res = await fetch(`https://api.telegram.org/bot${botToken}/sendVoice`, {
+    method: 'POST',
+    body: form,
+  });
+  if (!res.ok) {
+    throw new Error(`sendVoice failed: ${res.status} ${res.statusText}`);
+  }
+}
+
 // POST /telegram/activate — platform admin saves bot token and registers webhook
 router.post('/activate', requireAuth, async (req: Request, res: Response) => {
   if (!req.user!.is_platform_admin) {
@@ -169,6 +186,7 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
 
   const message = update.message;
   if (!message?.text && !message?.voice) return;
+  const isVoiceInput = !!message.voice;
 
   const chatId = message.chat.id;
   const conversationId = uuidv5(String(chatId), TELEGRAM_NS);
@@ -329,7 +347,32 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
       [uuidv4(), tenantId, totalTokensIn, totalTokensOut, cost]
     );
 
-    await callTelegram(botToken, 'sendMessage', { chat_id: chatId, text: assistantReply });
+    if (isVoiceInput) {
+      try {
+        const tts = await openai.audio.speech.create({
+          model: 'tts-1',
+          voice: 'alloy',
+          input: assistantReply,
+        });
+        const audioBuffer = Buffer.from(await tts.arrayBuffer());
+
+        // Track TTS cost (character-based: $0.015 / 1K chars)
+        const ttsCost = (assistantReply.length / 1000) * 0.015;
+        await db.query(
+          `INSERT INTO aios.token_usage (id, tenant_id, agent_name, tokens_in, tokens_out, model, cost)
+           VALUES ($1,$2,'aios-telegram-tts',$3,0,'tts-1',$4)`,
+          [uuidv4(), tenantId, assistantReply.length, ttsCost]
+        );
+
+        await sendVoiceTelegram(botToken, chatId, audioBuffer);
+      } catch (err) {
+        console.error('[telegram/tts]', err);
+        // Fallback: send text so the bot never goes silent
+        await callTelegram(botToken, 'sendMessage', { chat_id: chatId, text: assistantReply });
+      }
+    } else {
+      await callTelegram(botToken, 'sendMessage', { chat_id: chatId, text: assistantReply });
+    }
   } catch (err) {
     console.error('[telegram/webhook]', err);
   }
