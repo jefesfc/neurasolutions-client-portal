@@ -6,7 +6,9 @@ export type SystemCategory =
   | "data-analysis"
   | "workflow-automation"
   | "content-creation"
-  | "predictive-analytics";
+  | "predictive-analytics"
+  | "ai-assistant"
+  | "voice-processing";
 
 export const SYSTEM_STATUS = {
   Active: "active",
