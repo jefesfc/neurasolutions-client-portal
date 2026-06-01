@@ -6,10 +6,10 @@ import { Button } from "../components/ui/Button";
 import { useChat } from "../hooks/useChat";
 
 const SUGGESTIONS = [
-  "¿Cuántos leads tenemos en total y cuántos hemos ganado?",
-  "Dame un resumen del pipeline de ventas",
-  "¿Cuál es nuestro ratio de conversión?",
-  "Muéstrame los leads más recientes",
+  "How many leads do we have in total and how many have we won?",
+  "Give me a summary of the sales pipeline",
+  "What is our conversion rate?",
+  "Show me the most recent leads",
 ];
 
 function TypingIndicator() {
@@ -64,11 +64,11 @@ export default function ChatPage() {
     <PageTransition>
       <PageHeader
         title="AI Assistant"
-        description="Consulta datos de negocio en lenguaje natural"
+        description="Query business data in natural language"
         actions={
           <Button variant="outline" size="sm" onClick={clearChat} disabled={isEmpty && !error}>
             <Plus className="h-3.5 w-3.5" />
-            Nueva conversación
+            New conversation
           </Button>
         }
       />
@@ -82,9 +82,9 @@ export default function ChatPage() {
                 <Bot className="h-8 w-8 text-brand-500" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-surface-900 mb-1">¿En qué puedo ayudarte?</h3>
+                <h3 className="text-base font-semibold text-surface-900 mb-1">How can I help you?</h3>
                 <p className="text-sm text-surface-400 max-w-xs">
-                  Pregúntame sobre leads, contactos, métricas o el estado del negocio.
+                  Ask me about leads, contacts, metrics, calendar events, or business performance.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2 justify-center max-w-lg">
@@ -149,7 +149,7 @@ export default function ChatPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Escribe tu pregunta... (Enter para enviar)"
+              placeholder="Type your message... (Enter to send)"
               rows={1}
               className="flex-1 resize-none rounded-xl border border-surface-200 bg-surface-50 px-4 py-3 text-sm text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors max-h-32 overflow-y-auto"
               style={{ fieldSizing: "content" } as React.CSSProperties}
@@ -164,7 +164,7 @@ export default function ChatPage() {
             </Button>
           </div>
           <p className="text-xs text-surface-400 mt-2 pl-1">
-            Shift+Enter para nueva línea · los datos se consultan en tiempo real
+            Shift+Enter for new line · data is queried in real time
           </p>
         </div>
       </div>
