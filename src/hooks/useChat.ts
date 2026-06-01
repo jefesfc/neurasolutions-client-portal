@@ -32,12 +32,12 @@ export function useChat() {
       });
 
       const data = await res.json() as { message?: string; conversation_id?: string; error?: string };
-      if (!res.ok) { setError(data.error ?? 'Error al contactar el servidor'); return; }
+      if (!res.ok) { setError(data.error ?? 'Error contacting the server'); return; }
 
       conversationId.current = data.conversation_id;
       setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: data.message! }]);
     } catch {
-      setError('No se pudo conectar con el servidor');
+      setError('Could not connect to the server');
     } finally {
       setLoading(false);
     }
