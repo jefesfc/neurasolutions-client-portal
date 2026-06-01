@@ -6,11 +6,12 @@ import { db } from '../db';
 const router = Router();
 
 router.post('/create', requireAuth, async (req: Request, res: Response) => {
-  const { name, email, role, password } = req.body as {
+  const { name, email, role, password, section_permissions } = req.body as {
     name: string;
     email: string;
     role: 'admin' | 'manager' | 'user';
     password: string;
+    section_permissions?: string[];
   };
 
   if (!name || !email || !role || !password) {
@@ -24,6 +25,7 @@ router.post('/create', requireAuth, async (req: Request, res: Response) => {
   }
 
   const tenantId = req.user!.tenant_id;
+  const perms = role === 'admin' ? [] : (section_permissions ?? []);
 
   try {
     const existing = await db.query(
@@ -39,10 +41,10 @@ router.post('/create', requireAuth, async (req: Request, res: Response) => {
     const password_hash = await bcrypt.hash(password, 10);
 
     const result = await db.query(
-      `INSERT INTO aios.users (tenant_id, email, name, role, password_hash, is_active)
-       VALUES ($1, $2, $3, $4, $5, true)
-       RETURNING id, tenant_id, email, name, role, avatar, phone, is_active`,
-      [tenantId, email.toLowerCase(), name, role, password_hash]
+      `INSERT INTO aios.users (tenant_id, email, name, role, password_hash, is_active, section_permissions)
+       VALUES ($1, $2, $3, $4, $5, true, $6)
+       RETURNING id, tenant_id, email, name, role, avatar, phone, is_active, section_permissions`,
+      [tenantId, email.toLowerCase(), name, role, password_hash, perms]
     );
 
     res.status(201).json({ user: result.rows[0] });

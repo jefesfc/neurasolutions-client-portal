@@ -44,6 +44,7 @@ export default function TeamPage() {
     email: string;
     role: User["role"];
     password: string;
+    section_permissions: string[];
   }) {
     const res = await fetch(`${API_URL}/team/create`, {
       method: "POST",
@@ -60,8 +61,11 @@ export default function TeamPage() {
     refetch();
   }
 
-  async function handleEdit(id: string, role: User["role"]) {
-    await postgrest.patch<User>("users", { id: `eq.${id}` }, { role });
+  async function handleEdit(id: string, role: User["role"], sectionPermissions: string[]) {
+    await postgrest.patch<User>("users", { id: `eq.${id}` }, {
+      role,
+      section_permissions: sectionPermissions,
+    });
     refetch();
   }
 

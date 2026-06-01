@@ -30,19 +30,19 @@ export interface NavSection {
 
 export const mainNavItems: NavItem[] = [
   { label: "Dashboard",  path: ROUTES.Dashboard, icon: LayoutDashboard },
-  { label: "Leads",      path: ROUTES.Leads,     icon: Users           },
-  { label: "CRM",        path: ROUTES.Contacts,  icon: BookUser        },
+  { label: "Leads",      path: ROUTES.Leads,     icon: Users,      permission: "leads"      },
+  { label: "CRM",        path: ROUTES.Contacts,  icon: BookUser,   permission: "crm"        },
   { label: "Calendar",   path: ROUTES.Calendar,  icon: CalendarDays, permission: "calendar" },
-  { label: "Emails",     path: ROUTES.Emails,    icon: Mail,   permission: "emails"   },
-  { label: "Usage",      path: ROUTES.Usage,     icon: Zap             },
-  { label: "AI Systems", path: ROUTES.AISystems, icon: Cpu             },
-  { label: "Analytics",  path: ROUTES.Analytics, icon: BarChart3       },
-  { label: "Reports",    path: ROUTES.Reports,   icon: FileText        },
-  { label: "Support",    path: ROUTES.Support,   icon: LifeBuoy        },
-  { label: "Team",       path: ROUTES.Team,      icon: Users2          },
+  { label: "Emails",     path: ROUTES.Emails,    icon: Mail,       permission: "emails"     },
+  { label: "Usage",      path: ROUTES.Usage,     icon: Zap,        permission: "usage"      },
+  { label: "AI Systems", path: ROUTES.AISystems, icon: Cpu,        permission: "ai_systems" },
+  { label: "Analytics",  path: ROUTES.Analytics, icon: BarChart3,  permission: "analytics"  },
+  { label: "Reports",    path: ROUTES.Reports,   icon: FileText,   permission: "reports"    },
+  { label: "Support",    path: ROUTES.Support,   icon: LifeBuoy,   permission: "support"    },
+  { label: "Team",       path: ROUTES.Team,      icon: Users2,     permission: "team"       },
 ];
 
 export const bottomNavItems: NavItem[] = [
-  { label: "Billing",  path: ROUTES.Billing,  icon: CreditCard },
+  { label: "Billing",  path: ROUTES.Billing,  icon: CreditCard, permission: "billing" },
   { label: "Settings", path: ROUTES.Settings, icon: Settings   },
 ];

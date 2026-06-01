@@ -3,6 +3,7 @@ import { ROUTES } from "../config/routes";
 import { AppLayout } from "../components/layout/AppLayout";
 import { ProtectedRoute } from "../components/auth/ProtectedRoute";
 import { PlatformAdminRoute } from "../components/auth/PlatformAdminRoute";
+import { ModulePermissionsGuard } from "../components/team/ModulePermissionsGuard";
 import LoginPage from "../pages/LoginPage";
 import AdminPage from "../pages/admin/AdminPage";
 import DashboardPage from "../pages/DashboardPage";
@@ -49,43 +50,103 @@ export const router = createBrowserRouter([
   },
   {
     path: ROUTES.Leads,
-    element: <Protected><LeadsPage /></Protected>,
+    element: (
+      <Protected>
+        <ModulePermissionsGuard permission="leads">
+          <LeadsPage />
+        </ModulePermissionsGuard>
+      </Protected>
+    ),
   },
   {
     path: ROUTES.Contacts,
-    element: <Protected><ContactsPage /></Protected>,
+    element: (
+      <Protected>
+        <ModulePermissionsGuard permission="crm">
+          <ContactsPage />
+        </ModulePermissionsGuard>
+      </Protected>
+    ),
   },
   {
     path: ROUTES.Calendar,
-    element: <Protected><CalendarPage /></Protected>,
+    element: (
+      <Protected>
+        <ModulePermissionsGuard permission="calendar">
+          <CalendarPage />
+        </ModulePermissionsGuard>
+      </Protected>
+    ),
   },
   {
     path: ROUTES.Emails,
-    element: <Protected><EmailsPage /></Protected>,
+    element: (
+      <Protected>
+        <ModulePermissionsGuard permission="emails">
+          <EmailsPage />
+        </ModulePermissionsGuard>
+      </Protected>
+    ),
   },
   {
     path: ROUTES.AISystems,
-    element: <Protected><AISystemsPage /></Protected>,
+    element: (
+      <Protected>
+        <ModulePermissionsGuard permission="ai_systems">
+          <AISystemsPage />
+        </ModulePermissionsGuard>
+      </Protected>
+    ),
   },
   {
     path: ROUTES.AISystemDetail,
-    element: <Protected><AISystemDetailPage /></Protected>,
+    element: (
+      <Protected>
+        <ModulePermissionsGuard permission="ai_systems">
+          <AISystemDetailPage />
+        </ModulePermissionsGuard>
+      </Protected>
+    ),
   },
   {
     path: ROUTES.Analytics,
-    element: <Protected><AnalyticsPage /></Protected>,
+    element: (
+      <Protected>
+        <ModulePermissionsGuard permission="analytics">
+          <AnalyticsPage />
+        </ModulePermissionsGuard>
+      </Protected>
+    ),
   },
   {
     path: ROUTES.Reports,
-    element: <Protected><ReportsPage /></Protected>,
+    element: (
+      <Protected>
+        <ModulePermissionsGuard permission="reports">
+          <ReportsPage />
+        </ModulePermissionsGuard>
+      </Protected>
+    ),
   },
   {
     path: ROUTES.Support,
-    element: <Protected><SupportPage /></Protected>,
+    element: (
+      <Protected>
+        <ModulePermissionsGuard permission="support">
+          <SupportPage />
+        </ModulePermissionsGuard>
+      </Protected>
+    ),
   },
   {
     path: ROUTES.Billing,
-    element: <Protected><BillingPage /></Protected>,
+    element: (
+      <Protected>
+        <ModulePermissionsGuard permission="billing">
+          <BillingPage />
+        </ModulePermissionsGuard>
+      </Protected>
+    ),
   },
   {
     path: ROUTES.Profile,
@@ -93,11 +154,23 @@ export const router = createBrowserRouter([
   },
   {
     path: ROUTES.Usage,
-    element: <Protected><UsagePage /></Protected>,
+    element: (
+      <Protected>
+        <ModulePermissionsGuard permission="usage">
+          <UsagePage />
+        </ModulePermissionsGuard>
+      </Protected>
+    ),
   },
   {
     path: ROUTES.Team,
-    element: <Protected><TeamPage /></Protected>,
+    element: (
+      <Protected>
+        <ModulePermissionsGuard permission="team">
+          <TeamPage />
+        </ModulePermissionsGuard>
+      </Protected>
+    ),
   },
   {
     path: ROUTES.Settings,

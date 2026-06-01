@@ -17,8 +17,9 @@ interface Props {
     email: string;
     role: User["role"];
     password: string;
+    section_permissions: string[];
   }) => Promise<void>;
-  onEdit: (id: string, role: User["role"]) => Promise<void>;
+  onEdit: (id: string, role: User["role"], sectionPermissions: string[]) => Promise<void>;
 }
 
 const ROLE_OPTIONS = [
@@ -27,11 +28,26 @@ const ROLE_OPTIONS = [
   { value: "user",    label: "User"    },
 ];
 
+const MODULE_OPTIONS: { key: string; label: string }[] = [
+  { key: "leads",      label: "Leads"       },
+  { key: "crm",        label: "CRM"         },
+  { key: "calendar",   label: "Calendar"    },
+  { key: "emails",     label: "Emails"      },
+  { key: "usage",      label: "Usage"       },
+  { key: "ai_systems", label: "AI Systems"  },
+  { key: "analytics",  label: "Analytics"   },
+  { key: "reports",    label: "Reports"     },
+  { key: "support",    label: "Support"     },
+  { key: "team",       label: "Team"        },
+  { key: "billing",    label: "Billing"     },
+];
+
 export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<User["role"]>("user");
   const [password, setPassword] = useState("");
+  const [selectedModules, setSelectedModules] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,9 +57,24 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
       setEmail(member?.email ?? "");
       setRole(member?.role ?? "user");
       setPassword("");
+      setSelectedModules(member?.section_permissions ?? []);
       setError(null);
     }
   }, [open, member]);
+
+  function toggleModule(key: string) {
+    setSelectedModules((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  }
+
+  function selectAll() {
+    setSelectedModules(MODULE_OPTIONS.map((m) => m.key));
+  }
+
+  function clearAll() {
+    setSelectedModules([]);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -55,9 +86,9 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
           setError("All fields are required");
           return;
         }
-        await onAdd({ name: name.trim(), email: email.trim(), role, password });
+        await onAdd({ name: name.trim(), email: email.trim(), role, password, section_permissions: selectedModules });
       } else {
-        await onEdit(member!.id, role);
+        await onEdit(member!.id, role, selectedModules);
       }
       onClose();
     } catch (err) {
@@ -67,6 +98,8 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
     }
   }
 
+  const isAdminRole = role === "admin";
+
   return (
     <Modal
       open={open}
@@ -75,7 +108,7 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
       description={
         mode === "add"
           ? "Create a new user in your workspace."
-          : "Update this member's role."
+          : "Update this member's role and module access."
       }
       size="sm"
     >
@@ -126,6 +159,59 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
             />
           </div>
         )}
+
+        {/* Module access */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-surface-700">
+              Module Access
+            </label>
+            {!isAdminRole && (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={selectAll}
+                  className="text-xs text-brand-600 hover:text-brand-700"
+                >
+                  All
+                </button>
+                <span className="text-surface-300">·</span>
+                <button
+                  type="button"
+                  onClick={clearAll}
+                  className="text-xs text-surface-400 hover:text-surface-600"
+                >
+                  None
+                </button>
+              </div>
+            )}
+          </div>
+          {isAdminRole ? (
+            <p className="text-xs text-surface-400 bg-surface-50 rounded-lg px-3 py-2">
+              Admin users have access to all modules.
+            </p>
+          ) : (
+            <div className="grid grid-cols-2 gap-1.5 bg-surface-50 rounded-lg p-3">
+              {MODULE_OPTIONS.map(({ key, label }) => (
+                <label
+                  key={key}
+                  className="flex items-center gap-2 cursor-pointer group"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedModules.includes(key)}
+                    onChange={() => toggleModule(key)}
+                    className="rounded border-surface-300 text-brand-500 focus:ring-brand-500"
+                  />
+                  <span className="text-xs text-surface-700 group-hover:text-surface-900">
+                    {label}
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+
         {error && <p className="text-sm text-danger">{error}</p>}
         <div className="flex justify-end gap-3 pt-2">
           <Button type="button" variant="ghost" onClick={onClose}>

@@ -33,6 +33,7 @@ export interface User {
   phone: string | null;
   is_active: boolean;
   created_at?: string;
+  section_permissions?: string[];
 }
 
 export interface Email {
