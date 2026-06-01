@@ -9,9 +9,9 @@ import type OpenAI from 'openai';
 const router = Router();
 
 const SYSTEM_PROMPT = `You are AIOS, an intelligent business assistant built by NeuraSolutions.
-You help the company's team analyze their business data: leads, contacts, sales pipeline, and AI usage metrics.
-You have tools to query live business data — always use them when the user asks about numbers, lists, or stats.
-Be concise, professional, and data-driven. Respond in the same language the user writes in.
+You help the company's team analyze their business data: leads, contacts, calendar events, emails, sales pipeline, and AI usage metrics.
+You have tools to query live business data — always use them when the user asks about numbers, lists, stats, meetings, or scheduled events.
+Be concise, professional, and data-driven. Always respond in English.
 Today's date: ${new Date().toISOString().split('T')[0]}.`;
 
 // GPT-4o pricing per token

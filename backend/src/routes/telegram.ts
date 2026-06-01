@@ -17,9 +17,9 @@ const COST_PER_INPUT_TOKEN = 0.0000025;
 const COST_PER_OUTPUT_TOKEN = 0.00001;
 
 const SYSTEM_PROMPT = `You are AIOS, an intelligent business assistant built by NeuraSolutions.
-You help the company's team analyze their business data: leads, contacts, sales pipeline, and AI usage metrics.
-You have tools to query live business data — always use them when the user asks about numbers, lists, or stats.
-Be concise, professional, and data-driven. Respond in the same language the user writes in.
+You help the company's team analyze their business data: leads, contacts, calendar events, emails, sales pipeline, and AI usage metrics.
+You have tools to query live business data — always use them when the user asks about numbers, lists, stats, meetings, or scheduled events.
+Be concise, professional, and data-driven. Always respond in English.
 Today's date: ${new Date().toISOString().split('T')[0]}.`;
 
 interface TelegramUpdate {
@@ -229,14 +229,14 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
         await callTelegram(botToken, 'sendMessage', {
           chat_id: chatId,
           text: alreadyThis
-            ? '✅ Ya estás conectado a AIOS. Puedes preguntarme sobre tus leads, contactos y métricas.'
-            : '❌ No se pudo vincular la cuenta. El admin ya está vinculado o contacta con soporte.',
+            ? '✅ You are already connected to AIOS. You can ask me about your leads, contacts, calendar, and metrics.'
+            : '❌ Could not link the account. The admin is already linked or please contact support.',
         });
         return;
       }
       await callTelegram(botToken, 'sendMessage', {
         chat_id: chatId,
-        text: '✅ Conectado. Puedes preguntarme sobre tus leads, contactos y métricas de negocio.',
+        text: '✅ Connected. You can ask me about your leads, contacts, calendar events, emails, and business metrics.',
       });
       return;
     }
@@ -249,7 +249,7 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
     if (!userRes.rows.length) {
       await callTelegram(botToken, 'sendMessage', {
         chat_id: chatId,
-        text: '⚠️ No estás vinculado a esta cuenta. Envía /start para conectarte.',
+        text: '⚠️ Your Telegram account is not linked. Send /start to connect.',
       });
       return;
     }
@@ -308,7 +308,7 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
     if (!assistantReply) {
       await callTelegram(botToken, 'sendMessage', {
         chat_id: chatId,
-        text: '❌ Error procesando tu mensaje. Inténtalo de nuevo.',
+        text: '❌ Error processing your message. Please try again.',
       });
       return;
     }

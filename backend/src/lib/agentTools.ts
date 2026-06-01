@@ -79,6 +79,32 @@ export const toolDefinitions: OpenAI.Chat.Completions.ChatCompletionTool[] = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'query_calendar_events',
+      description: 'Get calendar events for the company. Can filter by date range, category, and status. Use this for questions about meetings, invoices, reminders, upcoming events, or scheduled activities.',
+      parameters: {
+        type: 'object',
+        properties: {
+          from: { type: 'string', description: 'Start date filter (ISO 8601, e.g. "2026-06-01"). Defaults to today.' },
+          to: { type: 'string', description: 'End date filter (ISO 8601, e.g. "2026-06-30"). Defaults to 30 days from now.' },
+          category: {
+            type: 'string',
+            enum: ['meeting', 'invoice', 'contract', 'reminder', 'other'],
+            description: 'Filter by event category. Omit to get all categories.',
+          },
+          status: {
+            type: 'string',
+            enum: ['pending', 'done', 'cancelled'],
+            description: 'Filter by event status. Omit to get all statuses.',
+          },
+          limit: { type: 'number', description: 'Max events to return (default 10, max 50).' },
+        },
+        required: [],
+      },
+    },
+  },
 ];
 
 export async function executeTool(name: string, args: Record<string, unknown>, tenantId: string): Promise<unknown> {
@@ -187,6 +213,31 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
 
       const emailRes = await db.query(q, params);
       return { count: emailRes.rowCount, emails: emailRes.rows };
+    }
+
+    case 'query_calendar_events': {
+      const limit = Math.min(+(args.limit ?? 10), 50);
+      const category = args.category as string | undefined;
+      const status = args.status as string | undefined;
+      const from = (args.from as string | undefined) ?? new Date().toISOString().split('T')[0];
+      const to = (args.to as string | undefined) ?? (() => {
+        const d = new Date(); d.setDate(d.getDate() + 30); return d.toISOString().split('T')[0];
+      })();
+
+      let q = `SELECT title, description, category, start_at, end_at, all_day, status,
+                      recurrence_rule, linked_type, linked_id, amount, currency
+               FROM aios.calendar_events
+               WHERE tenant_id = $1 AND start_at >= $2 AND start_at <= $3`;
+      const params: unknown[] = [tenantId, from, to];
+
+      if (category) { params.push(category); q += ` AND category = $${params.length}`; }
+      if (status) { params.push(status); q += ` AND status = $${params.length}`; }
+
+      params.push(limit);
+      q += ` ORDER BY start_at ASC LIMIT $${params.length}`;
+
+      const calRes = await db.query(q, params);
+      return { count: calRes.rowCount, from, to, events: calRes.rows };
     }
 
     default:
