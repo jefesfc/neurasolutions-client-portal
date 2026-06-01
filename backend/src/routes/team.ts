@@ -5,6 +5,8 @@ import { db } from '../db';
 
 const router = Router();
 
+const VALID_PERMISSIONS = ['leads','crm','calendar','emails','usage','ai_systems','analytics','reports','support','team','billing'] as const;
+
 router.post('/create', requireAuth, async (req: Request, res: Response) => {
   const { name, email, role, password, section_permissions } = req.body as {
     name: string;
@@ -24,8 +26,14 @@ router.post('/create', requireAuth, async (req: Request, res: Response) => {
     return;
   }
 
-  const tenantId = req.user!.tenant_id;
   const perms = role === 'admin' ? [] : (section_permissions ?? []);
+
+  if (perms.some((p) => !VALID_PERMISSIONS.includes(p as typeof VALID_PERMISSIONS[number]))) {
+    res.status(400).json({ error: 'Invalid permission key' });
+    return;
+  }
+
+  const tenantId = req.user!.tenant_id;
 
   try {
     const existing = await db.query(
@@ -48,6 +56,50 @@ router.post('/create', requireAuth, async (req: Request, res: Response) => {
     );
 
     res.status(201).json({ user: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
+  const { role, section_permissions } = req.body as {
+    role?: 'admin' | 'manager' | 'user';
+    section_permissions?: string[];
+  };
+
+  const requestingUser = req.user!;
+  if (requestingUser.app_role !== 'admin' && requestingUser.app_role !== 'manager') {
+    res.status(403).json({ error: 'Only admins and managers can edit members' });
+    return;
+  }
+
+  if (role && !['admin', 'manager', 'user'].includes(role)) {
+    res.status(400).json({ error: 'Invalid role' });
+    return;
+  }
+
+  const perms = role === 'admin' ? [] : (section_permissions ?? []);
+
+  if (perms.some((p) => !VALID_PERMISSIONS.includes(p as typeof VALID_PERMISSIONS[number]))) {
+    res.status(400).json({ error: 'Invalid permission key' });
+    return;
+  }
+
+  try {
+    const result = await db.query(
+      `UPDATE aios.users SET role = COALESCE($1, role), section_permissions = $2
+       WHERE id = $3 AND tenant_id = $4
+       RETURNING id, role, section_permissions`,
+      [role ?? null, perms, req.params.id, requestingUser.tenant_id]
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    res.json({ user: result.rows[0] });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });

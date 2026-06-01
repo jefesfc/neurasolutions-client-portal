@@ -20,6 +20,12 @@ export function Sidebar() {
       user?.role === 'admin' ||
       (user?.section_permissions ?? []).includes(item.permission)
   );
+  const visibleBottomNavItems = bottomNavItems.filter(
+    (item) =>
+      !item.permission ||
+      user?.role === 'admin' ||
+      (user?.section_permissions ?? []).includes(item.permission)
+  );
   const hoverTimeout = useRef<ReturnType<typeof setTimeout>>(null!);
   const [hoverExpanded, setHoverExpanded] = useState(false);
 
@@ -130,7 +136,7 @@ export function Sidebar() {
           {(expanded || isMobile) && (
             <p className="px-3 text-xs font-medium text-surface-500 uppercase tracking-wider mb-2">Account</p>
           )}
-          {bottomNavItems.map((item) => {
+          {visibleBottomNavItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <Link

@@ -140,7 +140,11 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
           <label className="block text-sm font-medium text-surface-700 mb-1">Role</label>
           <Select
             value={role}
-            onChange={(e) => setRole(e.target.value as User["role"])}
+            onChange={(e) => {
+              const newRole = e.target.value as User["role"];
+              setRole(newRole);
+              if (newRole === "admin") setSelectedModules([]);
+            }}
             options={ROLE_OPTIONS}
           />
         </div>

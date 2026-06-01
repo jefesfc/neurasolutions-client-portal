@@ -62,10 +62,18 @@ export default function TeamPage() {
   }
 
   async function handleEdit(id: string, role: User["role"], sectionPermissions: string[]) {
-    await postgrest.patch<User>("users", { id: `eq.${id}` }, {
-      role,
-      section_permissions: sectionPermissions,
+    const res = await fetch(`${API_URL}/team/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ role, section_permissions: sectionPermissions }),
     });
+    if (!res.ok) {
+      const body = (await res.json()) as { error?: string };
+      throw new Error(body.error ?? "Failed to update member");
+    }
     refetch();
   }
 
