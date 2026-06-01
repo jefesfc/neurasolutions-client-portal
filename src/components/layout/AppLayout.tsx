@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { MobileNav } from "./MobileNav";
+import { ChatBubble } from "../chat/ChatBubble";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -20,6 +21,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         </main>
       </div>
       <MobileNav />
+      <ChatBubble />
     </div>
   );
 }
