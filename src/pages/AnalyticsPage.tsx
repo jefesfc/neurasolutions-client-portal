@@ -1,10 +1,13 @@
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
-import { TrendChart } from "../components/analytics/TrendChart";
 import { BarChart } from "../components/analytics/BarChart";
-import { MetricComparison } from "../components/analytics/MetricComparison";
 import { Heatmap } from "../components/analytics/Heatmap";
-import { mockTrends, mockComparisons, mockKPIs } from "../lib/mock-data";
+import { LeadsTrendChart } from "../components/analytics/LeadsTrendChart";
+import { CostTrendChart } from "../components/analytics/CostTrendChart";
+import { LeadsBarChart } from "../components/analytics/LeadsBarChart";
+import { CostBarChart } from "../components/analytics/CostBarChart";
+import { KPIComparison } from "../components/analytics/KPIComparison";
+import { mockKPIs } from "../lib/mock-data";
 
 const heatmapData = Array.from({ length: 168 }, () => {
   const dayIndex = Math.floor(Math.random() * 7);
@@ -32,20 +35,18 @@ export default function AnalyticsPage() {
       />
       <div className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {mockTrends.slice(0, 2).map((trend) => (
-            <TrendChart key={trend.id} trend={trend} />
-          ))}
+          <LeadsTrendChart />
+          <CostTrendChart />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {mockTrends.slice(2, 4).map((trend) => (
-            <TrendChart key={trend.id} trend={trend} />
-          ))}
+          <LeadsBarChart />
+          <CostBarChart />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2">
             <BarChart title="System Performance Overview" data={systemPerformanceData} />
           </div>
-          <MetricComparison comparisons={mockComparisons} />
+          <KPIComparison />
         </div>
         <Heatmap title="Activity Heatmap" data={heatmapData} maxValue={maxHeatmap} />
       </div>
