@@ -6,7 +6,13 @@ export const USD_GBP = 0.79;
 function subtractDays(days: number): string {
   const d = new Date();
   d.setDate(d.getDate() - days);
-  return d.toISOString().substring(0, 10); // YYYY-MM-DD, stable within a day
+  const y = d.getFullYear(), m = d.getMonth() + 1, day = d.getDate();
+  return `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function localDateString(d: Date): string {
+  const y = d.getFullYear(), m = d.getMonth() + 1, day = d.getDate();
+  return `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
 export function getDateThreshold(range: Range): string {
@@ -15,7 +21,7 @@ export function getDateThreshold(range: Range): string {
   if (range === '90d') return subtractDays(90);
   const d = new Date();
   d.setFullYear(d.getFullYear() - 1);
-  return d.toISOString().substring(0, 10);
+  return localDateString(d);
 }
 
 export function getDoubleThreshold(range: Range): string {
@@ -24,7 +30,7 @@ export function getDoubleThreshold(range: Range): string {
   if (range === '90d') return subtractDays(180);
   const d = new Date();
   d.setFullYear(d.getFullYear() - 2);
-  return d.toISOString().substring(0, 10);
+  return localDateString(d);
 }
 
 export function formatChartDate(isoDate: string): string {

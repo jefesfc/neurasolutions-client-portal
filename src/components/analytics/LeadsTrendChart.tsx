@@ -21,7 +21,7 @@ export function LeadsTrendChart() {
   const threshold = getDateThreshold(range);
   const doubleThreshold = getDoubleThreshold(range);
 
-  const { data, loading } = useQuery<Lead>('leads', {
+  const { data, loading, error } = useQuery<Lead>('leads', {
     select: 'created_at',
     filters: { created_at: `gte.${doubleThreshold}` },
     order: 'created_at.asc',
@@ -37,6 +37,10 @@ export function LeadsTrendChart() {
 
   const subtitle = loading
     ? 'Loading...'
+    : error
+    ? 'Failed to load data'
+    : prev === 0
+    ? `${formatNumber(current)} total · N/A`
     : `${formatNumber(current)} total · ${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(1)}%`;
 
   return (

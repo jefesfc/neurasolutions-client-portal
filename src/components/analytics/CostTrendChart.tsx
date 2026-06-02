@@ -20,7 +20,7 @@ export function CostTrendChart() {
   const threshold       = getDateThreshold(range);
   const doubleThreshold = getDoubleThreshold(range);
 
-  const { data, loading } = useQuery<TokenUsage>('token_usage', {
+  const { data, loading, error } = useQuery<TokenUsage>('token_usage', {
     select: 'created_at,cost',
     filters: { created_at: `gte.${doubleThreshold}` },
     order: 'created_at.asc',
@@ -36,6 +36,10 @@ export function CostTrendChart() {
 
   const subtitle = loading
     ? 'Loading...'
+    : error
+    ? 'Failed to load data'
+    : prevTotal === 0
+    ? `£${currentTotal.toFixed(2)} total · N/A`
     : `£${currentTotal.toFixed(2)} total · ${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(1)}%`;
 
   return (
