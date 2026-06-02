@@ -35,9 +35,9 @@ export function formatChartDate(isoDate: string): string {
   });
 }
 
-export function groupByDate(
-  items: { created_at: string }[],
-  valueGetter: (item: any) => number
+export function groupByDate<T extends { created_at: string }>(
+  items: T[],
+  valueGetter: (item: T) => number
 ): { date: string; value: number }[] {
   const map = new Map<string, number>();
   for (const item of items) {
