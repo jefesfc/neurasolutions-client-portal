@@ -11,7 +11,7 @@ const chartBoxStyle: React.CSSProperties = {
   background: "rgba(255,255,255,0.04)",
   border: "1px solid rgba(255,215,0,0.12)",
   borderRadius: 12,
-  padding: 14,
+  padding: 12,
   display: "flex",
   flexDirection: "column",
 };
@@ -77,8 +77,8 @@ function ActiveServicesCard() {
               background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,215,0,0.1)",
             }}>
               <span style={{ fontSize: 13, width: 20, textAlign: "center" }}>{svc.icon}</span>
-              <span style={{ fontSize: 11, fontWeight: 600, flex: 1, color: "#fcd34d" }}>{svc.name}</span>
-              <span style={{ fontSize: 9, color: "#b45309" }}>{svc.detail}</span>
+              <span style={{ fontSize: 11, fontWeight: 600, flex: 1, color: "#fcd34d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{svc.name}</span>
+              <span style={{ fontSize: 9, color: "#b45309", maxWidth: 88, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flexShrink: 0 }}>{svc.detail}</span>
               <span style={{
                 display: "flex", alignItems: "center", gap: 4,
                 fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 20, whiteSpace: "nowrap",
@@ -442,7 +442,7 @@ export function HeroBanner() {
       <div style={{
         background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)",
         borderRadius: 16, padding: 24,
-        display: "grid", gridTemplateColumns: "280px 1fr", gap: 20,
+        display: "grid", gridTemplateColumns: "320px 1fr", gap: 20,
         marginBottom: 12,
       }}>
 
@@ -509,7 +509,7 @@ export function HeroBanner() {
         </div>
 
         {/* RIGHT 2×2 */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 12, minHeight: 0, alignItems: "stretch" }}>
           <LeadsStatusChart leads={leads} statusCounts={statusCounts} />
           <PlatformHealthPanel />
           <AICostPanel totalCost={totalCost} agentList={agentList} maxAgentCost={maxAgentCost} />
