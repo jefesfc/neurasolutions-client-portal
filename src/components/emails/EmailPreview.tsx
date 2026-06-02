@@ -35,9 +35,9 @@ export function EmailPreview({ email }: EmailPreviewProps) {
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-4">
-        {email.body_text ? (
+        {email.body_text || email.snippet ? (
           <pre className="text-sm text-surface-700 whitespace-pre-wrap font-sans leading-relaxed">
-            {email.body_text}
+            {email.body_text ?? email.snippet}
           </pre>
         ) : (
           <p className="text-sm text-surface-400 italic">No content available</p>
