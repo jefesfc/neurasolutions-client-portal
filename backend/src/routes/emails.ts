@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { requireAuth } from '../middleware/requireAuth';
 import { db } from '../db';
+import { emitSecurityEvent } from '../lib/securityEvents';
 
 const router = Router();
 
@@ -37,11 +38,40 @@ router.post('/ingest', requireAuth, async (req: Request, res: Response) => {
     return;
   }
 
+  // Content guardrail: detect suspicious email content
+  const SCAM_KEYWORDS = [
+    'wire transfer', 'bitcoin', 'crypto payment', 'urgent payment',
+    'bank account details', 'send money', 'western union', 'moneygram',
+    'lottery winner', 'inheritance', 'prince', 'million dollars',
+  ];
+  const PHISHING_DOMAINS = ['bit.ly', 'tinyurl.com', 'ow.ly', 'goo.gl'];
+
+  const contentToCheck = `${subject ?? ''} ${body_text ?? ''} ${snippet ?? ''}`.toLowerCase();
+  const hasScamKeyword = SCAM_KEYWORDS.some((kw) => contentToCheck.includes(kw));
+  const hasPhishingLink = PHISHING_DOMAINS.some((d) => contentToCheck.includes(d));
+  const isFlagged = hasScamKeyword || hasPhishingLink;
+
+  if (isFlagged) {
+    emitSecurityEvent({
+      tenant_id,
+      event_type: 'suspicious_email_content',
+      severity: 'medium',
+      actor_ip: null,
+      target_resource: '/emails/ingest',
+      metadata: {
+        gmail_id,
+        from_email,
+        subject: subject ?? null,
+        reason: hasPhishingLink ? 'phishing_link' : 'scam_keyword',
+      },
+    }).catch(() => {});
+  }
+
   try {
     await db.query(
       `INSERT INTO aios.emails
-         (tenant_id, gmail_id, from_email, from_name, subject, snippet, body_text, labels, received_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         (tenant_id, gmail_id, from_email, from_name, subject, snippet, body_text, labels, received_at, is_flagged)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        ON CONFLICT (tenant_id, gmail_id) DO NOTHING`,
       [
         tenant_id,
@@ -53,6 +83,7 @@ router.post('/ingest', requireAuth, async (req: Request, res: Response) => {
         body_text ?? null,
         labels ?? [],
         received_at,
+        isFlagged,
       ]
     );
     res.json({ ok: true });
