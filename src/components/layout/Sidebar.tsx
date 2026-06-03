@@ -14,12 +14,11 @@ export function Sidebar() {
   const location = useLocation();
   const isMobile = useIsMobile();
   const user = useAuthStore((s) => s.user);
-  const visibleMainNavItems = mainNavItems.filter(
-    (item) =>
-      !item.permission ||
-      user?.role === 'admin' ||
-      (user?.section_permissions ?? []).includes(item.permission)
-  );
+  const visibleMainNavItems = mainNavItems.filter((item) => {
+    if (item.adminOnly) return user?.role === 'admin';
+    if (!item.permission) return true;
+    return user?.role === 'admin' || (user?.section_permissions ?? []).includes(item.permission);
+  });
   const visibleBottomNavItems = bottomNavItems.filter(
     (item) =>
       !item.permission ||

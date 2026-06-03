@@ -12,6 +12,7 @@ import {
   Settings,
   Zap,
   Users2,
+  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 import { ROUTES } from "./routes";
@@ -21,6 +22,7 @@ export interface NavItem {
   path: string;
   icon: LucideIcon;
   permission?: string;
+  adminOnly?: boolean;
 }
 
 export interface NavSection {
@@ -40,6 +42,7 @@ export const mainNavItems: NavItem[] = [
   { label: "Reports",    path: ROUTES.Reports,   icon: FileText,   permission: "reports"    },
   { label: "Support",    path: ROUTES.Support,   icon: LifeBuoy,   permission: "support"    },
   { label: "Team",       path: ROUTES.Team,      icon: Users2,     permission: "team"       },
+  { label: "Security",   path: ROUTES.Security,  icon: ShieldCheck,  adminOnly: true },
 ];
 
 export const bottomNavItems: NavItem[] = [

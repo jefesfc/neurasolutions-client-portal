@@ -21,6 +21,7 @@ import ProfilePage from "../pages/ProfilePage";
 import UsagePage from "../pages/UsagePage";
 import TeamPage from "../pages/TeamPage";
 import SettingsPage from "../pages/SettingsPage";
+import SecurityPage from "../pages/SecurityPage";
 import NotFoundPage from "../pages/NotFoundPage";
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -175,6 +176,10 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.Settings,
     element: <Protected><SettingsPage /></Protected>,
+  },
+  {
+    path: ROUTES.Security,
+    element: <Protected><SecurityPage /></Protected>,
   },
   {
     path: "*",
