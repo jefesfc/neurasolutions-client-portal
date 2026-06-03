@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { db } from '../db';
+import { emitSecurityEvent, countRecentEvents, isNewIp } from '../lib/securityEvents';
 
 const router = Router();
 
@@ -16,6 +17,19 @@ router.post('/login', async (req: Request, res: Response) => {
   }
 
   try {
+    // Block IP if brute force was recently detected
+    const clientIp = req.ip ?? 'unknown';
+    const bruteForceRes = await db.query(
+      `SELECT COUNT(*) FROM aios.security_events
+       WHERE actor_ip = $1 AND event_type = 'brute_force'
+         AND created_at > NOW() - INTERVAL '30 minutes'`,
+      [clientIp]
+    );
+    if (parseInt(bruteForceRes.rows[0].count, 10) > 0) {
+      res.status(429).json({ error: 'Too many failed attempts. Try again later.' });
+      return;
+    }
+
     const result = await db.query(
       `SELECT id, email, name, role, password_hash, tenant_id, section_permissions, avatar, is_platform_admin
        FROM aios.users WHERE email = $1`,
@@ -30,6 +44,31 @@ router.post('/login', async (req: Request, res: Response) => {
 
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) {
+      // Emit login_failed and check brute force
+      const tenantId: string = user.tenant_id;
+      await emitSecurityEvent({
+        tenant_id: tenantId,
+        event_type: 'login_failed',
+        severity: 'low',
+        actor_user_id: user.id,
+        actor_ip: clientIp,
+        target_resource: '/auth/login',
+        metadata: { email: email.toLowerCase() },
+      });
+
+      const failCount = await countRecentEvents(tenantId, clientIp, 'login_failed', 10);
+      if (failCount >= 5) {
+        await emitSecurityEvent({
+          tenant_id: tenantId,
+          event_type: 'brute_force',
+          severity: 'high',
+          actor_user_id: user.id,
+          actor_ip: clientIp,
+          target_resource: '/auth/login',
+          metadata: { attempts: failCount, window_minutes: 10 },
+        });
+      }
+
       res.status(401).json({ error: 'Invalid credentials' });
       return;
     }
@@ -61,6 +100,20 @@ router.post('/login', async (req: Request, res: Response) => {
         is_platform_admin: user.is_platform_admin ?? false,
       },
     });
+
+    // Security: check for new IP (async, non-blocking)
+    isNewIp(user.tenant_id, user.id, clientIp).then((isNew) => {
+      if (!isNew) return;
+      emitSecurityEvent({
+        tenant_id: user.tenant_id,
+        event_type: 'login_new_ip',
+        severity: 'medium',
+        actor_user_id: user.id,
+        actor_ip: clientIp,
+        target_resource: '/auth/login',
+        metadata: { email: user.email },
+      }).catch(() => {});
+    }).catch(() => {});
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
