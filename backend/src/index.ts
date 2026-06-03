@@ -8,6 +8,8 @@ import teamRouter from './routes/team';
 import telegramRouter from './routes/telegram';
 import emailsRouter from './routes/emails';
 import calendarRouter from './routes/calendar';
+import { securityMonitor } from './middleware/securityMonitor';
+import securityRouter from './routes/security';
 
 dotenv.config();
 
@@ -21,6 +23,7 @@ const allowedOrigins = [
 ];
 app.use(cors({ origin: (origin, cb) => cb(null, !origin || allowedOrigins.includes(origin)) }));
 app.use(express.json());
+app.use(securityMonitor);
 
 app.use('/auth', authRouter);
 app.use('/admin', adminRouter);
@@ -29,6 +32,7 @@ app.use('/team', teamRouter);
 app.use('/telegram', telegramRouter);
 app.use('/emails', emailsRouter);
 app.use('/calendar', calendarRouter);
+app.use('/security', securityRouter);
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
