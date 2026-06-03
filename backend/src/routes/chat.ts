@@ -5,6 +5,7 @@ import { openai } from '../lib/openai';
 import { toolDefinitions, executeTool } from '../lib/agentTools';
 import { db } from '../db';
 import type OpenAI from 'openai';
+import { emitSecurityEvent } from '../lib/securityEvents';
 
 const router = Router();
 
@@ -29,6 +30,32 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
   const tenantId = req.user!.tenant_id;
   const userId = req.user!.user_id;
   const convId = conversation_id ?? uuidv4();
+
+  // Prompt injection guardrail
+  const INJECTION_PATTERNS = [
+    /ignore\s+(your\s+)?(previous\s+|all\s+)?instructions/i,
+    /disregard\s+(your\s+)?(previous\s+|all\s+)?instructions/i,
+    /you\s+are\s+now\s+a/i,
+    /forget\s+(everything|your\s+role|your\s+instructions)/i,
+    /act\s+as\s+(if\s+you\s+are|a\s+different)/i,
+    /reveal\s+(other\s+)?(tenant|client|user)\s+data/i,
+    /show\s+me\s+(all\s+)?(other\s+tenants|other\s+clients)/i,
+  ];
+
+  const isInjection = INJECTION_PATTERNS.some((p) => p.test(message));
+  if (isInjection) {
+    emitSecurityEvent({
+      tenant_id: tenantId,
+      event_type: 'prompt_injection_attempt',
+      severity: 'high',
+      actor_user_id: userId,
+      actor_ip: req.ip ?? null,
+      target_resource: '/chat',
+      metadata: { message_snippet: message.substring(0, 200) },
+    }).catch(() => {});
+    res.status(403).json({ error: 'Message blocked by security policy.' });
+    return;
+  }
 
   try {
     // Load conversation history (last 20 messages)
