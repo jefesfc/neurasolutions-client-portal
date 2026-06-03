@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { requireAuth } from '../middleware/requireAuth';
 import { db } from '../db';
+import { emitSecurityEvent } from '../lib/securityEvents';
 
 const router = Router();
 
@@ -56,6 +57,17 @@ router.post('/create', requireAuth, async (req: Request, res: Response) => {
     );
 
     res.status(201).json({ user: result.rows[0] });
+    if (role === 'admin') {
+      emitSecurityEvent({
+        tenant_id: tenantId,
+        event_type: 'admin_created',
+        severity: 'high',
+        actor_user_id: req.user!.user_id,
+        actor_ip: req.ip ?? null,
+        target_resource: `/team/${result.rows[0].id}`,
+        metadata: { new_admin_email: email.toLowerCase(), created_by: req.user!.email },
+      }).catch(() => {});
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
@@ -100,6 +112,17 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
     }
 
     res.json({ user: result.rows[0] });
+    if (role === 'admin' && result.rows[0]) {
+      emitSecurityEvent({
+        tenant_id: requestingUser.tenant_id,
+        event_type: 'permission_escalation',
+        severity: 'high',
+        actor_user_id: requestingUser.user_id,
+        actor_ip: req.ip ?? null,
+        target_resource: `/team/${req.params.id}`,
+        metadata: { target_user_id: req.params.id, new_role: role, changed_by: requestingUser.email },
+      }).catch(() => {});
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
