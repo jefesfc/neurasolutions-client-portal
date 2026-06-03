@@ -31,8 +31,8 @@ async function run() {
   await client.query(`ALTER TABLE aios.security_events ENABLE ROW LEVEL SECURITY;`);
   await client.query(`ALTER TABLE aios.security_events FORCE ROW LEVEL SECURITY;`);
 
+  await client.query(`DROP POLICY IF EXISTS security_events_tenant_isolation ON aios.security_events;`);
   await client.query(`
-    DROP POLICY IF EXISTS security_events_tenant_isolation ON aios.security_events;
     CREATE POLICY security_events_tenant_isolation ON aios.security_events
       USING (tenant_id = (current_setting('request.jwt.claims', true)::json->>'tenant_id')::uuid);
   `);
