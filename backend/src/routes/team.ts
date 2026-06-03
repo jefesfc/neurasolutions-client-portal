@@ -66,6 +66,7 @@ router.post('/create', requireAuth, async (req: Request, res: Response) => {
         actor_ip: req.ip ?? null,
         target_resource: `/team/${result.rows[0].id}`,
         metadata: { new_admin_email: email.toLowerCase(), created_by: req.user!.email },
+        admin_email: req.user!.email,
       }).catch(() => {});
     }
   } catch (err) {
@@ -121,6 +122,7 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
         actor_ip: req.ip ?? null,
         target_resource: `/team/${req.params.id}`,
         metadata: { target_user_id: req.params.id, new_role: role, changed_by: requestingUser.email },
+        admin_email: requestingUser.email,
       }).catch(() => {});
     }
   } catch (err) {

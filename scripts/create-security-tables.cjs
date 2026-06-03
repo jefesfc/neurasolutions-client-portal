@@ -28,7 +28,6 @@ async function run() {
   console.log('Table aios.security_events created');
 
   await client.query(`ALTER TABLE aios.security_events ENABLE ROW LEVEL SECURITY;`);
-  await client.query(`ALTER TABLE aios.security_events FORCE ROW LEVEL SECURITY;`);
 
   await client.query(`DROP POLICY IF EXISTS security_events_tenant_isolation ON aios.security_events;`);
   await client.query(`

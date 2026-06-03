@@ -44,29 +44,33 @@ router.post('/login', async (req: Request, res: Response) => {
 
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) {
-      // Emit login_failed and check brute force
-      const tenantId: string = user.tenant_id;
-      await emitSecurityEvent({
-        tenant_id: tenantId,
-        event_type: 'login_failed',
-        severity: 'low',
-        actor_user_id: user.id,
-        actor_ip: clientIp,
-        target_resource: '/auth/login',
-        metadata: { email: email.toLowerCase() },
-      });
-
-      const failCount = await countRecentEvents(tenantId, clientIp, 'login_failed', 10);
-      if (failCount >= 5) {
+      // Emit login_failed and check brute force — wrapped so DB failures don't affect auth response
+      try {
+        const tenantId: string = user.tenant_id;
         await emitSecurityEvent({
           tenant_id: tenantId,
-          event_type: 'brute_force',
-          severity: 'high',
+          event_type: 'login_failed',
+          severity: 'low',
           actor_user_id: user.id,
           actor_ip: clientIp,
           target_resource: '/auth/login',
-          metadata: { attempts: failCount, window_minutes: 10 },
+          metadata: { email: email.toLowerCase() },
         });
+
+        const failCount = await countRecentEvents(tenantId, clientIp, 'login_failed', 10);
+        if (failCount >= 5) {
+          await emitSecurityEvent({
+            tenant_id: tenantId,
+            event_type: 'brute_force',
+            severity: 'high',
+            actor_user_id: user.id,
+            actor_ip: clientIp,
+            target_resource: '/auth/login',
+            metadata: { attempts: failCount, window_minutes: 10 },
+          });
+        }
+      } catch {
+        // Security emit failure must never change auth response
       }
 
       res.status(401).json({ error: 'Invalid credentials' });
