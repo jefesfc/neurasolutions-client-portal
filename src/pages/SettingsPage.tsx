@@ -26,6 +26,9 @@ const API_URL =
   import.meta.env.VITE_API_URL ??
   "http://localhost:3001";
 
+const labelCls  = "block text-sm font-medium text-surface-300 mb-1";
+const selectCls = "rounded-lg border border-surface-600 bg-surface-800 px-3 py-2 text-sm text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500";
+
 function CompanyTab({ tenantId }: { tenantId: string }) {
   const { data, loading, error } = useQuery<Tenant>("tenants", {
     filters: { id: `eq.${tenantId}` },
@@ -97,55 +100,31 @@ function CompanyTab({ tenantId }: { tenantId: string }) {
   return (
     <form onSubmit={(e) => void handleSave(e)} className="space-y-5 max-w-lg">
       <div>
-        <label className="block text-sm font-medium text-surface-700 mb-1">Company Name</label>
-        <Input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Acme Corp"
-          required
-        />
+        <label className={labelCls}>Company Name</label>
+        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Acme Corp" required />
       </div>
       <div>
-        <label className="block text-sm font-medium text-surface-700 mb-1">Industry</label>
-        <Input
-          value={industry}
-          onChange={(e) => setIndustry(e.target.value)}
-          placeholder="e.g. SaaS, Real Estate, Finance"
-        />
+        <label className={labelCls}>Industry</label>
+        <Input value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="e.g. SaaS, Real Estate, Finance" />
       </div>
       <div>
-        <label className="block text-sm font-medium text-surface-700 mb-1">Company Size</label>
-        <Input
-          value={size}
-          onChange={(e) => setSize(e.target.value)}
-          placeholder="e.g. 1-10, 11-50, 51-200"
-        />
+        <label className={labelCls}>Company Size</label>
+        <Input value={size} onChange={(e) => setSize(e.target.value)} placeholder="e.g. 1-10, 11-50, 51-200" />
       </div>
       <div>
-        <label className="block text-sm font-medium text-surface-700 mb-1">Website</label>
-        <Input
-          type="url"
-          value={website}
-          onChange={(e) => setWebsite(e.target.value)}
-          placeholder="https://example.com"
-        />
+        <label className={labelCls}>Website</label>
+        <Input type="url" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://example.com" />
       </div>
       <div>
-        <label className="block text-sm font-medium text-surface-700 mb-1">Logo URL</label>
-        <Input
-          value={logo}
-          onChange={(e) => setLogo(e.target.value)}
-          placeholder="https://example.com/logo.png"
-        />
+        <label className={labelCls}>Logo URL</label>
+        <Input value={logo} onChange={(e) => setLogo(e.target.value)} placeholder="https://example.com/logo.png" />
         {logo && (
           <div className="mt-2 flex items-center gap-3">
             <img
               src={logo}
               alt="Logo preview"
-              className="h-10 object-contain rounded border border-surface-200 bg-surface-50 p-1"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
-              }}
+              className="h-10 object-contain rounded border border-surface-700 bg-surface-800 p-1"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
             <span className="text-xs text-surface-400">Preview</span>
           </div>
@@ -154,9 +133,7 @@ function CompanyTab({ tenantId }: { tenantId: string }) {
       {saveError && <p className="text-sm text-danger">{saveError}</p>}
       {saved && <p className="text-sm text-positive">Changes saved successfully.</p>}
       <div className="pt-2">
-        <Button type="submit" disabled={!isDirty} loading={saving}>
-          Save Changes
-        </Button>
+        <Button type="submit" disabled={!isDirty} loading={saving}>Save Changes</Button>
       </div>
     </form>
   );
@@ -175,39 +152,23 @@ function SecurityTab() {
     e.preventDefault();
     setError(null);
 
-    if (next !== confirm) {
-      setError("New passwords do not match");
-      return;
-    }
-    if (next.length < 8) {
-      setError("New password must be at least 8 characters");
-      return;
-    }
-    if (next === current) {
-      setError("New password must be different from current password");
-      return;
-    }
+    if (next !== confirm) { setError("New passwords do not match"); return; }
+    if (next.length < 8) { setError("New password must be at least 8 characters"); return; }
+    if (next === current) { setError("New password must be different from current password"); return; }
 
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/auth/change-password`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ currentPassword: current, newPassword: next }),
       });
-
       if (!res.ok) {
         const body = (await res.json()) as { error?: string };
         throw new Error(body.error ?? "Failed to update password");
       }
-
       setSuccess(true);
-      setCurrent("");
-      setNext("");
-      setConfirm("");
+      setCurrent(""); setNext(""); setConfirm("");
       setTimeout(() => setSuccess(false), 4000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -219,43 +180,21 @@ function SecurityTab() {
   return (
     <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5 max-w-lg">
       <div>
-        <label className="block text-sm font-medium text-surface-700 mb-1">Current Password</label>
-        <Input
-          type="password"
-          value={current}
-          onChange={(e) => setCurrent(e.target.value)}
-          required
-          autoComplete="current-password"
-        />
+        <label className={labelCls}>Current Password</label>
+        <Input type="password" value={current} onChange={(e) => setCurrent(e.target.value)} required autoComplete="current-password" />
       </div>
       <div>
-        <label className="block text-sm font-medium text-surface-700 mb-1">New Password</label>
-        <Input
-          type="password"
-          value={next}
-          onChange={(e) => setNext(e.target.value)}
-          required
-          autoComplete="new-password"
-        />
+        <label className={labelCls}>New Password</label>
+        <Input type="password" value={next} onChange={(e) => setNext(e.target.value)} required autoComplete="new-password" />
       </div>
       <div>
-        <label className="block text-sm font-medium text-surface-700 mb-1">
-          Confirm New Password
-        </label>
-        <Input
-          type="password"
-          value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
-          required
-          autoComplete="new-password"
-        />
+        <label className={labelCls}>Confirm New Password</label>
+        <Input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required autoComplete="new-password" />
       </div>
       {error && <p className="text-sm text-danger">{error}</p>}
       {success && <p className="text-sm text-positive">Password updated successfully.</p>}
       <div className="pt-2">
-        <Button type="submit" loading={loading}>
-          Update Password
-        </Button>
+        <Button type="submit" loading={loading}>Update Password</Button>
       </div>
     </form>
   );
@@ -268,9 +207,7 @@ function TelegramTab() {
   const [disconnecting, setDisconnecting] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_URL}/telegram/status`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    fetch(`${API_URL}/telegram/status`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.json())
       .then((data) => setStatus(data as { linked: boolean; chat_id: string | null }))
       .finally(() => setLoading(false));
@@ -278,10 +215,7 @@ function TelegramTab() {
 
   async function handleDisconnect() {
     setDisconnecting(true);
-    await fetch(`${API_URL}/telegram/link`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    await fetch(`${API_URL}/telegram/link`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
     setStatus({ linked: false, chat_id: null });
     setDisconnecting(false);
   }
@@ -291,11 +225,11 @@ function TelegramTab() {
   if (status?.linked) {
     return (
       <div className="max-w-lg space-y-4">
-        <div className="flex items-center gap-3 p-4 rounded-lg border border-green-200 bg-green-50">
-          <span className="text-green-600 text-lg">✅</span>
+        <div className="flex items-center gap-3 p-4 rounded-lg border border-positive/25 bg-positive/8">
+          <span className="text-positive text-lg">✓</span>
           <div>
-            <p className="font-medium text-surface-900">Telegram connected</p>
-            <p className="text-xs text-surface-500">Chat ID: {status.chat_id}</p>
+            <p className="font-medium text-surface-100">Telegram connected</p>
+            <p className="text-xs text-surface-400">Chat ID: {status.chat_id}</p>
           </div>
         </div>
         <Button variant="secondary" loading={disconnecting} onClick={() => void handleDisconnect()}>
@@ -307,29 +241,22 @@ function TelegramTab() {
 
   return (
     <div className="max-w-lg space-y-5">
-      <p className="text-sm text-surface-600">
+      <p className="text-sm text-surface-400">
         Connect your Telegram account to chat with AIOS directly from your phone.
       </p>
       <ol className="space-y-4">
-        <li className="flex gap-3 text-sm text-surface-700">
-          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-xs font-semibold">
-            1
-          </span>
-          Open Telegram and find your company's AIOS bot
-        </li>
-        <li className="flex gap-3 text-sm text-surface-700">
-          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-xs font-semibold">
-            2
-          </span>
-          Send the message{" "}
-          <code className="bg-surface-100 px-1.5 py-0.5 rounded text-xs font-mono">/start</code>
-        </li>
-        <li className="flex gap-3 text-sm text-surface-700">
-          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-xs font-semibold">
-            3
-          </span>
-          The bot will confirm your connection automatically
-        </li>
+        {[
+          "Open Telegram and find your company's AIOS bot",
+          <span key="2">Send the message <code className="bg-surface-700 px-1.5 py-0.5 rounded text-xs font-mono text-surface-200">/start</code></span>,
+          "The bot will confirm your connection automatically",
+        ].map((step, i) => (
+          <li key={i} className="flex gap-3 text-sm text-surface-300">
+            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-brand-500/15 text-brand-400 flex items-center justify-center text-xs font-semibold">
+              {i + 1}
+            </span>
+            {step}
+          </li>
+        ))}
       </ol>
     </div>
   );
@@ -349,10 +276,7 @@ function EmailTab() {
     try {
       const res = await fetch(`${API_URL}/emails/settings`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ label_filter: labelFilter.trim() || null }),
       });
       if (!res.ok) {
@@ -370,34 +294,26 @@ function EmailTab() {
 
   return (
     <div className="max-w-lg space-y-5">
-      <p className="text-sm text-surface-600">
+      <p className="text-sm text-surface-400">
         Configure which Gmail labels are synced to AIOS. Leave blank to receive all incoming emails.
       </p>
       <form onSubmit={(e) => void handleSave(e)} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-surface-700 mb-1">
-            Gmail Label Filter
-          </label>
-          <Input
-            value={labelFilter}
-            onChange={(e) => setLabelFilter(e.target.value)}
-            placeholder="INBOX (leave blank for all emails)"
-          />
+          <label className={labelCls}>Gmail Label Filter</label>
+          <Input value={labelFilter} onChange={(e) => setLabelFilter(e.target.value)} placeholder="INBOX (leave blank for all emails)" />
           <p className="text-xs text-surface-400 mt-1">
             Examples:{' '}
-            <code className="bg-surface-100 px-1 rounded">INBOX</code>,{' '}
-            <code className="bg-surface-100 px-1 rounded">Label_Clients</code>
+            <code className="bg-surface-700 px-1 rounded text-surface-200">INBOX</code>,{' '}
+            <code className="bg-surface-700 px-1 rounded text-surface-200">Label_Clients</code>
           </p>
         </div>
         {saveError && <p className="text-sm text-danger">{saveError}</p>}
         {saved && <p className="text-sm text-positive">Saved successfully.</p>}
         <div className="pt-1">
-          <Button type="submit" loading={saving}>
-            Save
-          </Button>
+          <Button type="submit" loading={saving}>Save</Button>
         </div>
       </form>
-      <div className="border-t border-surface-200 pt-4">
+      <div className="border-t border-surface-700 pt-4">
         <p className="text-xs text-surface-500">
           To connect Gmail, contact NeuraSolutions — we configure the n8n workflow for your account.
         </p>
@@ -512,66 +428,44 @@ function AppearanceTab() {
     setTimeout(() => setSaved(false), 2000);
   }
 
-  function handleReset() {
-    resetPalette();
-  }
-
   const set = (key: keyof ColorPalette) => (v: string) => setPalette({ [key]: v });
 
   return (
     <div className="flex gap-8">
-      {/* Editor */}
       <div className="flex-1 min-w-0 space-y-5">
         <p className="text-sm text-surface-400">
           Customize every color in your AIOS workspace. Changes preview live — click Save to persist.
         </p>
 
-        {/* Preset themes */}
         <Section icon={<Palette className="h-4 w-4" />} title="Preset Themes">
           <div className="py-3">
-            <ThemeSelector currentPalette={palette} onSelect={(p) => { Object.keys(p).forEach(() => {}); setPalette(p); }} />
+            <ThemeSelector currentPalette={palette} onSelect={(p) => setPalette(p)} />
           </div>
         </Section>
 
-        {/* Backgrounds */}
         <Section icon={<Layers className="h-4 w-4" />} title="Backgrounds">
-          <ColorRow label="App Background" description="Main bg, topbar, sidebar"
-            value={palette.appBg} onChange={set("appBg")} />
-          <ColorRow label="Cards & Surfaces" description="Cards, inputs, dropdowns"
-            value={palette.cardBg} onChange={set("cardBg")} />
-          <ColorRow label="Borders & Hover" description="Borders, dividers, hover states"
-            value={palette.borderHover} onChange={set("borderHover")} />
+          <ColorRow label="App Background" description="Main bg, topbar, sidebar" value={palette.appBg} onChange={set("appBg")} />
+          <ColorRow label="Cards & Surfaces" description="Cards, inputs, dropdowns" value={palette.cardBg} onChange={set("cardBg")} />
+          <ColorRow label="Borders & Hover" description="Borders, dividers, hover states" value={palette.borderHover} onChange={set("borderHover")} />
         </Section>
 
-        {/* Typography */}
         <Section icon={<Type className="h-4 w-4" />} title="Typography">
-          <ColorRow label="Primary Text" description="Headings, strong text"
-            value={palette.textPrimary} onChange={set("textPrimary")} />
-          <ColorRow label="Labels" description="Form labels, nav items"
-            value={palette.textLabel} onChange={set("textLabel")} />
-          <ColorRow label="Secondary Text" description="Descriptions, icons"
-            value={palette.textSecondary} onChange={set("textSecondary")} />
-          <ColorRow label="Muted Text" description="Placeholders, timestamps"
-            value={palette.textMuted} onChange={set("textMuted")} />
+          <ColorRow label="Primary Text" description="Headings, strong text" value={palette.textPrimary} onChange={set("textPrimary")} />
+          <ColorRow label="Labels" description="Form labels, nav items" value={palette.textLabel} onChange={set("textLabel")} />
+          <ColorRow label="Secondary Text" description="Descriptions, icons" value={palette.textSecondary} onChange={set("textSecondary")} />
+          <ColorRow label="Muted Text" description="Placeholders, timestamps" value={palette.textMuted} onChange={set("textMuted")} />
         </Section>
 
-        {/* Brand Accent */}
         <Section icon={<Sparkles className="h-4 w-4" />} title="Brand Accent">
-          <ColorRow label="Primary Accent" description="Buttons, links, active nav, focus rings"
-            value={palette.brandAccent} onChange={set("brandAccent")} />
+          <ColorRow label="Primary Accent" description="Buttons, links, active nav, focus rings" value={palette.brandAccent} onChange={set("brandAccent")} />
         </Section>
 
-        {/* Status */}
         <Section icon={<Activity className="h-4 w-4" />} title="Status Colors">
-          <ColorRow label="Success" description="Positive states, online indicators"
-            value={palette.colorSuccess} onChange={set("colorSuccess")} />
-          <ColorRow label="Warning" description="Caution alerts, pending states"
-            value={palette.colorWarning} onChange={set("colorWarning")} />
-          <ColorRow label="Danger" description="Errors, destructive actions"
-            value={palette.colorDanger} onChange={set("colorDanger")} />
+          <ColorRow label="Success" description="Positive states, online indicators" value={palette.colorSuccess} onChange={set("colorSuccess")} />
+          <ColorRow label="Warning" description="Caution alerts, pending states" value={palette.colorWarning} onChange={set("colorWarning")} />
+          <ColorRow label="Danger" description="Errors, destructive actions" value={palette.colorDanger} onChange={set("colorDanger")} />
         </Section>
 
-        {/* Charts */}
         <Section icon={<BarChart2 className="h-4 w-4" />} title="Chart Colors">
           {([1, 2, 3, 4, 5, 6] as const).map((n) => (
             <ColorRow key={n} label={`Chart Color ${n}`}
@@ -580,20 +474,18 @@ function AppearanceTab() {
           ))}
         </Section>
 
-        {/* Actions */}
         <div className="flex items-center gap-3 pt-2 border-t border-surface-700">
           <Button onClick={handleSave} className="flex items-center gap-2">
             <Save className="h-4 w-4" />
             {saved ? "Saved!" : "Save Changes"}
           </Button>
-          <Button variant="secondary" onClick={handleReset} className="flex items-center gap-2">
+          <Button variant="secondary" onClick={resetPalette} className="flex items-center gap-2">
             <RotateCcw className="h-4 w-4" />
             Reset to Defaults
           </Button>
         </div>
       </div>
 
-      {/* Live Preview */}
       <div className="hidden lg:block">
         <p className="text-xs text-surface-500 uppercase tracking-wider mb-2">Live Preview</p>
         <MiniPreview p={palette} />
@@ -613,9 +505,7 @@ function CalendarTab() {
   const [saveError, setSaveError]           = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`${API_URL}/calendar/settings-read`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    fetch(`${API_URL}/calendar/settings-read`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then((data: { telegram_notify?: boolean; email_notify?: boolean; advance_days?: number }) => {
         setTelegramNotify(data.telegram_notify ?? false);
@@ -653,24 +543,24 @@ function CalendarTab() {
 
   return (
     <div className="max-w-lg space-y-5">
-      <p className="text-sm text-surface-600">
+      <p className="text-sm text-surface-400">
         Configure how AIOS notifies your team about upcoming calendar events.
       </p>
       <form onSubmit={(e) => void handleSave(e)} className="space-y-4">
         <label className="flex items-center gap-3 cursor-pointer">
-          <input type="checkbox" checked={telegramNotify} onChange={e => setTelegramNotify(e.target.checked)} className="rounded" />
-          <span className="text-sm text-surface-700">Send Telegram reminders</span>
+          <input type="checkbox" checked={telegramNotify} onChange={e => setTelegramNotify(e.target.checked)} className="rounded accent-brand-500" />
+          <span className="text-sm text-surface-300">Send Telegram reminders</span>
         </label>
         <label className="flex items-center gap-3 cursor-pointer">
-          <input type="checkbox" checked={emailNotify} onChange={e => setEmailNotify(e.target.checked)} className="rounded" />
-          <span className="text-sm text-surface-700">Send Email reminders</span>
+          <input type="checkbox" checked={emailNotify} onChange={e => setEmailNotify(e.target.checked)} className="rounded accent-brand-500" />
+          <span className="text-sm text-surface-300">Send Email reminders</span>
         </label>
         <div>
-          <label className="block text-sm font-medium text-surface-700 mb-1">Advance notice</label>
+          <label className={labelCls}>Advance notice</label>
           <select
             value={advanceDays}
             onChange={e => setAdvanceDays(parseInt(e.target.value))}
-            className="rounded-lg border border-surface-200 bg-surface-50 px-3 py-2 text-sm text-surface-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className={selectCls}
           >
             <option value={1}>1 day before</option>
             <option value={3}>3 days before</option>
@@ -696,12 +586,12 @@ export default function SettingsPage() {
 
   const tabs = [
     { id: "appearance", label: "Appearance" },
-    { id: "company", label: "Company" },
-    { id: "security", label: "Security" },
+    { id: "company",    label: "Company" },
+    { id: "security",   label: "Security" },
     ...(user?.role === "admin"
       ? [
           { id: "telegram", label: "Telegram" },
-          { id: "email", label: "Email" },
+          { id: "email",    label: "Email" },
           { id: "calendar", label: "Calendar" },
         ]
       : []),
@@ -709,19 +599,16 @@ export default function SettingsPage() {
 
   return (
     <PageTransition>
-      <PageHeader
-        title="Settings"
-        description="Manage your account and company preferences"
-      />
+      <PageHeader title="Settings" description="Manage your account and company preferences" />
       <div className="w-fit mb-6">
         <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
       </div>
       {activeTab === "appearance" && <AppearanceTab />}
-      {activeTab === "company" && <CompanyTab tenantId={user?.tenant_id ?? ""} />}
-      {activeTab === "security" && <SecurityTab />}
-      {activeTab === "telegram" && <TelegramTab />}
-      {activeTab === "email" && <EmailTab />}
-      {activeTab === "calendar" && <CalendarTab />}
+      {activeTab === "company"    && <CompanyTab tenantId={user?.tenant_id ?? ""} />}
+      {activeTab === "security"   && <SecurityTab />}
+      {activeTab === "telegram"   && <TelegramTab />}
+      {activeTab === "email"      && <EmailTab />}
+      {activeTab === "calendar"   && <CalendarTab />}
     </PageTransition>
   );
 }

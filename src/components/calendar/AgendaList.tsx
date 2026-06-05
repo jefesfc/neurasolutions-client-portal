@@ -31,16 +31,19 @@ export function AgendaList({ events, selectedDate, onSelectEvent, onClearDate }:
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold">{heading}</h3>
+        <h3 className="text-sm font-semibold text-surface-200">{heading}</h3>
         {selectedDate && (
-          <button onClick={onClearDate} className="text-xs text-surface-400 hover:text-surface-700 transition-colors">
+          <button
+            onClick={onClearDate}
+            className="text-xs text-surface-400 hover:text-surface-200 transition-colors"
+          >
             Clear filter
           </button>
         )}
       </div>
 
       {items.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center text-surface-500 text-sm">
+        <div className="flex-1 flex items-center justify-center text-surface-400 text-sm">
           No events {selectedDate ? 'on this day' : 'in the next 90 days'}
         </div>
       ) : (
@@ -49,23 +52,23 @@ export function AgendaList({ events, selectedDate, onSelectEvent, onClearDate }:
             <button
               key={`${event.id}-${idx}`}
               onClick={() => onSelectEvent(event)}
-              className="w-full text-left p-3 rounded-lg bg-surface-50 hover:bg-surface-100 transition-colors border-l-2 group"
+              className="w-full text-left p-3 rounded-lg bg-surface-700/40 hover:bg-surface-700 transition-colors border-l-2 group border border-surface-700/60"
               style={{ borderLeftColor: CATEGORY_CONFIG[event.category].color }}
             >
               <div className="flex items-center gap-2 mb-1">
                 <EventBadge category={event.category} />
-                {event.status === 'done'      && <span className="text-[10px] text-surface-500">✓ Done</span>}
-                {event.status === 'cancelled' && <span className="text-[10px] text-red-400">Cancelled</span>}
-                {event.recurrence_rule && <span className="text-[10px] text-surface-500">↻</span>}
+                {event.status === 'done'      && <span className="text-[10px] text-positive">✓ Done</span>}
+                {event.status === 'cancelled' && <span className="text-[10px] text-danger">Cancelled</span>}
+                {event.recurrence_rule && <span className="text-[10px] text-surface-400">↻</span>}
               </div>
-              <p className="text-sm font-medium text-surface-900 leading-snug">{event.title}</p>
+              <p className="text-sm font-medium text-surface-100 leading-snug">{event.title}</p>
               <p className="text-xs text-surface-400 mt-0.5">
                 {event.all_day
                   ? format(occurrenceDate, 'd MMM yyyy')
                   : format(occurrenceDate, 'd MMM yyyy · HH:mm')}
               </p>
               {event.amount != null && (
-                <p className="text-xs text-surface-500 mt-0.5">
+                <p className="text-xs text-surface-300 mt-0.5">
                   {event.currency} {event.amount.toLocaleString()}
                 </p>
               )}

@@ -25,6 +25,9 @@ const RECURRENCE_OPTS: { value: RecurrenceFreq | ''; label: string }[] = [
   { value: 'yearly',  label: 'Yearly' },
 ];
 
+const selectCls = "w-full rounded-lg border border-surface-600 bg-surface-800 px-3 py-2 text-sm text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500";
+const labelCls  = "block text-sm font-medium text-surface-300 mb-1";
+
 interface Props {
   event: CalendarEvent | null;
   defaultDate?: Date | null;
@@ -163,28 +166,24 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
       {!canEdit && event ? (
         <div className="space-y-3">
           <div><EventBadge category={event.category} size="md" /></div>
-          <p className="text-lg font-semibold">{event.title}</p>
+          <p className="text-lg font-semibold text-surface-100">{event.title}</p>
           {event.description && <p className="text-sm text-surface-400">{event.description}</p>}
           <p className="text-sm text-surface-300">{new Date(event.start_at).toLocaleString()}</p>
           {event.amount != null && (
-            <p className="text-sm font-medium">{event.currency} {event.amount.toLocaleString()}</p>
+            <p className="text-sm font-medium text-surface-200">{event.currency} {event.amount.toLocaleString()}</p>
           )}
           <div className="pt-2"><Button variant="secondary" onClick={onClose}>Close</Button></div>
         </div>
       ) : (
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-surface-700 mb-1">Title *</label>
+            <label className={labelCls}>Title *</label>
             <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Event title" required />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-surface-700 mb-1">Category *</label>
-            <select
-              value={category}
-              onChange={e => setCategory(e.target.value as EventCategory)}
-              className="w-full rounded-lg border border-surface-200 bg-surface-50 px-3 py-2 text-sm text-surface-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
-            >
+            <label className={labelCls}>Category *</label>
+            <select value={category} onChange={e => setCategory(e.target.value as EventCategory)} className={selectCls}>
               {CATEGORIES.map(c => (
                 <option key={c} value={c}>{CATEGORY_CONFIG[c].label}</option>
               ))}
@@ -192,12 +191,12 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
           </div>
 
           <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={allDay} onChange={e => setAllDay(e.target.checked)} className="rounded" />
-            <span className="text-sm text-surface-700">All day</span>
+            <input type="checkbox" checked={allDay} onChange={e => setAllDay(e.target.checked)} className="rounded accent-brand-500" />
+            <span className="text-sm text-surface-300">All day</span>
           </label>
 
           <div>
-            <label className="block text-sm font-medium text-surface-700 mb-1">Start *</label>
+            <label className={labelCls}>Start *</label>
             <Input
               type={allDay ? 'date' : 'datetime-local'}
               value={allDay ? startAt.split('T')[0] : startAt}
@@ -207,7 +206,7 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-surface-700 mb-1">End (optional)</label>
+            <label className={labelCls}>End (optional)</label>
             <Input
               type={allDay ? 'date' : 'datetime-local'}
               value={allDay ? (endAt.split('T')[0] ?? '') : endAt}
@@ -216,12 +215,12 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-surface-700 mb-1">Recurrence</label>
+            <label className={labelCls}>Recurrence</label>
             <div className="flex gap-2">
               <select
                 value={recurrFreq}
                 onChange={e => setRecurrFreq(e.target.value as RecurrenceFreq | '')}
-                className="flex-1 rounded-lg border border-surface-200 bg-surface-50 px-3 py-2 text-sm text-surface-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className={`flex-1 ${selectCls}`}
               >
                 {RECURRENCE_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
@@ -236,34 +235,32 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
             </div>
             {recurrFreq && (
               <div className="mt-2">
-                <label className="block text-xs text-surface-500 mb-1">Until (optional)</label>
+                <label className="block text-xs text-surface-400 mb-1">Until (optional)</label>
                 <Input type="date" value={recurrUntil} onChange={e => setRecurrUntil(e.target.value)} />
               </div>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-surface-700 mb-1">Link to (optional)</label>
+            <label className={labelCls}>Link to (optional)</label>
             <div className="flex gap-2">
               <select
                 value={linkedType}
                 onChange={e => { setLinkedType(e.target.value as 'lead' | 'contact' | ''); setLinkedId(''); }}
-                className="w-32 rounded-lg border border-surface-200 bg-surface-50 px-3 py-2 text-sm text-surface-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className={`w-32 ${selectCls}`}
               >
                 <option value="">None</option>
                 <option value="lead">Lead</option>
                 <option value="contact">Contact</option>
               </select>
               {linkedType === 'lead' && (
-                <select value={linkedId} onChange={e => setLinkedId(e.target.value)}
-                  className="flex-1 rounded-lg border border-surface-200 bg-surface-50 px-3 py-2 text-sm text-surface-900 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <select value={linkedId} onChange={e => setLinkedId(e.target.value)} className={`flex-1 ${selectCls}`}>
                   <option value="">Select lead…</option>
                   {leads.map(l => <option key={l.id} value={l.id}>{l.name} — {l.email}</option>)}
                 </select>
               )}
               {linkedType === 'contact' && (
-                <select value={linkedId} onChange={e => setLinkedId(e.target.value)}
-                  className="flex-1 rounded-lg border border-surface-200 bg-surface-50 px-3 py-2 text-sm text-surface-900 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <select value={linkedId} onChange={e => setLinkedId(e.target.value)} className={`flex-1 ${selectCls}`}>
                   <option value="">Select contact…</option>
                   {contacts.map(c => <option key={c.id} value={c.id}>{c.name} — {c.company ?? c.email}</option>)}
                 </select>
@@ -274,13 +271,12 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
           {showAmountField && (
             <div className="flex gap-2">
               <div className="flex-1">
-                <label className="block text-sm font-medium text-surface-700 mb-1">Amount</label>
+                <label className={labelCls}>Amount</label>
                 <Input type="number" min={0} step="0.01" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" />
               </div>
               <div className="w-24">
-                <label className="block text-sm font-medium text-surface-700 mb-1">Currency</label>
-                <select value={currency} onChange={e => setCurrency(e.target.value)}
-                  className="w-full rounded-lg border border-surface-200 bg-surface-50 px-3 py-2 text-sm text-surface-900 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <label className={labelCls}>Currency</label>
+                <select value={currency} onChange={e => setCurrency(e.target.value)} className={selectCls}>
                   <option>GBP</option><option>EUR</option><option>USD</option>
                 </select>
               </div>
@@ -289,24 +285,23 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
 
           {isEdit && (
             <div>
-              <label className="block text-sm font-medium text-surface-700 mb-1">Status</label>
-              <select value={status} onChange={e => setStatus(e.target.value as EventStatus)}
-                className="w-full rounded-lg border border-surface-200 bg-surface-50 px-3 py-2 text-sm text-surface-900 focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <label className={labelCls}>Status</label>
+              <select value={status} onChange={e => setStatus(e.target.value as EventStatus)} className={selectCls}>
                 {STATUSES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
               </select>
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-surface-700 mb-1">Description (optional)</label>
+            <label className={labelCls}>Description (optional)</label>
             <Textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="Notes…" />
           </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-sm text-danger">{error}</p>}
 
           <div className="flex items-center justify-between pt-2">
             {isEdit && (
-              <Button type="button" variant="secondary" loading={deleting} onClick={() => void handleDelete()}>
+              <Button type="button" variant="danger" loading={deleting} onClick={() => void handleDelete()}>
                 Delete
               </Button>
             )}

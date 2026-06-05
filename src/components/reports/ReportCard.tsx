@@ -8,17 +8,17 @@ import { formatDate } from "../../lib/formatters";
 import { downloadReportPDF } from "../../lib/pdf";
 
 const typeBadges: Record<string, "default" | "success" | "info" | "warning"> = {
-  monthly: "info",
+  monthly:   "info",
   quarterly: "warning",
-  annual: "success",
+  annual:    "success",
   executive: "default",
 };
 
 const categoryLabels: Record<string, string> = {
   performance: "Performance",
-  financial: "Financial",
-  automation: "Automation",
-  roi: "ROI Analysis",
+  financial:   "Financial",
+  automation:  "Automation",
+  roi:         "ROI Analysis",
 };
 
 interface ReportCardProps {
@@ -38,8 +38,8 @@ export function ReportCard({ report }: ReportCardProps) {
   return (
     <Card hover className="flex flex-col">
       <div className="flex items-start justify-between mb-3">
-        <div className="h-10 w-10 rounded-xl bg-brand-50 flex items-center justify-center">
-          <FileText className="h-5 w-5 text-brand-600" />
+        <div className="h-10 w-10 rounded-xl bg-brand-500/10 flex items-center justify-center">
+          <FileText className="h-5 w-5 text-brand-400" />
         </div>
         <div className="flex items-center gap-2">
           <Badge variant={typeBadges[report.type]}>{report.type}</Badge>
@@ -47,14 +47,14 @@ export function ReportCard({ report }: ReportCardProps) {
         </div>
       </div>
 
-      <h3 className="text-base font-semibold text-surface-900 mb-1">{report.title}</h3>
-      <p className="text-sm text-surface-500 line-clamp-2 mb-3">{report.summary}</p>
+      <h3 className="text-base font-semibold text-surface-100 mb-1">{report.title}</h3>
+      <p className="text-sm text-surface-400 line-clamp-2 mb-3">{report.summary}</p>
 
       {/* Highlights */}
       {report.highlights.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-4">
           {report.highlights.map((h, i) => (
-            <span key={i} className="text-xs bg-surface-50 text-surface-600 px-2 py-1 rounded-md">
+            <span key={i} className="text-xs bg-surface-700/60 text-surface-300 px-2 py-1 rounded-md border border-surface-600/50">
               {h}
             </span>
           ))}
@@ -62,12 +62,12 @@ export function ReportCard({ report }: ReportCardProps) {
       )}
 
       {/* AI Note */}
-      <div className="bg-brand-50/50 rounded-xl p-3 mb-4 flex gap-2">
-        <Sparkles className="h-4 w-4 text-brand-500 flex-shrink-0 mt-0.5" />
-        <p className="text-xs text-brand-700 line-clamp-3">{report.aiGeneratedNote}</p>
+      <div className="bg-brand-500/8 border border-brand-500/15 rounded-xl p-3 mb-4 flex gap-2">
+        <Sparkles className="h-4 w-4 text-brand-400 flex-shrink-0 mt-0.5" />
+        <p className="text-xs text-brand-300 line-clamp-3">{report.aiGeneratedNote}</p>
       </div>
 
-      <div className="flex items-center justify-between mt-auto pt-3 border-t border-surface-100">
+      <div className="flex items-center justify-between mt-auto pt-3 border-t border-surface-700">
         <div className="text-xs text-surface-400">
           <span>{formatDate(report.generatedAt)}</span>
           <span className="mx-2">·</span>

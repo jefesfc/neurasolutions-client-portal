@@ -20,49 +20,49 @@ export interface ColorPalette {
   colorDanger: string;
 }
 
-export const DEFAULT_PALETTE: ColorPalette = {
-  appBg:         "#0f172a",
-  cardBg:        "#1e293b",
-  borderHover:   "#334155",
-  textPrimary:   "#f1f5f9",
-  textLabel:     "#cbd5e1",
-  textSecondary: "#94a3b8",
-  textMuted:     "#64748b",
-  brandAccent:   "#6366f1",
-  chart1:        "#6366f1",
-  chart2:        "#10b981",
-  chart3:        "#f59e0b",
-  chart4:        "#ef4444",
-  chart5:        "#8b5cf6",
-  chart6:        "#0ea5e9",
-  colorSuccess:  "#10b981",
-  colorWarning:  "#f59e0b",
-  colorDanger:   "#ef4444",
+export const PALETTE_PRESETS: Record<string, ColorPalette> = {
+  "Obsidian": {
+    appBg:         "#08090e",
+    cardBg:        "#0f1117",
+    borderHover:   "#1c1e26",
+    textPrimary:   "#f4f4f5",
+    textLabel:     "#d1d5db",
+    textSecondary: "#9ca3af",
+    textMuted:     "#6b7280",
+    brandAccent:   "#6366f1",
+    chart1: "#6366f1", chart2: "#10b981", chart3: "#f59e0b",
+    chart4: "#ef4444", chart5: "#8b5cf6", chart6: "#06b6d4",
+    colorSuccess: "#10b981", colorWarning: "#f59e0b", colorDanger: "#ef4444",
+  },
+  "Carbon": {
+    appBg:         "#0f172a",
+    cardBg:        "#1e293b",
+    borderHover:   "#334155",
+    textPrimary:   "#f1f5f9",
+    textLabel:     "#cbd5e1",
+    textSecondary: "#94a3b8",
+    textMuted:     "#64748b",
+    brandAccent:   "#6366f1",
+    chart1: "#6366f1", chart2: "#10b981", chart3: "#f59e0b",
+    chart4: "#ef4444", chart5: "#8b5cf6", chart6: "#06b6d4",
+    colorSuccess: "#10b981", colorWarning: "#f59e0b", colorDanger: "#ef4444",
+  },
+  "Pearl": {
+    appBg:         "#f1f5f9",
+    cardBg:        "#ffffff",
+    borderHover:   "#e2e8f0",
+    textPrimary:   "#0f172a",
+    textLabel:     "#334155",
+    textSecondary: "#475569",
+    textMuted:     "#94a3b8",
+    brandAccent:   "#6366f1",
+    chart1: "#6366f1", chart2: "#10b981", chart3: "#f59e0b",
+    chart4: "#ef4444", chart5: "#8b5cf6", chart6: "#06b6d4",
+    colorSuccess: "#10b981", colorWarning: "#f59e0b", colorDanger: "#ef4444",
+  },
 };
 
-export const PALETTE_PRESETS: Record<string, ColorPalette> = {
-  "AIOS Dark": DEFAULT_PALETTE,
-  "Deep Navy": {
-    ...DEFAULT_PALETTE,
-    appBg: "#070d1a", cardBg: "#0f1d33", borderHover: "#1a2d4d",
-    brandAccent: "#3b82f6", chart1: "#3b82f6",
-  },
-  "Midnight": {
-    ...DEFAULT_PALETTE,
-    appBg: "#0d0d1a", cardBg: "#15152b", borderHover: "#252540",
-    brandAccent: "#8b5cf6", chart1: "#8b5cf6",
-  },
-  "Slate": {
-    ...DEFAULT_PALETTE,
-    appBg: "#141920", cardBg: "#1c2330", borderHover: "#2d3748",
-    brandAccent: "#0ea5e9", chart1: "#0ea5e9",
-  },
-  "Forest": {
-    ...DEFAULT_PALETTE,
-    appBg: "#0a1612", cardBg: "#112318", borderHover: "#1a3525",
-    brandAccent: "#10b981", chart1: "#10b981",
-  },
-};
+export const DEFAULT_PALETTE: ColorPalette = PALETTE_PRESETS["Carbon"];
 
 const PALETTE_KEY = "aios-palette";
 
@@ -112,14 +112,11 @@ export function generateBrandScale(hex: string): Record<string, string> {
   };
 }
 
-// ── Apply / clear palette to :root ──────────────────────────────────
+// ── Apply palette to :root ───────────────────────────────────────────
 function applyPalette(p: ColorPalette) {
   const root = document.documentElement;
-
-  // Remove any data-theme preset overrides
   root.removeAttribute("data-theme");
 
-  // Surface remapping
   root.style.setProperty("--color-surface-900", p.appBg);
   root.style.setProperty("--color-surface-800", p.cardBg);
   root.style.setProperty("--color-surface-700", p.borderHover);
@@ -129,13 +126,11 @@ function applyPalette(p: ColorPalette) {
   root.style.setProperty("--color-surface-400", p.textSecondary);
   root.style.setProperty("--color-surface-500", p.textMuted);
 
-  // Brand scale from accent
   const scale = generateBrandScale(p.brandAccent);
   Object.entries(scale).forEach(([shade, val]) => {
     root.style.setProperty(`--color-brand-${shade}`, val);
   });
 
-  // Charts
   root.style.setProperty("--color-chart-1", p.chart1);
   root.style.setProperty("--color-chart-2", p.chart2);
   root.style.setProperty("--color-chart-3", p.chart3);
@@ -143,7 +138,6 @@ function applyPalette(p: ColorPalette) {
   root.style.setProperty("--color-chart-5", p.chart5);
   root.style.setProperty("--color-chart-6", p.chart6);
 
-  // Status
   root.style.setProperty("--color-positive", p.colorSuccess);
   root.style.setProperty("--color-warning",  p.colorWarning);
   root.style.setProperty("--color-danger",   p.colorDanger);
