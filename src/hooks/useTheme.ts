@@ -1,33 +1,72 @@
 import { useState, useEffect } from "react";
 
-export type AppTheme = "aios-blue" | "midnight-pro" | "arctic" | "custom";
-
-export interface BrandScale {
-  "50": string; "100": string; "200": string; "300": string; "400": string;
-  "500": string; "600": string; "700": string; "800": string; "900": string;
+export interface ColorPalette {
+  appBg: string;
+  cardBg: string;
+  borderHover: string;
+  textPrimary: string;
+  textLabel: string;
+  textSecondary: string;
+  textMuted: string;
+  brandAccent: string;
+  chart1: string;
+  chart2: string;
+  chart3: string;
+  chart4: string;
+  chart5: string;
+  chart6: string;
+  colorSuccess: string;
+  colorWarning: string;
+  colorDanger: string;
 }
 
-const STORAGE_KEY = "aios-theme";
-const CUSTOM_COLORS_KEY = "aios-custom-colors";
+export const DEFAULT_PALETTE: ColorPalette = {
+  appBg:         "#0f172a",
+  cardBg:        "#1e293b",
+  borderHover:   "#334155",
+  textPrimary:   "#f1f5f9",
+  textLabel:     "#cbd5e1",
+  textSecondary: "#94a3b8",
+  textMuted:     "#64748b",
+  brandAccent:   "#6366f1",
+  chart1:        "#6366f1",
+  chart2:        "#10b981",
+  chart3:        "#f59e0b",
+  chart4:        "#ef4444",
+  chart5:        "#8b5cf6",
+  chart6:        "#0ea5e9",
+  colorSuccess:  "#10b981",
+  colorWarning:  "#f59e0b",
+  colorDanger:   "#ef4444",
+};
 
-const PRESET_SCALES: Record<Exclude<AppTheme, "custom">, BrandScale> = {
-  "aios-blue": {
-    "50": "#eef2ff", "100": "#e0e7ff", "200": "#c7d2fe", "300": "#a5b4fc",
-    "400": "#818cf8", "500": "#6366f1", "600": "#4f46e5", "700": "#4338ca",
-    "800": "#3730a3", "900": "#312e81",
+export const PALETTE_PRESETS: Record<string, ColorPalette> = {
+  "AIOS Dark": DEFAULT_PALETTE,
+  "Deep Navy": {
+    ...DEFAULT_PALETTE,
+    appBg: "#070d1a", cardBg: "#0f1d33", borderHover: "#1a2d4d",
+    brandAccent: "#3b82f6", chart1: "#3b82f6",
   },
-  "midnight-pro": {
-    "50": "#f5f3ff", "100": "#ede9fe", "200": "#ddd6fe", "300": "#c4b5fd",
-    "400": "#a78bfa", "500": "#8b5cf6", "600": "#7c3aed", "700": "#6d28d9",
-    "800": "#5b21b6", "900": "#4c1d95",
+  "Midnight": {
+    ...DEFAULT_PALETTE,
+    appBg: "#0d0d1a", cardBg: "#15152b", borderHover: "#252540",
+    brandAccent: "#8b5cf6", chart1: "#8b5cf6",
   },
-  "arctic": {
-    "50": "#f0f9ff", "100": "#e0f2fe", "200": "#bae6fd", "300": "#7dd3fc",
-    "400": "#38bdf8", "500": "#0ea5e9", "600": "#0284c7", "700": "#0369a1",
-    "800": "#075985", "900": "#0c4a6e",
+  "Slate": {
+    ...DEFAULT_PALETTE,
+    appBg: "#141920", cardBg: "#1c2330", borderHover: "#2d3748",
+    brandAccent: "#0ea5e9", chart1: "#0ea5e9",
+  },
+  "Forest": {
+    ...DEFAULT_PALETTE,
+    appBg: "#0a1612", cardBg: "#112318", borderHover: "#1a3525",
+    brandAccent: "#10b981", chart1: "#10b981",
   },
 };
 
+const PALETTE_KEY = "aios-palette";
+
+// ── hex ↔ HSL helpers ────────────────────────────────────────────────
 function hexToHsl(hex: string): [number, number, number] {
   const r = parseInt(hex.slice(1, 3), 16) / 255;
   const g = parseInt(hex.slice(3, 5), 16) / 255;
@@ -56,15 +95,16 @@ function hslToHex(h: number, s: number, l: number): string {
   return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
 }
 
-export function generateBrandScale(primaryHex: string): BrandScale {
-  const [h, s] = hexToHsl(primaryHex);
+export function generateBrandScale(hex: string): Record<string, string> {
+  if (!/^#[0-9a-f]{6}$/i.test(hex)) return {};
+  const [h, s] = hexToHsl(hex);
   return {
     "50":  hslToHex(h, Math.min(s * 0.3, 25), 97),
     "100": hslToHex(h, Math.min(s * 0.45, 35), 93),
     "200": hslToHex(h, Math.min(s * 0.6, 52), 86),
     "300": hslToHex(h, Math.min(s * 0.75, 70), 75),
     "400": hslToHex(h, Math.min(s * 0.88, 80), 65),
-    "500": primaryHex,
+    "500": hex,
     "600": hslToHex(h, Math.min(s, 85), 46),
     "700": hslToHex(h, Math.min(s, 82), 37),
     "800": hslToHex(h, Math.min(s * 0.9, 75), 28),
@@ -72,60 +112,73 @@ export function generateBrandScale(primaryHex: string): BrandScale {
   };
 }
 
-function applyBrandScale(scale: BrandScale) {
+// ── Apply / clear palette to :root ──────────────────────────────────
+function applyPalette(p: ColorPalette) {
   const root = document.documentElement;
-  (Object.keys(scale) as Array<keyof BrandScale>).forEach((shade) => {
-    root.style.setProperty(`--color-brand-${shade}`, scale[shade]);
+
+  // Remove any data-theme preset overrides
+  root.removeAttribute("data-theme");
+
+  // Surface remapping
+  root.style.setProperty("--color-surface-900", p.appBg);
+  root.style.setProperty("--color-surface-800", p.cardBg);
+  root.style.setProperty("--color-surface-700", p.borderHover);
+  root.style.setProperty("--color-surface-100", p.textPrimary);
+  root.style.setProperty("--color-surface-200", p.textPrimary);
+  root.style.setProperty("--color-surface-300", p.textLabel);
+  root.style.setProperty("--color-surface-400", p.textSecondary);
+  root.style.setProperty("--color-surface-500", p.textMuted);
+
+  // Brand scale from accent
+  const scale = generateBrandScale(p.brandAccent);
+  Object.entries(scale).forEach(([shade, val]) => {
+    root.style.setProperty(`--color-brand-${shade}`, val);
   });
+
+  // Charts
+  root.style.setProperty("--color-chart-1", p.chart1);
+  root.style.setProperty("--color-chart-2", p.chart2);
+  root.style.setProperty("--color-chart-3", p.chart3);
+  root.style.setProperty("--color-chart-4", p.chart4);
+  root.style.setProperty("--color-chart-5", p.chart5);
+  root.style.setProperty("--color-chart-6", p.chart6);
+
+  // Status
+  root.style.setProperty("--color-positive", p.colorSuccess);
+  root.style.setProperty("--color-warning",  p.colorWarning);
+  root.style.setProperty("--color-danger",   p.colorDanger);
 }
 
-function clearBrandScale() {
-  const root = document.documentElement;
-  ["50","100","200","300","400","500","600","700","800","900"].forEach((shade) => {
-    root.style.removeProperty(`--color-brand-${shade}`);
-  });
+function loadPalette(): ColorPalette {
+  try {
+    const stored = localStorage.getItem(PALETTE_KEY);
+    if (!stored) return DEFAULT_PALETTE;
+    return { ...DEFAULT_PALETTE, ...JSON.parse(stored) as Partial<ColorPalette> };
+  } catch {
+    return DEFAULT_PALETTE;
+  }
 }
 
+// ── Hook ─────────────────────────────────────────────────────────────
 export function useTheme() {
-  const [theme, setThemeState] = useState<AppTheme>(
-    () => (localStorage.getItem(STORAGE_KEY) as AppTheme) ?? "aios-blue"
-  );
-
-  const [customColors, setCustomColorsState] = useState<BrandScale>(() => {
-    try {
-      const stored = localStorage.getItem(CUSTOM_COLORS_KEY);
-      return stored ? (JSON.parse(stored) as BrandScale) : generateBrandScale("#6366f1");
-    } catch {
-      return generateBrandScale("#6366f1");
-    }
-  });
+  const [palette, setPaletteState] = useState<ColorPalette>(loadPalette);
 
   useEffect(() => {
-    const root = document.documentElement;
-    clearBrandScale();
-    if (theme === "custom") {
-      root.removeAttribute("data-theme");
-      applyBrandScale(customColors);
-    } else if (theme === "aios-blue") {
-      root.removeAttribute("data-theme");
-    } else {
-      root.setAttribute("data-theme", theme);
-    }
-    localStorage.setItem(STORAGE_KEY, theme);
-  }, [theme, customColors]);
+    applyPalette(palette);
+  }, [palette]);
 
-  function setTheme(t: AppTheme) {
-    setThemeState(t);
+  function setPalette(updates: Partial<ColorPalette>) {
+    setPaletteState((prev) => ({ ...prev, ...updates }));
   }
 
-  function setCustomColors(colors: BrandScale) {
-    setCustomColorsState(colors);
-    localStorage.setItem(CUSTOM_COLORS_KEY, JSON.stringify(colors));
-    if (theme !== "custom") setThemeState("custom");
+  function savePalette() {
+    localStorage.setItem(PALETTE_KEY, JSON.stringify(palette));
   }
 
-  const activeBrandScale: BrandScale =
-    theme === "custom" ? customColors : PRESET_SCALES[theme as Exclude<AppTheme, "custom">] ?? PRESET_SCALES["aios-blue"];
+  function resetPalette() {
+    localStorage.removeItem(PALETTE_KEY);
+    setPaletteState(DEFAULT_PALETTE);
+  }
 
-  return { theme, setTheme, customColors, setCustomColors, activeBrandScale, PRESET_SCALES };
+  return { palette, setPalette, savePalette, resetPalette };
 }
