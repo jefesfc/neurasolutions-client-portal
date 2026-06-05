@@ -32,12 +32,12 @@ export function TopBar() {
   }
 
   return (
-    <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-surface-200">
+    <header className="sticky top-0 z-30 bg-surface-900/80 backdrop-blur-xl border-b border-surface-800">
       <div className="flex items-center justify-between h-16 px-4 lg:px-6">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setMobileOpen(true)}
-            className="lg:hidden p-2 rounded-lg hover:bg-surface-100 text-surface-500"
+            className="lg:hidden p-2 rounded-lg hover:bg-surface-800 text-surface-500"
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -46,7 +46,7 @@ export function TopBar() {
             <input
               type="text"
               placeholder="Search..."
-              className="w-64 rounded-lg border border-surface-200 bg-surface-50 pl-9 pr-4 py-2 text-sm text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+              className="w-64 rounded-lg border border-surface-700 bg-surface-800 pl-9 pr-4 py-2 text-sm text-surface-200 placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
             />
           </div>
         </div>
@@ -54,16 +54,16 @@ export function TopBar() {
         <div className="flex items-center gap-1">
           <button
             onClick={() => setSearchOpen(true)}
-            className="sm:hidden p-2 rounded-lg hover:bg-surface-100 text-surface-500"
+            className="sm:hidden p-2 rounded-lg hover:bg-surface-800 text-surface-500"
           >
             <Search className="h-5 w-5" />
           </button>
 
-          <Link to="/support" className="relative p-2 rounded-lg hover:bg-surface-100 text-surface-500 transition-colors">
+          <Link to="/support" className="relative p-2 rounded-lg hover:bg-surface-800 text-surface-500 transition-colors">
             <MessageSquare className="h-5 w-5" />
           </Link>
 
-          <Link to="/" className="relative p-2 rounded-lg hover:bg-surface-100 text-surface-500 transition-colors">
+          <Link to="/" className="relative p-2 rounded-lg hover:bg-surface-800 text-surface-500 transition-colors">
             <Bell className="h-5 w-5" />
             {unreadCount > 0 && (
               <span className="absolute top-1 right-1 h-4 w-4 rounded-full bg-danger text-[10px] font-medium text-white flex items-center justify-center">
@@ -72,29 +72,29 @@ export function TopBar() {
             )}
           </Link>
 
-          <div ref={menuRef} className="relative hidden sm:flex items-center gap-2 ml-3 pl-3 border-l border-surface-200">
+          <div ref={menuRef} className="relative hidden sm:flex items-center gap-2 ml-3 pl-3 border-l border-surface-700">
             <button
               onClick={() => setMenuOpen((v) => !v)}
-              className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-surface-100 transition-colors"
+              className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-surface-800 transition-colors"
             >
               <Avatar fallback={user?.name} size="sm" className="bg-brand-100 text-brand-700" />
-              <span className="text-sm font-medium text-surface-700">{user?.name}</span>
+              <span className="text-sm font-medium text-surface-200">{user?.name}</span>
             </button>
 
             {menuOpen && (
-              <div className="absolute right-0 top-10 w-44 bg-white rounded-xl shadow-lg border border-surface-200 py-1 z-50">
+              <div className="absolute right-0 top-10 w-44 bg-surface-800 rounded-xl shadow-lg border border-surface-700 py-1 z-50">
                 <Link
                   to="/profile"
                   onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-surface-700 hover:bg-surface-50"
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-surface-200 hover:bg-surface-700"
                 >
                   <User className="w-4 h-4 text-surface-400" />
                   Profile
                 </Link>
-                <hr className="my-1 border-surface-100" />
+                <hr className="my-1 border-surface-700" />
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-900/20"
                 >
                   <LogOut className="w-4 h-4" />
                   Sign out
@@ -117,7 +117,7 @@ export function TopBar() {
               onKeyDown={(e) => {
                 if (e.key === "Escape") setSearchOpen(false);
               }}
-              className="w-full rounded-lg border border-surface-300 bg-white pl-9 pr-4 py-2 text-sm text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+              className="w-full rounded-lg border border-surface-700 bg-surface-800 pl-9 pr-4 py-2 text-sm text-surface-200 placeholder:text-surface-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
             />
           </div>
         </div>

@@ -10,6 +10,7 @@ import { Input } from "../components/ui/Input";
 import { Skeleton } from "../components/ui/Skeleton";
 import { ThemeSelector } from "../components/settings/ThemeSelector";
 import { useTheme, type AppTheme } from "../hooks/useTheme";
+import type { BrandScale } from "../hooks/useTheme";
 
 interface Tenant {
   id: string;
@@ -406,27 +407,35 @@ function EmailTab() {
 }
 
 function AppearanceTab() {
-  const { theme, setTheme } = useTheme();
-  const [draft, setDraft] = useState<AppTheme>(theme);
+  const { theme, setTheme, customColors, setCustomColors } = useTheme();
   const [saved, setSaved] = useState(false);
 
-  function handleSave() {
-    setTheme(draft);
+  function handleThemeChange(t: AppTheme) {
+    setTheme(t);
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setTimeout(() => setSaved(false), 1500);
+  }
+
+  function handleCustomColors(colors: BrandScale) {
+    setCustomColors(colors);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1500);
   }
 
   return (
-    <div className="max-w-lg space-y-5">
-      <p className="text-sm text-surface-600">
-        Choose a premium theme for your AIOS workspace.
+    <div className="max-w-xl space-y-2">
+      <p className="text-sm text-surface-400 mb-5">
+        Customize the accent colors across your entire AIOS workspace. Changes apply instantly.
       </p>
-      <ThemeSelector value={draft} onChange={setDraft} />
-      <div className="pt-2">
-        <Button onClick={handleSave}>
-          {saved ? "Saved!" : "Save Changes"}
-        </Button>
-      </div>
+      <ThemeSelector
+        value={theme}
+        onChange={handleThemeChange}
+        customColors={customColors}
+        onCustomColors={handleCustomColors}
+      />
+      {saved && (
+        <p className="text-sm text-positive pt-2">Applied — looking good!</p>
+      )}
     </div>
   );
 }
