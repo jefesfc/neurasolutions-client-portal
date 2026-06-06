@@ -44,40 +44,40 @@ export function EventsTable({ events, loading, onSelect, onResolve }: Props) {
   ];
 
   return (
-    <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,215,0,0.12)', borderRadius: 12, padding: 16 }}>
+    <div className="bg-white border border-slate-200 rounded-xl p-4">
       {/* Filters */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap', alignItems: 'center' }}>
-        <p style={{ color: '#fff', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginRight: 8 }}>
-          🛡 Events
-        </p>
+      <div className="flex gap-2 mb-4 flex-wrap items-center">
+        <p className="text-xs font-bold uppercase tracking-wide text-slate-700 mr-2">Events</p>
         {FILTERS.map(({ value, label }) => (
           <button
             key={value}
             onClick={() => setFilter(value)}
-            style={{
-              padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600,
-              border: '1px solid',
-              borderColor: filter === value ? '#fcd34d' : 'rgba(255,255,255,0.1)',
-              background: filter === value ? 'rgba(252,211,77,0.1)' : 'transparent',
-              color: filter === value ? '#fcd34d' : '#9ca3af',
-              cursor: 'pointer',
-            }}
+            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+              filter === value
+                ? "border-indigo-400 bg-indigo-50 text-indigo-700"
+                : "border-slate-200 bg-transparent text-slate-400 hover:text-slate-600 hover:border-slate-300"
+            }`}
           >
             {label}
           </button>
         ))}
-        <label style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, color: '#9ca3af', fontSize: 12, cursor: 'pointer' }}>
-          <input type="checkbox" checked={showResolved} onChange={(e) => setShowResolved(e.target.checked)} />
+        <label className="ml-auto flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showResolved}
+            onChange={(e) => setShowResolved(e.target.checked)}
+            className="accent-indigo-500"
+          />
           Show resolved
         </label>
       </div>
 
-      {loading && <p style={{ color: '#6b7280', fontSize: 13 }}>Loading...</p>}
+      {loading && <p className="text-sm text-slate-400">Loading...</p>}
       {!loading && filtered.length === 0 && (
-        <p style={{ color: '#6b7280', fontSize: 13 }}>No events match the current filter.</p>
+        <p className="text-sm text-slate-400">No events match the current filter.</p>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+      <div className="flex flex-col gap-0.5">
         {filtered.map((event) => {
           const cfg = SEVERITY_CONFIG[event.severity];
           const time = new Date(event.created_at).toLocaleString('en-US', {
@@ -87,34 +87,31 @@ export function EventsTable({ events, loading, onSelect, onResolve }: Props) {
             <div
               key={event.id}
               onClick={() => onSelect(event)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                padding: '10px 8px', borderRadius: 8, cursor: 'pointer',
-                opacity: event.resolved ? 0.5 : 1,
-                transition: 'background 0.15s',
-              }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.04)'; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = 'transparent'; }}
+              className="flex items-center gap-3 px-2 py-2.5 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors"
+              style={{ opacity: event.resolved ? 0.5 : 1 }}
             >
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: cfg.dot, flexShrink: 0 }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ color: '#e5e7eb', fontSize: 13, fontWeight: 600, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cfg.dot }} />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-slate-800 truncate">
                   {EVENT_TYPE_LABELS[event.event_type] ?? event.event_type}
                 </p>
-                <p style={{ color: '#6b7280', fontSize: 11, margin: '2px 0 0 0' }}>
+                <p className="text-[11px] text-slate-400 mt-0.5">
                   {time} · {event.actor_ip ?? 'unknown IP'}
                 </p>
               </div>
-              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, color: cfg.color, background: cfg.bg, flexShrink: 0 }}>
+              <span
+                className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
+                style={{ color: cfg.color, backgroundColor: cfg.bg }}
+              >
                 {cfg.label.toUpperCase()}
               </span>
               {!event.resolved && (event.severity === 'high' || event.severity === 'critical') && (
                 <button
                   onClick={(e) => handleResolve(e, event.id)}
                   title="Mark as resolved"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 4 }}
+                  className="text-slate-400 hover:text-indigo-500 transition-colors p-1"
                 >
-                  <CheckCircle size={16} />
+                  <CheckCircle size={15} />
                 </button>
               )}
             </div>

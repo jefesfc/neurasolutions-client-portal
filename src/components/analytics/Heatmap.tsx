@@ -8,7 +8,7 @@ interface HeatmapProps {
 }
 
 function intensityClass(value: number, max: number): string {
-  if (max === 0 || value === 0) return "bg-surface-100";
+  if (max === 0 || value === 0) return "bg-slate-100";
   const pct = value / max;
   if (pct < 0.14) return "bg-brand-100";
   if (pct < 0.28) return "bg-brand-200";
@@ -25,7 +25,7 @@ const HOURS = Array.from({ length: 24 }, (_, i) => i);
 function HourLabel({ h }: { h: number }) {
   const show = h % 3 === 0;
   return (
-    <div className="flex items-center justify-center text-[9px] text-surface-400 tabular-nums select-none">
+    <div className="flex items-center justify-center text-[9px] text-slate-400 tabular-nums select-none">
       {show ? `${h}h` : ""}
     </div>
   );
@@ -52,7 +52,7 @@ export function Heatmap({ title, data, maxValue }: HeatmapProps) {
           {DAYS.map((day) => {
             return (
               <div key={day} className="contents">
-                <div className="h-9 flex items-center text-xs font-medium text-surface-500 pr-2 select-none">
+                <div className="h-9 flex items-center text-xs font-medium text-slate-500 pr-2 select-none">
                   {day}
                 </div>
                 {HOURS.map((hour) => {
@@ -75,14 +75,14 @@ export function Heatmap({ title, data, maxValue }: HeatmapProps) {
           })}
 
           {/* Bottom hour labels */}
-          <div className="h-5 flex items-center text-[9px] text-surface-400 select-none">total</div>
+          <div className="h-5 flex items-center text-[9px] text-slate-400 select-none">total</div>
           {HOURS.map((h) => {
             const colTotal = data
               .filter((d) => d.hour === h)
               .reduce((s, d) => s + d.value, 0);
             const show = h % 3 === 0;
             return (
-              <div key={`bot-${h}`} className="h-5 flex items-center justify-center text-[9px] text-surface-400 tabular-nums select-none">
+              <div key={`bot-${h}`} className="h-5 flex items-center justify-center text-[9px] text-slate-400 tabular-nums select-none">
                 {show && colTotal > 0 ? colTotal.toLocaleString() : show ? `${h}h` : ""}
               </div>
             );
@@ -92,13 +92,13 @@ export function Heatmap({ title, data, maxValue }: HeatmapProps) {
 
       {/* Legend */}
       <div className="flex items-center gap-3 mt-5 justify-between">
-        <span className="text-xs text-surface-400">Less activity</span>
+        <span className="text-xs text-slate-400">Less activity</span>
         <div className="flex items-center gap-1">
-          {["bg-surface-100", "bg-brand-100", "bg-brand-200", "bg-brand-300", "bg-brand-400", "bg-brand-500", "bg-brand-600", "bg-brand-700"].map((cls) => (
+          {["bg-slate-100", "bg-brand-100", "bg-brand-200", "bg-brand-300", "bg-brand-400", "bg-brand-500", "bg-brand-600", "bg-brand-700"].map((cls) => (
             <div key={cls} className={cn("h-4 w-5 rounded-sm", cls)} />
           ))}
         </div>
-        <span className="text-xs text-surface-400">More activity</span>
+        <span className="text-xs text-slate-400">More activity</span>
       </div>
     </ChartCard>
   );

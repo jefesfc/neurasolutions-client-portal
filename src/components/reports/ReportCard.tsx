@@ -47,14 +47,14 @@ export function ReportCard({ report }: ReportCardProps) {
         </div>
       </div>
 
-      <h3 className="text-base font-semibold text-surface-100 mb-1">{report.title}</h3>
-      <p className="text-sm text-surface-400 line-clamp-2 mb-3">{report.summary}</p>
+      <h3 className="text-base font-semibold text-slate-800 mb-1">{report.title}</h3>
+      <p className="text-sm text-slate-500 line-clamp-2 mb-3">{report.summary}</p>
 
       {/* Highlights */}
       {report.highlights.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-4">
           {report.highlights.map((h, i) => (
-            <span key={i} className="text-xs bg-surface-700/60 text-surface-300 px-2 py-1 rounded-md border border-surface-600/50">
+            <span key={i} className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-md border border-slate-200">
               {h}
             </span>
           ))}
@@ -64,11 +64,11 @@ export function ReportCard({ report }: ReportCardProps) {
       {/* AI Note */}
       <div className="bg-brand-500/8 border border-brand-500/15 rounded-xl p-3 mb-4 flex gap-2">
         <Sparkles className="h-4 w-4 text-brand-400 flex-shrink-0 mt-0.5" />
-        <p className="text-xs text-brand-300 line-clamp-3">{report.aiGeneratedNote}</p>
+        <p className="text-xs text-indigo-600 line-clamp-3">{report.aiGeneratedNote}</p>
       </div>
 
-      <div className="flex items-center justify-between mt-auto pt-3 border-t border-surface-700">
-        <div className="text-xs text-surface-400">
+      <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-100">
+        <div className="text-xs text-slate-500">
           <span>{formatDate(report.generatedAt)}</span>
           <span className="mx-2">·</span>
           <span>{report.size}</span>

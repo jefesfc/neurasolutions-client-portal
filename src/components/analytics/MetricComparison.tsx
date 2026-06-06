@@ -11,20 +11,20 @@ interface MetricComparisonProps {
 export function MetricComparison({ comparisons }: MetricComparisonProps) {
   return (
     <Card>
-      <h3 className="text-base font-semibold text-surface-900 mb-4">Monthly Comparison</h3>
+      <h3 className="text-base font-semibold text-slate-800 mb-4">Monthly Comparison</h3>
       <div className="space-y-3">
         {comparisons.map((comp) => {
           const isPositive = comp.changePercent > 0;
           const Icon = isPositive ? TrendingUp : TrendingDown;
           return (
             <div key={comp.id} className="flex items-center justify-between">
-              <span className="text-sm text-surface-500">{comp.label}</span>
+              <span className="text-sm text-slate-500">{comp.label}</span>
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <p className="text-sm font-medium text-surface-900">
+                  <p className="text-sm font-medium text-slate-800">
                     {formatKPIValue(comp.currentPeriod, comp.format)}
                   </p>
-                  <p className="text-xs text-surface-400">
+                  <p className="text-xs text-slate-400">
                     {formatKPIValue(comp.previousPeriod, comp.format)}
                   </p>
                 </div>

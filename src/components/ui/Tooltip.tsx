@@ -25,7 +25,7 @@ export function Tooltip({ content, children, side = "top" }: TooltipProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             className={cn(
-              "absolute z-50 px-2.5 py-1.5 text-xs font-medium text-white bg-surface-800 rounded-lg shadow-lg pointer-events-none whitespace-nowrap",
+              "absolute z-50 px-2.5 py-1.5 text-xs font-medium text-white bg-slate-800 rounded-lg shadow-lg pointer-events-none whitespace-nowrap",
               side === "top" && "bottom-full mb-2",
               side === "bottom" && "top-full mt-2",
               side === "left" && "right-full mr-2",

@@ -24,7 +24,7 @@ export function RangeSelector({ value, onChange }: RangeSelectorProps) {
             'px-2 py-0.5 text-xs rounded font-medium transition-colors',
             value === r.value
               ? 'bg-primary/10 text-primary'
-              : 'text-surface-400 hover:text-surface-600'
+              : 'text-slate-400 hover:text-slate-600'
           )}
         >
           {r.label}

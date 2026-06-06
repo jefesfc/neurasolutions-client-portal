@@ -14,21 +14,15 @@ const CARDS = [
 
 export function SecurityKPIRow({ summary, loading }: Props) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
+    <div className="grid grid-cols-4 gap-4 mb-6">
       {CARDS.map(({ key, label, color }) => (
         <div
           key={key}
-          style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: `1px solid ${color}33`,
-            borderRadius: 12,
-            padding: '16px 20px',
-          }}
+          className="bg-white rounded-xl px-5 py-4 border"
+          style={{ borderColor: `${color}40` }}
         >
-          <p style={{ color: '#9ca3af', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
-            {label}
-          </p>
-          <p style={{ color, fontSize: 32, fontWeight: 700, margin: 0 }}>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">{label}</p>
+          <p className="text-3xl font-bold m-0" style={{ color }}>
             {loading ? '—' : (summary?.[key] ?? '0')}
           </p>
         </div>

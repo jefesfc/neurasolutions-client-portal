@@ -9,7 +9,7 @@ export function Skeleton({ className, variant = "text" }: SkeletonProps) {
   return (
     <div
       className={cn(
-        "animate-pulse bg-surface-200 rounded-md",
+        "animate-pulse bg-slate-200 rounded-md",
         variant === "circular" && "rounded-full",
         variant === "text" && "h-4 rounded",
         variant === "rectangular" && "rounded-lg",

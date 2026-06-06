@@ -48,14 +48,14 @@ export function Sidebar() {
   const sidebarContent = (
     <div
       className={cn(
-        "flex flex-col h-full bg-surface-900 text-surface-300 transition-all duration-200",
+        "flex flex-col h-full bg-slate-900 text-slate-400 transition-all duration-200",
         isMobile ? "w-64" : expanded ? "w-60" : "w-[72px]"
       )}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {/* Logo */}
-      <div className="flex items-center h-16 px-4 border-b border-surface-800">
+      <div className="flex items-center h-16 px-4 border-b border-slate-800">
         <Link to="/" className="flex items-center min-w-0">
           <AnimatePresence mode="wait">
             {!expanded && !isMobile ? (
@@ -84,7 +84,7 @@ export function Sidebar() {
         {!isMobile && (
           <button
             onClick={toggle}
-            className="ml-auto p-1.5 rounded-lg hover:bg-surface-800 text-surface-500 hover:text-surface-300 transition-colors flex-shrink-0"
+            className="ml-auto p-1.5 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-slate-300 transition-colors flex-shrink-0"
           >
             {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
@@ -95,7 +95,7 @@ export function Sidebar() {
       <nav className="flex-1 px-3 py-4 space-y-6 overflow-y-auto">
         <div className="space-y-1">
           {(expanded || isMobile) && (
-            <p className="px-3 text-xs font-medium text-surface-500 uppercase tracking-wider mb-2">Main</p>
+            <p className="px-3 text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Main</p>
           )}
           {visibleMainNavItems.map((item) => {
             const isActive = location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path));
@@ -106,8 +106,8 @@ export function Sidebar() {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative",
                   isActive
-                    ? "bg-brand-600/20 text-brand-300"
-                    : "text-surface-400 hover:text-surface-200 hover:bg-surface-800"
+                    ? "bg-indigo-500/15 text-indigo-400"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800"
                 )}
               >
                 <item.icon className="h-5 w-5 flex-shrink-0" />
@@ -133,7 +133,7 @@ export function Sidebar() {
 
         <div className="space-y-1">
           {(expanded || isMobile) && (
-            <p className="px-3 text-xs font-medium text-surface-500 uppercase tracking-wider mb-2">Account</p>
+            <p className="px-3 text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Account</p>
           )}
           {visibleBottomNavItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -144,8 +144,8 @@ export function Sidebar() {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all",
                   isActive
-                    ? "bg-brand-600/20 text-brand-300"
-                    : "text-surface-400 hover:text-surface-200 hover:bg-surface-800"
+                    ? "bg-indigo-500/15 text-indigo-400"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800"
                 )}
               >
                 <item.icon className="h-5 w-5 flex-shrink-0" />
@@ -169,8 +169,8 @@ export function Sidebar() {
 
       {/* Footer */}
       {(expanded || isMobile) && (
-        <div className="px-4 py-3 border-t border-surface-800">
-          <div className="text-xs text-surface-500">
+        <div className="px-4 py-3 border-t border-slate-800">
+          <div className="text-xs text-slate-500">
             <p>Client Portal v2.5.0</p>
           </div>
         </div>

@@ -36,24 +36,24 @@ export default function ProfilePage() {
             <div className="flex items-center gap-4">
               <Avatar fallback={user.name} size="lg" className="bg-brand-100 text-brand-700" />
               <div>
-                <h3 className="text-xl font-bold text-surface-900">{user.name}</h3>
+                <h3 className="text-xl font-bold text-slate-800">{user.name}</h3>
                 <Badge variant="neutral">{roleLabel[user.role] ?? user.role}</Badge>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex items-center gap-3 p-3 bg-surface-50 rounded-xl">
-                <Mail className="h-5 w-5 text-surface-400" />
+              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                <Mail className="h-5 w-5 text-slate-400" />
                 <div>
-                  <p className="text-xs text-surface-400">Email</p>
-                  <p className="text-sm font-medium text-surface-700">{user.email}</p>
+                  <p className="text-xs text-slate-400">Email</p>
+                  <p className="text-sm font-medium text-slate-700">{user.email}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-surface-50 rounded-xl">
-                <Shield className="h-5 w-5 text-surface-400" />
+              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                <Shield className="h-5 w-5 text-slate-400" />
                 <div>
-                  <p className="text-xs text-surface-400">Role</p>
-                  <p className="text-sm font-medium text-surface-700">{roleLabel[user.role] ?? user.role}</p>
+                  <p className="text-xs text-slate-400">Role</p>
+                  <p className="text-sm font-medium text-slate-700">{roleLabel[user.role] ?? user.role}</p>
                 </div>
               </div>
             </div>

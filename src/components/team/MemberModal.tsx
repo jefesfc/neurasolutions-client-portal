@@ -116,7 +116,7 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
         {mode === "add" && (
           <>
             <div>
-              <label className="block text-sm font-medium text-surface-700 mb-1">Full Name</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -125,7 +125,7 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-surface-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
               <Input
                 type="email"
                 value={email}
@@ -137,7 +137,7 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
           </>
         )}
         <div>
-          <label className="block text-sm font-medium text-surface-700 mb-1">Role</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
           <Select
             value={role}
             onChange={(e) => {
@@ -150,7 +150,7 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
         </div>
         {mode === "add" && (
           <div>
-            <label className="block text-sm font-medium text-surface-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
               Temporary Password
             </label>
             <Input
@@ -167,7 +167,7 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
         {/* Module access */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-surface-700">
+            <label className="block text-sm font-medium text-slate-700">
               Module Access
             </label>
             {!isAdminRole && (
@@ -179,11 +179,11 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
                 >
                   All
                 </button>
-                <span className="text-surface-300">·</span>
+                <span className="text-slate-300">·</span>
                 <button
                   type="button"
                   onClick={clearAll}
-                  className="text-xs text-surface-400 hover:text-surface-600"
+                  className="text-xs text-slate-400 hover:text-slate-600"
                 >
                   None
                 </button>
@@ -191,11 +191,11 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
             )}
           </div>
           {isAdminRole ? (
-            <p className="text-xs text-surface-400 bg-surface-50 rounded-lg px-3 py-2">
+            <p className="text-xs text-slate-400 bg-slate-50 rounded-lg px-3 py-2">
               Admin users have access to all modules.
             </p>
           ) : (
-            <div className="grid grid-cols-2 gap-1.5 bg-surface-50 rounded-lg p-3">
+            <div className="grid grid-cols-2 gap-1.5 bg-slate-50 rounded-lg p-3">
               {MODULE_OPTIONS.map(({ key, label }) => (
                 <label
                   key={key}
@@ -205,9 +205,9 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
                     type="checkbox"
                     checked={selectedModules.includes(key)}
                     onChange={() => toggleModule(key)}
-                    className="rounded border-surface-300 text-brand-500 focus:ring-brand-500"
+                    className="rounded border-slate-300 text-brand-500 focus:ring-brand-500"
                   />
-                  <span className="text-xs text-surface-700 group-hover:text-surface-900">
+                  <span className="text-xs text-slate-700 group-hover:text-slate-800">
                     {label}
                   </span>
                 </label>

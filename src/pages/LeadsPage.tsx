@@ -71,20 +71,20 @@ export default function LeadsPage() {
       />
 
       {/* Status tabs */}
-      <div className="flex gap-1 bg-surface-100 rounded-xl p-1 w-fit mb-5 flex-wrap">
+      <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit mb-5 flex-wrap">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveStatus(tab.key)}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
               activeStatus === tab.key
-                ? "bg-white text-surface-900 shadow-sm"
-                : "text-surface-500 hover:text-surface-700"
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-500 hover:text-slate-800"
             }`}
           >
             {tab.label}
             <span className={`text-xs rounded-full px-1.5 py-0.5 ${
-              activeStatus === tab.key ? "bg-brand-100 text-brand-700" : "bg-surface-200 text-surface-500"
+              activeStatus === tab.key ? "bg-indigo-100 text-indigo-700" : "bg-slate-200 text-slate-500"
             }`}>
               {countFor(tab.key)}
             </span>
@@ -98,50 +98,50 @@ export default function LeadsPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-surface-200 rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         {loading ? (
           <div className="p-4 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 rounded-lg" />)}
           </div>
         ) : error ? (
-          <div className="p-8 text-center text-danger">{error}</div>
+          <div className="p-8 text-center text-red-500">{error}</div>
         ) : filtered.length === 0 ? (
-          <div className="p-12 text-center text-surface-400">No leads found</div>
+          <div className="p-12 text-center text-slate-400">No leads found</div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-surface-100 bg-surface-50">
-                <th className="text-left px-4 py-3 font-medium text-surface-500">Name</th>
-                <th className="text-left px-4 py-3 font-medium text-surface-500">Email</th>
-                <th className="text-left px-4 py-3 font-medium text-surface-500">Source</th>
-                <th className="text-left px-4 py-3 font-medium text-surface-500">Status</th>
-                <th className="text-left px-4 py-3 font-medium text-surface-500">Score</th>
-                <th className="text-left px-4 py-3 font-medium text-surface-500">Added</th>
+              <tr className="border-b border-slate-100 bg-slate-50">
+                <th className="text-left px-4 py-3 font-medium text-slate-500">Name</th>
+                <th className="text-left px-4 py-3 font-medium text-slate-500">Email</th>
+                <th className="text-left px-4 py-3 font-medium text-slate-500">Source</th>
+                <th className="text-left px-4 py-3 font-medium text-slate-500">Status</th>
+                <th className="text-left px-4 py-3 font-medium text-slate-500">Score</th>
+                <th className="text-left px-4 py-3 font-medium text-slate-500">Added</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-surface-100">
+            <tbody className="divide-y divide-slate-100">
               {filtered.map((lead) => {
                 const badge = STATUS_BADGE[lead.status];
                 return (
-                  <tr key={lead.id} className="hover:bg-surface-50 transition-colors">
-                    <td className="px-4 py-3 font-medium text-surface-900">{lead.name}</td>
-                    <td className="px-4 py-3 text-surface-500">{lead.email}</td>
-                    <td className="px-4 py-3 text-surface-500">{SOURCE_LABEL[lead.source] ?? lead.source}</td>
+                  <tr key={lead.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-4 py-3 font-medium text-slate-800">{lead.name}</td>
+                    <td className="px-4 py-3 text-slate-500">{lead.email}</td>
+                    <td className="px-4 py-3 text-slate-500">{SOURCE_LABEL[lead.source] ?? lead.source}</td>
                     <td className="px-4 py-3">
                       <Badge variant={badge.variant} dot>{badge.label}</Badge>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-16 bg-surface-100 rounded-full h-1.5">
+                        <div className="w-16 bg-slate-200 rounded-full h-1.5">
                           <div
-                            className="bg-brand-500 h-1.5 rounded-full"
+                            className="bg-indigo-500 h-1.5 rounded-full"
                             style={{ width: `${lead.score}%` }}
                           />
                         </div>
-                        <span className="text-surface-600 text-xs">{lead.score}</span>
+                        <span className="text-slate-500 text-xs">{lead.score}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-surface-400">{formatRelative(lead.created_at)}</td>
+                    <td className="px-4 py-3 text-slate-400">{formatRelative(lead.created_at)}</td>
                   </tr>
                 );
               })}

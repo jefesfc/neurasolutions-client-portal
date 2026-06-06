@@ -44,16 +44,16 @@ export function SystemCard({ system, index }: SystemCardProps) {
     >
       <Link
         to={`/systems/${system.id}`}
-        className="bg-white border border-surface-200 rounded-xl shadow-sm hover:shadow-md hover:border-surface-300 transition-all duration-200 flex flex-col p-5 h-full group"
+        className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 flex flex-col p-5 h-full group"
       >
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-surface-100 flex items-center justify-center">
-              <Cpu className="h-5 w-5 text-surface-600" />
+            <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center">
+              <Cpu className="h-5 w-5 text-slate-600" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-surface-900 group-hover:text-brand-600 transition-colors">
+              <h3 className="text-base font-semibold text-slate-800 group-hover:text-brand-600 transition-colors">
                 {system.name}
               </h3>
               <span className={cn("text-xs font-medium px-1.5 py-0.5 rounded-md", categoryColors[system.category])}>
@@ -63,12 +63,12 @@ export function SystemCard({ system, index }: SystemCardProps) {
           </div>
           <div className="flex items-center gap-2">
             <StatusDot color={healthColorMap[system.health]} pulse={system.status === "active"} />
-            <ArrowUpRight className="h-4 w-4 text-surface-300 group-hover:text-brand-500 transition-colors" />
+            <ArrowUpRight className="h-4 w-4 text-slate-300 group-hover:text-brand-500 transition-colors" />
           </div>
         </div>
 
         {/* Description */}
-        <p className="text-sm text-surface-500 mb-4 line-clamp-2">{system.shortDescription}</p>
+        <p className="text-sm text-slate-500 mb-4 line-clamp-2">{system.shortDescription}</p>
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 mt-auto">
@@ -78,17 +78,17 @@ export function SystemCard({ system, index }: SystemCardProps) {
             { label: "Success Rate", value: `${system.successRate}%` },
             { label: "Uptime", value: `${system.metrics.uptime}%` },
           ].map((stat) => (
-            <div key={stat.label} className="bg-surface-50 rounded-lg px-3 py-2">
-              <p className="text-xs text-surface-400">{stat.label}</p>
-              <p className="text-sm font-semibold text-surface-700">{stat.value}</p>
+            <div key={stat.label} className="bg-slate-50 rounded-lg px-3 py-2">
+              <p className="text-xs text-slate-400">{stat.label}</p>
+              <p className="text-sm font-semibold text-slate-700">{stat.value}</p>
             </div>
           ))}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-1 mt-3 pt-3 border-t border-surface-100">
-          <Activity className="h-3 w-3 text-surface-400" />
-          <span className="text-xs text-surface-400">
+        <div className="flex items-center gap-1 mt-3 pt-3 border-t border-slate-100">
+          <Activity className="h-3 w-3 text-slate-400" />
+          <span className="text-xs text-slate-400">
             Last active {formatRelative(system.lastActive)}
           </span>
         </div>

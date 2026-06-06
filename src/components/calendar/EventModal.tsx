@@ -25,8 +25,8 @@ const RECURRENCE_OPTS: { value: RecurrenceFreq | ''; label: string }[] = [
   { value: 'yearly',  label: 'Yearly' },
 ];
 
-const selectCls = "w-full rounded-lg border border-surface-600 bg-surface-800 px-3 py-2 text-sm text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500";
-const labelCls  = "block text-sm font-medium text-surface-300 mb-1";
+const selectCls = "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500";
+const labelCls  = "block text-sm font-medium text-slate-700 mb-1";
 
 interface Props {
   event: CalendarEvent | null;
@@ -166,11 +166,11 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
       {!canEdit && event ? (
         <div className="space-y-3">
           <div><EventBadge category={event.category} size="md" /></div>
-          <p className="text-lg font-semibold text-surface-100">{event.title}</p>
-          {event.description && <p className="text-sm text-surface-400">{event.description}</p>}
-          <p className="text-sm text-surface-300">{new Date(event.start_at).toLocaleString()}</p>
+          <p className="text-lg font-semibold text-slate-800">{event.title}</p>
+          {event.description && <p className="text-sm text-slate-500">{event.description}</p>}
+          <p className="text-sm text-slate-600">{new Date(event.start_at).toLocaleString()}</p>
           {event.amount != null && (
-            <p className="text-sm font-medium text-surface-200">{event.currency} {event.amount.toLocaleString()}</p>
+            <p className="text-sm font-medium text-slate-700">{event.currency} {event.amount.toLocaleString()}</p>
           )}
           <div className="pt-2"><Button variant="secondary" onClick={onClose}>Close</Button></div>
         </div>
@@ -192,7 +192,7 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
 
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={allDay} onChange={e => setAllDay(e.target.checked)} className="rounded accent-brand-500" />
-            <span className="text-sm text-surface-300">All day</span>
+            <span className="text-sm text-slate-600">All day</span>
           </label>
 
           <div>
@@ -235,7 +235,7 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
             </div>
             {recurrFreq && (
               <div className="mt-2">
-                <label className="block text-xs text-surface-400 mb-1">Until (optional)</label>
+                <label className="block text-xs text-slate-500 mb-1">Until (optional)</label>
                 <Input type="date" value={recurrUntil} onChange={e => setRecurrUntil(e.target.value)} />
               </div>
             )}

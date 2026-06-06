@@ -34,24 +34,23 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "bg-surface-800 border border-surface-700 rounded-xl shadow-sm p-5 flex flex-col gap-3",
-        "transition-all duration-200",
-        "hover:border-cyan-500/60 hover:shadow-[0_0_0_1px_rgba(6,182,212,0.08),0_4px_24px_rgba(6,182,212,0.10)]",
+        "bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex flex-col gap-3",
+        "transition-all duration-200 hover:border-slate-300 hover:shadow-md",
         className
       )}
     >
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-surface-300">{label}</span>
+        <span className="text-sm font-medium text-slate-600">{label}</span>
         <div className="rounded-lg bg-brand-500/10 p-2">
-          <Icon className="h-4 w-4 text-brand-400" />
+          <Icon className="h-4 w-4 text-indigo-500" />
         </div>
       </div>
       <div className="flex items-baseline gap-1">
-        {prefix && <span className="text-lg text-surface-400">{prefix}</span>}
-        <span className="text-2xl font-bold text-surface-100">
+        {prefix && <span className="text-lg text-slate-400">{prefix}</span>}
+        <span className="text-2xl font-bold text-slate-800">
           {formatKPIValue(value, format)}
         </span>
-        {suffix && <span className="text-lg text-surface-400">{suffix}</span>}
+        {suffix && <span className="text-lg text-slate-400">{suffix}</span>}
       </div>
       <div className="flex items-center gap-1">
         <ChangeIcon
@@ -60,7 +59,7 @@ export function StatCard({
         <span className={cn("text-sm font-medium", isPositive ? "text-positive" : "text-danger")}>
           {Math.abs(change).toFixed(1)}%
         </span>
-        <span className="text-sm text-surface-400">vs last month</span>
+        <span className="text-sm text-slate-400">vs last month</span>
       </div>
     </div>
   );

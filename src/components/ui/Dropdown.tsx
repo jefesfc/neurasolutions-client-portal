@@ -40,7 +40,7 @@ export function Dropdown({ trigger, items, align = "left" }: DropdownProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -4 }}
             className={cn(
-              "absolute top-full mt-2 z-50 min-w-[180px] bg-white border border-surface-200 rounded-xl shadow-lg p-1",
+              "absolute top-full mt-2 z-50 min-w-[180px] bg-white border border-slate-200 rounded-xl shadow-lg p-1",
               align === "right" ? "right-0" : "left-0"
             )}
           >
@@ -55,7 +55,7 @@ export function Dropdown({ trigger, items, align = "left" }: DropdownProps) {
                   "w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors",
                   item.danger
                     ? "text-danger hover:bg-red-50"
-                    : "text-surface-700 hover:bg-surface-100"
+                    : "text-slate-700 hover:bg-slate-100"
                 )}
               >
                 {item.icon}

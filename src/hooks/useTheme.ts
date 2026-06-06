@@ -21,32 +21,6 @@ export interface ColorPalette {
 }
 
 export const PALETTE_PRESETS: Record<string, ColorPalette> = {
-  "Obsidian": {
-    appBg:         "#08090e",
-    cardBg:        "#0f1117",
-    borderHover:   "#1c1e26",
-    textPrimary:   "#f4f4f5",
-    textLabel:     "#d1d5db",
-    textSecondary: "#9ca3af",
-    textMuted:     "#6b7280",
-    brandAccent:   "#6366f1",
-    chart1: "#6366f1", chart2: "#10b981", chart3: "#f59e0b",
-    chart4: "#ef4444", chart5: "#8b5cf6", chart6: "#06b6d4",
-    colorSuccess: "#10b981", colorWarning: "#f59e0b", colorDanger: "#ef4444",
-  },
-  "Carbon": {
-    appBg:         "#0f172a",
-    cardBg:        "#1e293b",
-    borderHover:   "#334155",
-    textPrimary:   "#f1f5f9",
-    textLabel:     "#cbd5e1",
-    textSecondary: "#94a3b8",
-    textMuted:     "#64748b",
-    brandAccent:   "#6366f1",
-    chart1: "#6366f1", chart2: "#10b981", chart3: "#f59e0b",
-    chart4: "#ef4444", chart5: "#8b5cf6", chart6: "#06b6d4",
-    colorSuccess: "#10b981", colorWarning: "#f59e0b", colorDanger: "#ef4444",
-  },
   "Pearl": {
     appBg:         "#f1f5f9",
     cardBg:        "#ffffff",
@@ -62,7 +36,7 @@ export const PALETTE_PRESETS: Record<string, ColorPalette> = {
   },
 };
 
-export const DEFAULT_PALETTE: ColorPalette = PALETTE_PRESETS["Carbon"];
+export const DEFAULT_PALETTE: ColorPalette = PALETTE_PRESETS["Pearl"];
 
 const PALETTE_KEY = "aios-palette";
 

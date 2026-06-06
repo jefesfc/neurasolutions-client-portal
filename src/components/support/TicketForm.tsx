@@ -17,8 +17,8 @@ export function TicketForm() {
 
   return (
     <Card>
-      <h3 className="text-lg font-semibold text-surface-900 mb-1">Create a Ticket</h3>
-      <p className="text-sm text-surface-500 mb-5">Our support team typically responds within 2 hours.</p>
+      <h3 className="text-lg font-semibold text-slate-800 mb-1">Create a Ticket</h3>
+      <p className="text-sm text-slate-500 mb-5">Our support team typically responds within 2 hours.</p>
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           id="subject"

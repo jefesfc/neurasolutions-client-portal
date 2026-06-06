@@ -13,26 +13,17 @@ export function ThreatTimeline({ events, loading, onSelect }: Props) {
   );
 
   return (
-    <div
-      style={{
-        background: 'rgba(255,255,255,0.04)',
-        border: '1px solid rgba(255,215,0,0.12)',
-        borderRadius: 12,
-        padding: 16,
-        height: '100%',
-        overflowY: 'auto',
-      }}
-    >
-      <p style={{ color: '#fff', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 16, borderBottom: '1px solid rgba(255,215,0,0.1)', paddingBottom: 8 }}>
-        🕐 Last 24h Timeline ({last24h.length})
+    <div className="bg-white border border-slate-200 rounded-xl p-4 h-full overflow-y-auto">
+      <p className="text-xs font-bold uppercase tracking-wide text-slate-700 mb-4 pb-3 border-b border-slate-100">
+        Last 24h Timeline ({last24h.length})
       </p>
 
-      {loading && <p style={{ color: '#6b7280', fontSize: 13 }}>Loading...</p>}
+      {loading && <p className="text-sm text-slate-400">Loading...</p>}
       {!loading && last24h.length === 0 && (
-        <p style={{ color: '#6b7280', fontSize: 13 }}>No events in the last 24 hours.</p>
+        <p className="text-sm text-slate-400">No events in the last 24 hours.</p>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className="flex flex-col gap-2">
         {last24h.map((event) => {
           const cfg = SEVERITY_CONFIG[event.severity];
           const time = new Date(event.created_at).toLocaleTimeString('en-US', {
@@ -42,33 +33,21 @@ export function ThreatTimeline({ events, loading, onSelect }: Props) {
             <button
               key={event.id}
               onClick={() => onSelect(event)}
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: 10,
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: '6px 0',
-                textAlign: 'left',
-                width: '100%',
-              }}
+              className="flex items-start gap-2.5 w-full text-left py-1.5 px-2 rounded-lg hover:bg-slate-50 transition-colors"
             >
               <span
-                style={{
-                  width: 8, height: 8, borderRadius: '50%',
-                  background: cfg.dot, flexShrink: 0, marginTop: 5,
-                }}
+                className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
+                style={{ backgroundColor: cfg.dot }}
               />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ color: '#e5e7eb', fontSize: 12, fontWeight: 600, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-slate-800 truncate">
                   {EVENT_TYPE_LABELS[event.event_type] ?? event.event_type}
                 </p>
-                <p style={{ color: '#6b7280', fontSize: 11, margin: '2px 0 0 0' }}>
+                <p className="text-[11px] text-slate-400 mt-0.5">
                   {time} · {event.actor_ip ?? 'unknown IP'}
                 </p>
               </div>
-              <span style={{ fontSize: 10, fontWeight: 700, color: cfg.color, flexShrink: 0 }}>
+              <span className="text-[10px] font-bold flex-shrink-0 mt-0.5" style={{ color: cfg.color }}>
                 {cfg.label.toUpperCase()}
               </span>
             </button>

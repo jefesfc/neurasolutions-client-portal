@@ -47,16 +47,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <img src={logoBlack} className="h-12 w-auto object-contain mx-auto mb-4" alt="NeuraSolutions" />
-          <p className="text-surface-500 mt-1 text-sm">Sign in to your workspace</p>
+          <p className="text-slate-500 mt-1 text-sm">Sign in to your workspace</p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="bg-white rounded-2xl shadow-sm border border-surface-200 p-6 space-y-4"
+          className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4"
         >
           <Input
             label="Email"

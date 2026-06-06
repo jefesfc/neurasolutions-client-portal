@@ -147,7 +147,7 @@ export default function AdminPage() {
       />
 
       {loading ? (
-        <div className="text-surface-400 text-sm">Loading...</div>
+        <div className="text-slate-400 text-sm">Loading...</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {tenants.map((tenant) => (
@@ -158,8 +158,8 @@ export default function AdminPage() {
                     <Building2 className="w-5 h-5 text-brand-600" />
                   </div>
                   <div>
-                    <p className="font-semibold text-surface-900">{tenant.name}</p>
-                    <p className="text-xs text-surface-400">{tenant.subdomain}</p>
+                    <p className="font-semibold text-slate-800">{tenant.name}</p>
+                    <p className="text-xs text-slate-400">{tenant.subdomain}</p>
                   </div>
                 </div>
                 <Badge variant={planVariant[tenant.plan] ?? 'neutral'}>
@@ -167,7 +167,7 @@ export default function AdminPage() {
                 </Badge>
               </div>
 
-              <div className="flex items-center gap-4 text-xs text-surface-500">
+              <div className="flex items-center gap-4 text-xs text-slate-500">
                 {tenant.industry && (
                   <span className="flex items-center gap-1">
                     <Zap className="w-3 h-3" />
@@ -181,7 +181,7 @@ export default function AdminPage() {
               </div>
 
               {/* Telegram section */}
-              <div className="mt-3 pt-3 border-t border-surface-100">
+              <div className="mt-3 pt-3 border-t border-slate-100">
                 <button
                   onClick={() => toggleTelegram(tenant.id)}
                   className="text-xs text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1"
@@ -213,7 +213,7 @@ export default function AdminPage() {
                             onChange={(e) =>
                               setBotTokens((prev) => ({ ...prev, [tenant.id]: e.target.value }))
                             }
-                            className="flex-1 text-xs border border-surface-200 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                            className="flex-1 text-xs border border-slate-200 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-500"
                           />
                           <button
                             onClick={() => void activateTelegram(tenant.id)}
@@ -233,7 +233,7 @@ export default function AdminPage() {
               </div>
 
               {/* Gmail / Emails section */}
-              <div className="mt-2 pt-2 border-t border-surface-100">
+              <div className="mt-2 pt-2 border-t border-slate-100">
                 <button
                   onClick={() => toggleGmail(tenant.id)}
                   className="text-xs text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1"
@@ -247,15 +247,15 @@ export default function AdminPage() {
                     {gmailStatus[tenant.id] ? (
                       <span className="text-xs text-positive font-medium">✅ Gmail active</span>
                     ) : (
-                      <div className="space-y-2 text-xs text-surface-600">
+                      <div className="space-y-2 text-xs text-slate-600">
                         <p className="font-medium">Setup steps:</p>
-                        <ol className="space-y-1 list-decimal list-inside text-surface-500">
+                        <ol className="space-y-1 list-decimal list-inside text-slate-500">
                           <li>Create n8n workflow "AIOS Email Watcher" for this tenant</li>
                           <li>Configure Gmail Trigger with the tenant's Gmail account</li>
                           <li>Set HTTP Request node → POST /emails/ingest with service JWT</li>
                           <li>
                             Set tenant_id ={' '}
-                            <code className="bg-surface-100 px-1 rounded font-mono">{tenant.id}</code>
+                            <code className="bg-slate-100 px-1 rounded font-mono">{tenant.id}</code>
                           </li>
                           <li>Activate the workflow in n8n</li>
                         </ol>

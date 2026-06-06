@@ -73,8 +73,8 @@ export default function CalendarPage() {
       ) : error ? (
         <div className="p-8 text-center text-red-500">{error}</div>
       ) : (
-        <div className="bg-white border border-surface-200 rounded-xl shadow-sm overflow-hidden flex h-[calc(100vh-13rem)]">
-          <div className="w-2/5 border-r border-surface-200 p-5 flex-shrink-0">
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex h-[calc(100vh-13rem)]">
+          <div className="w-2/5 border-r border-slate-200 p-5 flex-shrink-0">
             <CalendarGrid
               events={events}
               selectedDate={selectedDate}

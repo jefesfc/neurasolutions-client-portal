@@ -21,7 +21,7 @@ export function Avatar({ src, alt = "", fallback, size = "md", className }: Avat
       <img
         src={src}
         alt={alt}
-        className={cn("rounded-full object-cover bg-surface-200", sizeStyles[size], className)}
+        className={cn("rounded-full object-cover bg-slate-200", sizeStyles[size], className)}
       />
     );
   }

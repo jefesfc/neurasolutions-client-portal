@@ -55,7 +55,7 @@ export default function EmailsPage() {
         }
       />
 
-      <div className="bg-white border border-surface-200 rounded-xl overflow-hidden shadow-sm flex h-[calc(100vh-13rem)]">
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex h-[calc(100vh-13rem)]">
         {loading ? (
           <div className="p-4 space-y-3 w-full">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -66,7 +66,7 @@ export default function EmailsPage() {
           <div className="p-8 text-center text-danger w-full">{error}</div>
         ) : (
           <>
-            <div className="w-2/5 border-r border-surface-200 overflow-y-auto flex-shrink-0">
+            <div className="w-2/5 border-r border-slate-200 overflow-y-auto flex-shrink-0">
               <EmailList
                 emails={emails}
                 selectedId={selectedEmail?.id ?? null}

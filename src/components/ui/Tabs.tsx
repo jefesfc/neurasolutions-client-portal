@@ -14,7 +14,7 @@ interface TabsProps {
 
 export function Tabs({ tabs, activeTab, onChange }: TabsProps) {
   return (
-    <div className="flex gap-1 p-1 bg-surface-800 rounded-xl border border-surface-700">
+    <div className="flex gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200">
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -22,8 +22,8 @@ export function Tabs({ tabs, activeTab, onChange }: TabsProps) {
           className={cn(
             "relative px-4 py-2 text-sm font-medium rounded-lg transition-all",
             activeTab === tab.id
-              ? "bg-surface-700 text-surface-100 shadow-sm"
-              : "text-surface-400 hover:text-surface-200 hover:bg-surface-700/50"
+              ? "bg-white text-slate-800 shadow-sm"
+              : "text-slate-500 hover:text-slate-700 hover:bg-white/60"
           )}
         >
           {tab.label}
@@ -32,8 +32,8 @@ export function Tabs({ tabs, activeTab, onChange }: TabsProps) {
               className={cn(
                 "ml-1.5 rounded-full px-1.5 py-0.5 text-xs",
                 activeTab === tab.id
-                  ? "bg-surface-600 text-surface-200"
-                  : "bg-surface-700 text-surface-400"
+                  ? "bg-indigo-100 text-indigo-600"
+                  : "bg-slate-200 text-slate-500"
               )}
             >
               {tab.count}

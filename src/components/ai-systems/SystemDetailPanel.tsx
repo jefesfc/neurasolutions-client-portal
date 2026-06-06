@@ -18,11 +18,11 @@ export function SystemDetailPanel({ system }: SystemDetailPanelProps) {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <h2 className="text-xl font-bold text-surface-900">{system.name}</h2>
+              <h2 className="text-xl font-bold text-slate-800">{system.name}</h2>
               <SystemHealthBadge health={system.health} />
             </div>
-            <p className="text-surface-500">{system.description}</p>
-            <div className="flex items-center gap-4 mt-3 text-sm text-surface-400">
+            <p className="text-slate-500">{system.description}</p>
+            <div className="flex items-center gap-4 mt-3 text-sm text-slate-400">
               <span>v{system.version}</span>
               <span>Installed {formatDate(system.installedDate)}</span>
               <span>Last active {formatRelative(system.lastActive)}</span>
@@ -50,11 +50,11 @@ export function SystemDetailPanel({ system }: SystemDetailPanelProps) {
           { label: "Hours Saved", value: formatNumber(system.metrics.hoursSaved), icon: Zap },
         ].map((stat) => (
           <Card key={stat.label} padding="md">
-            <div className="flex items-center gap-2 text-surface-400 mb-2">
+            <div className="flex items-center gap-2 text-slate-400 mb-2">
               <stat.icon className="h-4 w-4" />
               <span className="text-xs font-medium">{stat.label}</span>
             </div>
-            <p className="text-2xl font-bold text-surface-900">{stat.value}</p>
+            <p className="text-2xl font-bold text-slate-800">{stat.value}</p>
           </Card>
         ))}
       </div>
@@ -62,26 +62,26 @@ export function SystemDetailPanel({ system }: SystemDetailPanelProps) {
       {/* Performance */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
-          <h3 className="text-sm font-medium text-surface-500 mb-4">Performance</h3>
+          <h3 className="text-sm font-medium text-slate-500 mb-4">Performance</h3>
           <div className="space-y-4">
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-surface-500">Success Rate</span>
-                <span className="text-surface-900 font-medium">{system.successRate}%</span>
+                <span className="text-slate-500">Success Rate</span>
+                <span className="text-slate-800 font-medium">{system.successRate}%</span>
               </div>
               <ProgressBar value={system.successRate} max={100} variant="success" />
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-surface-500">Uptime</span>
-                <span className="text-surface-900 font-medium">{system.metrics.uptime}%</span>
+                <span className="text-slate-500">Uptime</span>
+                <span className="text-slate-800 font-medium">{system.metrics.uptime}%</span>
               </div>
               <ProgressBar value={system.metrics.uptime} max={100} variant="brand" />
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-surface-500">Avg Response Time</span>
-                <span className="text-surface-900 font-medium">{system.metrics.avgResponseTime}s</span>
+                <span className="text-slate-500">Avg Response Time</span>
+                <span className="text-slate-800 font-medium">{system.metrics.avgResponseTime}s</span>
               </div>
               <ProgressBar value={Math.max(0, 100 - (system.metrics.avgResponseTime / 10) * 100)} max={100} variant="warning" />
             </div>
@@ -89,19 +89,19 @@ export function SystemDetailPanel({ system }: SystemDetailPanelProps) {
         </Card>
 
         <Card>
-          <h3 className="text-sm font-medium text-surface-500 mb-4">Automations</h3>
+          <h3 className="text-sm font-medium text-slate-500 mb-4">Automations</h3>
           <div className="space-y-4">
             <div>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-surface-500">Active Automations</span>
-                <span className="text-surface-900 font-medium">{system.automations}</span>
+                <span className="text-slate-500">Active Automations</span>
+                <span className="text-slate-800 font-medium">{system.automations}</span>
               </div>
             </div>
             {system.category === "lead-generation" && system.metrics.leadsGenerated > 0 && (
               <div>
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="text-surface-500">Leads Generated</span>
-                  <span className="text-surface-900 font-medium">{formatNumber(system.metrics.leadsGenerated)}</span>
+                  <span className="text-slate-500">Leads Generated</span>
+                  <span className="text-slate-800 font-medium">{formatNumber(system.metrics.leadsGenerated)}</span>
                 </div>
               </div>
             )}

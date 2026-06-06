@@ -24,7 +24,7 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
       key: "number",
       header: "Invoice",
       accessor: (inv: Invoice): ReactNode => (
-        <span className="font-medium text-surface-900 font-mono text-xs">{inv.number}</span>
+        <span className="font-medium text-slate-800 font-mono text-xs">{inv.number}</span>
       ),
     },
     {

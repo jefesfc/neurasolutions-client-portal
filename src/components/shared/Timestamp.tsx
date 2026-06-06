@@ -12,7 +12,7 @@ export function Timestamp({ date, relative = true, className }: TimestampProps) 
     <time
       dateTime={date}
       title={formatDateTime(date)}
-      className={cn("text-sm text-surface-400", className)}
+      className={cn("text-sm text-slate-400", className)}
     >
       {relative ? formatRelative(date) : formatDateTime(date)}
     </time>

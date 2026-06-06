@@ -36,14 +36,14 @@ export function ProgressBar({
 
   return (
     <div className={cn("flex items-center gap-3", className)}>
-      <div className={cn("flex-1 bg-surface-200 rounded-full overflow-hidden", sizeStyles[size])}>
+      <div className={cn("flex-1 bg-slate-200 rounded-full overflow-hidden", sizeStyles[size])}>
         <div
           className={cn("rounded-full transition-all duration-500", sizeStyles[size], variantStyles[variant])}
           style={{ width: `${pct}%` }}
         />
       </div>
       {showLabel && (
-        <span className="text-xs font-medium text-surface-500 w-12 text-right">
+        <span className="text-xs font-medium text-slate-500 w-12 text-right">
           {labelFormat === "percent" ? `${pct.toFixed(0)}%` : `${value}/${max}`}
         </span>
       )}

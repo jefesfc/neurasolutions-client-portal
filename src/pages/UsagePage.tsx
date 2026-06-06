@@ -22,13 +22,13 @@ function KPICard({
   icon: React.ElementType;
 }) {
   return (
-    <div className="bg-white border border-surface-200 rounded-xl shadow-sm p-5 flex items-center gap-4">
-      <div className="rounded-lg bg-brand-50 p-3 flex-shrink-0">
-        <Icon className="h-5 w-5 text-brand-600" />
+    <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 flex items-center gap-4">
+      <div className="rounded-lg bg-indigo-50 p-3 flex-shrink-0">
+        <Icon className="h-5 w-5 text-indigo-600" />
       </div>
       <div>
-        <p className="text-sm font-medium text-surface-500">{label}</p>
-        <p className="text-xl font-bold text-surface-900 mt-0.5">{value}</p>
+        <p className="text-sm font-medium text-slate-500">{label}</p>
+        <p className="text-xl font-bold text-slate-800 mt-0.5">{value}</p>
       </div>
     </div>
   );
@@ -106,13 +106,13 @@ export default function UsagePage() {
           </div>
 
           <div className="flex flex-wrap gap-3 mb-4">
-            <div className="flex gap-1 bg-surface-100 rounded-xl p-1">
+            <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
               <button
                 onClick={() => setAgentFilter("")}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   !agentFilter
-                    ? "bg-white text-surface-900 shadow-sm"
-                    : "text-surface-500 hover:text-surface-700"
+                    ? "bg-white text-slate-800 shadow-sm"
+                    : "text-slate-500 hover:text-slate-700"
                 }`}
               >
                 All Agents
@@ -123,8 +123,8 @@ export default function UsagePage() {
                   onClick={() => setAgentFilter(a)}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     agentFilter === a
-                      ? "bg-white text-surface-900 shadow-sm"
-                      : "text-surface-500 hover:text-surface-700"
+                      ? "bg-white text-slate-800 shadow-sm"
+                      : "text-slate-500 hover:text-slate-700"
                   }`}
                 >
                   {a}
@@ -140,32 +140,32 @@ export default function UsagePage() {
             </div>
           </div>
 
-          <div className="bg-white border border-surface-200 rounded-xl overflow-hidden shadow-sm">
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
             {filtered.length === 0 ? (
-              <div className="p-12 text-center text-surface-400">No usage records found</div>
+              <div className="p-12 text-center text-slate-400">No usage records found</div>
             ) : (
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-surface-100 bg-surface-50">
-                    <th className="text-left px-4 py-3 font-medium text-surface-500">Agent</th>
-                    <th className="text-left px-4 py-3 font-medium text-surface-500">Model</th>
-                    <th className="text-left px-4 py-3 font-medium text-surface-500">Tokens In</th>
-                    <th className="text-left px-4 py-3 font-medium text-surface-500">Tokens Out</th>
-                    <th className="text-left px-4 py-3 font-medium text-surface-500">Cost</th>
-                    <th className="text-left px-4 py-3 font-medium text-surface-500">Date</th>
+                  <tr className="border-b border-slate-100 bg-slate-50">
+                    <th className="text-left px-4 py-3 font-medium text-slate-500">Agent</th>
+                    <th className="text-left px-4 py-3 font-medium text-slate-500">Model</th>
+                    <th className="text-left px-4 py-3 font-medium text-slate-500">Tokens In</th>
+                    <th className="text-left px-4 py-3 font-medium text-slate-500">Tokens Out</th>
+                    <th className="text-left px-4 py-3 font-medium text-slate-500">Cost</th>
+                    <th className="text-left px-4 py-3 font-medium text-slate-500">Date</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-surface-100">
+                <tbody className="divide-y divide-slate-100">
                   {filtered.map((row) => (
-                    <tr key={row.id} className="hover:bg-surface-50 transition-colors">
+                    <tr key={row.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-4 py-3">
                         <Badge variant="default">{row.agent_name}</Badge>
                       </td>
-                      <td className="px-4 py-3 text-surface-500">{row.model}</td>
-                      <td className="px-4 py-3 text-surface-600">{formatNumber(row.tokens_in)}</td>
-                      <td className="px-4 py-3 text-surface-600">{formatNumber(row.tokens_out)}</td>
-                      <td className="px-4 py-3 font-medium text-surface-900">${row.cost.toFixed(4)}</td>
-                      <td className="px-4 py-3 text-surface-400">{formatDate(row.created_at)}</td>
+                      <td className="px-4 py-3 text-slate-500">{row.model}</td>
+                      <td className="px-4 py-3 text-slate-500">{formatNumber(row.tokens_in)}</td>
+                      <td className="px-4 py-3 text-slate-500">{formatNumber(row.tokens_out)}</td>
+                      <td className="px-4 py-3 font-medium text-slate-800">${row.cost.toFixed(4)}</td>
+                      <td className="px-4 py-3 text-slate-400">{formatDate(row.created_at)}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -22,7 +22,7 @@ export default function BillingPage() {
           </div>
           <div className="lg:col-span-2">
             <div className="h-full">
-              <h2 className="text-lg font-semibold text-surface-900 mb-4">Invoice History</h2>
+              <h2 className="text-lg font-semibold text-slate-800 mb-4">Invoice History</h2>
               <InvoiceTable invoices={mockInvoices} />
             </div>
           </div>

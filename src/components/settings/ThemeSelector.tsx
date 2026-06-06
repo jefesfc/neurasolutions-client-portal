@@ -28,7 +28,7 @@ export function ThemeSelector({ currentPalette, onSelect }: ThemeSelectorProps) 
               "relative flex flex-col rounded-xl border-2 p-3 text-left transition-all",
               isActive
                 ? "border-brand-500 ring-1 ring-brand-500/30 bg-brand-500/5"
-                : "border-surface-700 hover:border-cyan-500/50 hover:shadow-[0_0_0_1px_rgba(6,182,212,0.08),0_4px_16px_rgba(6,182,212,0.08)]"
+                : "border-slate-200 hover:border-indigo-300 hover:shadow-md"
             )}
           >
             {/* Mini color preview */}
@@ -69,8 +69,8 @@ export function ThemeSelector({ currentPalette, onSelect }: ThemeSelectorProps) 
             {/* Theme name + check */}
             <div className="flex items-start justify-between gap-2">
               <div>
-                <p className="text-sm font-semibold text-surface-100">{name}</p>
-                <p className="text-xs text-surface-400 mt-0.5">{meta.description}</p>
+                <p className="text-sm font-semibold text-slate-800">{name}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{meta.description}</p>
               </div>
               {isActive && (
                 <div className="w-5 h-5 rounded-full bg-brand-500 flex items-center justify-center flex-shrink-0 mt-0.5">

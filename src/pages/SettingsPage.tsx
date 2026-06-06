@@ -26,8 +26,8 @@ const API_URL =
   import.meta.env.VITE_API_URL ??
   "http://localhost:3001";
 
-const labelCls  = "block text-sm font-medium text-surface-300 mb-1";
-const selectCls = "rounded-lg border border-surface-600 bg-surface-800 px-3 py-2 text-sm text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500";
+const labelCls  = "block text-sm font-medium text-slate-700 mb-1";
+const selectCls = "rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500";
 
 function CompanyTab({ tenantId }: { tenantId: string }) {
   const { data, loading, error } = useQuery<Tenant>("tenants", {
@@ -123,10 +123,10 @@ function CompanyTab({ tenantId }: { tenantId: string }) {
             <img
               src={logo}
               alt="Logo preview"
-              className="h-10 object-contain rounded border border-surface-700 bg-surface-800 p-1"
+              className="h-10 object-contain rounded border border-slate-200 bg-white p-1"
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
-            <span className="text-xs text-surface-400">Preview</span>
+            <span className="text-xs text-slate-500">Preview</span>
           </div>
         )}
       </div>
@@ -228,8 +228,8 @@ function TelegramTab() {
         <div className="flex items-center gap-3 p-4 rounded-lg border border-positive/25 bg-positive/8">
           <span className="text-positive text-lg">✓</span>
           <div>
-            <p className="font-medium text-surface-100">Telegram connected</p>
-            <p className="text-xs text-surface-400">Chat ID: {status.chat_id}</p>
+            <p className="font-medium text-slate-800">Telegram connected</p>
+            <p className="text-xs text-slate-500">Chat ID: {status.chat_id}</p>
           </div>
         </div>
         <Button variant="secondary" loading={disconnecting} onClick={() => void handleDisconnect()}>
@@ -241,16 +241,16 @@ function TelegramTab() {
 
   return (
     <div className="max-w-lg space-y-5">
-      <p className="text-sm text-surface-400">
+      <p className="text-sm text-slate-500">
         Connect your Telegram account to chat with AIOS directly from your phone.
       </p>
       <ol className="space-y-4">
         {[
           "Open Telegram and find your company's AIOS bot",
-          <span key="2">Send the message <code className="bg-surface-700 px-1.5 py-0.5 rounded text-xs font-mono text-surface-200">/start</code></span>,
+          <span key="2">Send the message <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs font-mono text-slate-700">/start</code></span>,
           "The bot will confirm your connection automatically",
         ].map((step, i) => (
-          <li key={i} className="flex gap-3 text-sm text-surface-300">
+          <li key={i} className="flex gap-3 text-sm text-slate-600">
             <span className="flex-shrink-0 w-6 h-6 rounded-full bg-brand-500/15 text-brand-400 flex items-center justify-center text-xs font-semibold">
               {i + 1}
             </span>
@@ -294,17 +294,17 @@ function EmailTab() {
 
   return (
     <div className="max-w-lg space-y-5">
-      <p className="text-sm text-surface-400">
+      <p className="text-sm text-slate-500">
         Configure which Gmail labels are synced to AIOS. Leave blank to receive all incoming emails.
       </p>
       <form onSubmit={(e) => void handleSave(e)} className="space-y-4">
         <div>
           <label className={labelCls}>Gmail Label Filter</label>
           <Input value={labelFilter} onChange={(e) => setLabelFilter(e.target.value)} placeholder="INBOX (leave blank for all emails)" />
-          <p className="text-xs text-surface-400 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Examples:{' '}
-            <code className="bg-surface-700 px-1 rounded text-surface-200">INBOX</code>,{' '}
-            <code className="bg-surface-700 px-1 rounded text-surface-200">Label_Clients</code>
+            <code className="bg-slate-100 px-1 rounded text-slate-700">INBOX</code>,{' '}
+            <code className="bg-slate-100 px-1 rounded text-slate-700">Label_Clients</code>
           </p>
         </div>
         {saveError && <p className="text-sm text-danger">{saveError}</p>}
@@ -313,8 +313,8 @@ function EmailTab() {
           <Button type="submit" loading={saving}>Save</Button>
         </div>
       </form>
-      <div className="border-t border-surface-700 pt-4">
-        <p className="text-xs text-surface-500">
+      <div className="border-t border-slate-200 pt-4">
+        <p className="text-xs text-slate-500">
           To connect Gmail, contact NeuraSolutions — we configure the n8n workflow for your account.
         </p>
       </div>
@@ -335,7 +335,7 @@ function ColorRow({
   return (
     <div className="flex items-center gap-3 py-2.5">
       <div
-        className="relative w-9 h-9 rounded-lg flex-shrink-0 cursor-pointer shadow ring-1 ring-white/10"
+        className="relative w-9 h-9 rounded-lg flex-shrink-0 cursor-pointer shadow ring-1 ring-slate-200/50"
         style={{ backgroundColor: isValidHex ? value : "#334155" }}
         onClick={() => document.getElementById(id)?.click()}
       >
@@ -346,8 +346,8 @@ function ColorRow({
         />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-surface-200">{label}</p>
-        {description && <p className="text-xs text-surface-500 mt-0.5">{description}</p>}
+        <p className="text-sm font-medium text-slate-700">{label}</p>
+        {description && <p className="text-xs text-slate-500 mt-0.5">{description}</p>}
       </div>
       <input
         type="text"
@@ -356,7 +356,7 @@ function ColorRow({
           const v = e.target.value;
           if (/^#[0-9a-fA-F]{0,6}$/.test(v)) onChange(v);
         }}
-        className="w-24 text-xs font-mono bg-surface-900 border border-surface-700 rounded-lg px-2 py-1.5 text-surface-300 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/20"
+        className="w-24 text-xs font-mono bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-slate-700 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
       />
     </div>
   );
@@ -367,9 +367,9 @@ function Section({ icon, title, children }: { icon: React.ReactNode; title: stri
     <div>
       <div className="flex items-center gap-2 mb-2">
         <span className="text-brand-400">{icon}</span>
-        <h3 className="text-xs font-semibold text-surface-400 uppercase tracking-wider">{title}</h3>
+        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{title}</h3>
       </div>
-      <div className="bg-surface-800 rounded-xl border border-surface-700 divide-y divide-surface-700/50 px-4">
+      <div className="bg-slate-50 rounded-xl border border-slate-200 divide-y divide-slate-100 px-4">
         {children}
       </div>
     </div>
@@ -378,7 +378,7 @@ function Section({ icon, title, children }: { icon: React.ReactNode; title: stri
 
 function MiniPreview({ p }: { p: ColorPalette }) {
   return (
-    <div className="rounded-xl overflow-hidden border border-surface-700 w-52 flex-shrink-0 shadow-xl" style={{ backgroundColor: p.appBg }}>
+    <div className="rounded-xl overflow-hidden border border-slate-200 w-52 flex-shrink-0 shadow-xl" style={{ backgroundColor: p.appBg }}>
       <div className="h-7 flex items-center px-2 gap-1.5 border-b" style={{ borderColor: p.borderHover }}>
         <div className="w-10 h-2 rounded-sm" style={{ backgroundColor: p.brandAccent }} />
         <div className="flex-1" />
@@ -433,7 +433,7 @@ function AppearanceTab() {
   return (
     <div className="flex gap-8">
       <div className="flex-1 min-w-0 space-y-5">
-        <p className="text-sm text-surface-400">
+        <p className="text-sm text-slate-500">
           Customize every color in your AIOS workspace. Changes preview live — click Save to persist.
         </p>
 
@@ -474,7 +474,7 @@ function AppearanceTab() {
           ))}
         </Section>
 
-        <div className="flex items-center gap-3 pt-2 border-t border-surface-700">
+        <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
           <Button onClick={handleSave} className="flex items-center gap-2">
             <Save className="h-4 w-4" />
             {saved ? "Saved!" : "Save Changes"}
@@ -487,7 +487,7 @@ function AppearanceTab() {
       </div>
 
       <div className="hidden lg:block">
-        <p className="text-xs text-surface-500 uppercase tracking-wider mb-2">Live Preview</p>
+        <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">Live Preview</p>
         <MiniPreview p={palette} />
       </div>
     </div>
@@ -543,17 +543,17 @@ function CalendarTab() {
 
   return (
     <div className="max-w-lg space-y-5">
-      <p className="text-sm text-surface-400">
+      <p className="text-sm text-slate-500">
         Configure how AIOS notifies your team about upcoming calendar events.
       </p>
       <form onSubmit={(e) => void handleSave(e)} className="space-y-4">
         <label className="flex items-center gap-3 cursor-pointer">
           <input type="checkbox" checked={telegramNotify} onChange={e => setTelegramNotify(e.target.checked)} className="rounded accent-brand-500" />
-          <span className="text-sm text-surface-300">Send Telegram reminders</span>
+          <span className="text-sm text-slate-600">Send Telegram reminders</span>
         </label>
         <label className="flex items-center gap-3 cursor-pointer">
           <input type="checkbox" checked={emailNotify} onChange={e => setEmailNotify(e.target.checked)} className="rounded accent-brand-500" />
-          <span className="text-sm text-surface-300">Send Email reminders</span>
+          <span className="text-sm text-slate-600">Send Email reminders</span>
         </label>
         <div>
           <label className={labelCls}>Advance notice</label>

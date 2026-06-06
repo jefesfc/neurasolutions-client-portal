@@ -73,11 +73,11 @@ export function LeadsMap() {
 
   return (
     <Card padding="none">
-      <div className="px-5 py-4 border-b border-surface-100 flex items-center justify-between">
+      <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
         <CardHeader className="mb-0">
           <CardTitle>Leads by Country</CardTitle>
         </CardHeader>
-        <div className="flex items-center gap-4 text-xs text-surface-400">
+        <div className="flex items-center gap-4 text-xs text-slate-400">
           <span className="flex items-center gap-1.5">
             <span className="inline-block w-3 h-3 rounded-full bg-brand-400 opacity-70" /> Leads
           </span>
@@ -89,7 +89,7 @@ export function LeadsMap() {
 
       <div className="relative px-2 pb-2">
         {tooltip && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 bg-surface-900 text-white text-xs rounded-lg px-3 py-2 shadow-lg pointer-events-none">
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 bg-slate-800 text-white text-xs rounded-lg px-3 py-2 shadow-lg pointer-events-none">
             <p className="font-semibold">{tooltip.name}</p>
             <p>{tooltip.total} lead{tooltip.total !== 1 ? "s" : ""} · {tooltip.won} won</p>
           </div>
@@ -153,7 +153,7 @@ export function LeadsMap() {
         {bubbles
           .sort((a, b) => b.total - a.total)
           .map((b) => (
-            <div key={b.iso} className="flex items-center gap-1.5 text-xs text-surface-500">
+            <div key={b.iso} className="flex items-center gap-1.5 text-xs text-slate-500">
               <span
                 className="inline-block w-2.5 h-2.5 rounded-full"
                 style={{ background: b.won > 0 ? "#22c55e" : "#6366f1", opacity: 0.8 }}

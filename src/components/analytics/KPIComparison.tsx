@@ -82,7 +82,7 @@ export function KPIComparison() {
 
   return (
     <Card>
-      <h3 className="text-base font-semibold text-surface-900 mb-4">Monthly Comparison</h3>
+      <h3 className="text-base font-semibold text-slate-800 mb-4">Monthly Comparison</h3>
       <div className="space-y-3">
         {kpis.map((kpi) => {
           const changePercent =
@@ -92,13 +92,13 @@ export function KPIComparison() {
           const Icon   = isUp ? TrendingUp : TrendingDown;
           return (
             <div key={kpi.label} className="flex items-center justify-between">
-              <span className="text-sm text-surface-500">{kpi.label}</span>
+              <span className="text-sm text-slate-500">{kpi.label}</span>
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <p className="text-sm font-medium text-surface-900">
+                  <p className="text-sm font-medium text-slate-800">
                     {kpi.format(kpi.current)}
                   </p>
-                  <p className="text-xs text-surface-400">
+                  <p className="text-xs text-slate-400">
                     {kpi.format(kpi.prev)}
                   </p>
                 </div>

@@ -51,14 +51,14 @@ export function CalendarGrid({ events, selectedDate, onSelectDate }: Props) {
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={prevMonth}
-          className="p-1.5 rounded-lg hover:bg-surface-700 transition-colors text-surface-400 hover:text-surface-200"
+          className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-700"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <span className="text-sm font-semibold text-surface-200">{monthLabel}</span>
+        <span className="text-sm font-semibold text-slate-700">{monthLabel}</span>
         <button
           onClick={nextMonth}
-          className="p-1.5 rounded-lg hover:bg-surface-700 transition-colors text-surface-400 hover:text-surface-200"
+          className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-700"
         >
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -67,7 +67,7 @@ export function CalendarGrid({ events, selectedDate, onSelectDate }: Props) {
       {/* Day header */}
       <div className="grid grid-cols-7 mb-1">
         {DAY_LABELS.map(d => (
-          <div key={d} className="text-center text-[10px] font-medium text-surface-400 pb-1">{d}</div>
+          <div key={d} className="text-center text-[10px] font-medium text-slate-400 pb-1">{d}</div>
         ))}
       </div>
 
@@ -91,8 +91,8 @@ export function CalendarGrid({ events, selectedDate, onSelectDate }: Props) {
               className={[
                 'flex flex-col items-center rounded-lg p-1 text-xs transition-colors min-h-[38px] cursor-pointer',
                 isToday  ? 'bg-brand-600 text-white font-semibold' : '',
-                isSel && !isToday ? 'bg-brand-500/15 text-brand-300 font-medium ring-1 ring-brand-500/30' : '',
-                !isToday && !isSel ? 'hover:bg-surface-700 text-surface-300' : '',
+                isSel && !isToday ? 'bg-indigo-50 text-indigo-700 font-medium ring-1 ring-indigo-200' : '',
+                !isToday && !isSel ? 'hover:bg-slate-100 text-slate-600' : '',
               ].join(' ')}
             >
               <span>{day}</span>

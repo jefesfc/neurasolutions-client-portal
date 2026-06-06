@@ -12,7 +12,7 @@ const colorMap: Record<StatusColor, string> = {
   green: "bg-positive",
   yellow: "bg-warning",
   red: "bg-danger",
-  gray: "bg-surface-400",
+  gray: "bg-slate-400",
   blue: "bg-info",
 };
 
