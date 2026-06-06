@@ -20,7 +20,7 @@ export function Card({ className, hover = false, padding = "md", children, ...pr
         "bg-white border border-slate-200 rounded-xl shadow-sm",
         hover && [
           "transition-all duration-200 cursor-pointer",
-          "hover:border-slate-300 hover:shadow-md",
+          "hover:border-cyan-400/60 hover:shadow-[0_0_0_1px_rgba(34,211,238,0.15),0_4px_20px_rgba(34,211,238,0.12)]",
         ],
         paddingStyles[padding],
         className
