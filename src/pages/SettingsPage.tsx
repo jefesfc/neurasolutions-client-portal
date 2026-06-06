@@ -9,7 +9,7 @@ import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Skeleton } from "../components/ui/Skeleton";
 import { useTheme, type ColorPalette } from "../hooks/useTheme";
-import { Layers, Type, Sparkles, Activity, BarChart2, Palette, RotateCcw, Save } from "lucide-react";
+import { Layers, Type, Sparkles, Activity, BarChart2, RotateCcw, Save } from "lucide-react";
 
 interface Tenant {
   id: string;
