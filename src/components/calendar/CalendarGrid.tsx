@@ -68,11 +68,10 @@ export function CalendarGrid({ events, selectedDate, onSelectDate }: Props) {
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={prevMonth}
-          className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-700"
+          className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
-
         <div className="text-center">
           <p className="text-sm font-bold text-slate-800 tracking-tight">{monthLabel}</p>
           <p className="text-[10px] text-slate-400 mt-0.5">
@@ -81,120 +80,148 @@ export function CalendarGrid({ events, selectedDate, onSelectDate }: Props) {
               : 'No events this month'}
           </p>
         </div>
-
         <button
           onClick={nextMonth}
-          className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-700"
+          className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
         >
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
 
-      {/* ── Day labels ── */}
-      <div className="grid grid-cols-7 mb-2">
-        {DAY_LABELS.map((d, i) => (
-          <div
-            key={d}
-            className={`text-center text-[10px] font-semibold pb-1.5 uppercase tracking-wide ${
-              i >= 5 ? 'text-slate-300' : 'text-slate-400'
-            }`}
-          >
-            {d}
-          </div>
-        ))}
-      </div>
+      {/* ── Calendar grid (bordered cells) ── */}
+      <div className="flex-1 min-h-0">
+        <div className="grid grid-cols-7 border border-slate-200 rounded-xl overflow-hidden shadow-sm">
 
-      {/* ── Day cells ── */}
-      <div className="grid grid-cols-7 gap-0.5">
-        {cells.map((day, idx) => {
-          if (!day) return <div key={idx} className="min-h-[40px]" />;
-
-          const key    = dateKey(day);
-          const dayEvs = eventMap.get(key) ?? [];
-          const isToday = (
-            today.getFullYear() === viewYear &&
-            today.getMonth()    === viewMonth &&
-            today.getDate()     === day
-          );
-          const isSel     = selKey === key;
-          const isWeekend = idx % 7 >= 5;
-
-          return (
-            <button
-              key={idx}
-              onClick={() => onSelectDate(isSel ? null : new Date(viewYear, viewMonth, day))}
+          {/* Day header row */}
+          {DAY_LABELS.map((d, i) => (
+            <div
+              key={d}
               className={[
-                'flex flex-col items-center rounded-xl px-0.5 pt-1.5 pb-1 text-xs transition-all min-h-[40px] cursor-pointer',
-                isToday
-                  ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-200'
-                  : isSel
-                  ? 'bg-indigo-50 text-indigo-700 font-semibold ring-1 ring-inset ring-indigo-300'
-                  : isWeekend
-                  ? 'text-slate-300 hover:bg-slate-50'
-                  : 'text-slate-600 hover:bg-slate-100',
+                'py-2 text-center text-[10px] font-bold uppercase tracking-wider border-b border-slate-200',
+                i < 6 ? 'border-r border-slate-200' : '',
+                i >= 5 ? 'bg-slate-50 text-slate-300' : 'bg-slate-50 text-slate-400',
               ].join(' ')}
             >
-              <span className="text-[11px] leading-tight">{day}</span>
+              {d}
+            </div>
+          ))}
 
-              {dayEvs.length > 0 && (
-                <div className="flex justify-center items-center gap-0.5 mt-1 flex-wrap max-w-full">
-                  {dayEvs.slice(0, 3).map((ev, i) => (
-                    <span
-                      key={i}
-                      className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                      style={{
-                        backgroundColor: isToday
-                          ? 'rgba(255,255,255,0.8)'
-                          : CATEGORY_CONFIG[ev.category].color,
-                      }}
-                    />
-                  ))}
-                  {dayEvs.length > 3 && (
-                    <span
-                      className={`text-[8px] leading-none font-semibold ml-0.5 ${
-                        isToday ? 'text-white/70' : 'text-slate-400'
-                      }`}
-                    >
-                      +{dayEvs.length - 3}
-                    </span>
-                  )}
-                </div>
-              )}
-            </button>
-          );
-        })}
+          {/* Day cells */}
+          {cells.map((day, idx) => {
+            const isLastCol = idx % 7 === 6;
+            const rowCount  = Math.ceil(cells.length / 7);
+            const rowIdx    = Math.floor(idx / 7);
+            const isLastRow = rowIdx === rowCount - 1;
+
+            if (!day) {
+              return (
+                <div
+                  key={idx}
+                  className={[
+                    'min-h-[44px] bg-slate-50/40',
+                    !isLastCol ? 'border-r border-slate-200' : '',
+                    !isLastRow ? 'border-b border-slate-200' : '',
+                  ].join(' ')}
+                />
+              );
+            }
+
+            const key       = dateKey(day);
+            const dayEvs    = eventMap.get(key) ?? [];
+            const isToday   = today.getFullYear() === viewYear && today.getMonth() === viewMonth && today.getDate() === day;
+            const isSel     = selKey === key;
+            const isWeekend = idx % 7 >= 5;
+
+            return (
+              <button
+                key={idx}
+                onClick={() => onSelectDate(isSel ? null : new Date(viewYear, viewMonth, day))}
+                className={[
+                  'relative min-h-[44px] p-1.5 flex flex-col items-start transition-all cursor-pointer group text-left',
+                  !isLastCol ? 'border-r border-slate-200' : '',
+                  !isLastRow ? 'border-b border-slate-200' : '',
+                  isToday
+                    ? 'bg-indigo-600 hover:bg-indigo-700'
+                    : isSel
+                    ? 'bg-indigo-50 hover:bg-indigo-100'
+                    : isWeekend
+                    ? 'bg-slate-50/70 hover:bg-slate-100'
+                    : 'bg-white hover:bg-slate-50',
+                ].join(' ')}
+              >
+                {/* Day number */}
+                <span
+                  className={[
+                    'text-[11px] font-bold leading-none',
+                    isToday
+                      ? 'text-white'
+                      : isSel
+                      ? 'text-indigo-700'
+                      : isWeekend
+                      ? 'text-slate-300'
+                      : 'text-slate-700',
+                  ].join(' ')}
+                >
+                  {day}
+                </span>
+
+                {/* Event indicators */}
+                {dayEvs.length > 0 && (
+                  <div className="flex flex-col gap-0.5 mt-1 w-full">
+                    {dayEvs.slice(0, 2).map((ev, i) => (
+                      <div
+                        key={i}
+                        className="w-full rounded-sm px-1 py-px flex items-center gap-0.5 overflow-hidden"
+                        style={{ backgroundColor: isToday ? 'rgba(255,255,255,0.2)' : `${CATEGORY_CONFIG[ev.category].color}20` }}
+                      >
+                        <span
+                          className="w-1 h-1 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: isToday ? 'rgba(255,255,255,0.9)' : CATEGORY_CONFIG[ev.category].color }}
+                        />
+                        <span
+                          className="text-[8px] font-semibold truncate leading-tight"
+                          style={{ color: isToday ? 'rgba(255,255,255,0.85)' : CATEGORY_CONFIG[ev.category].color }}
+                        >
+                          {ev.title}
+                        </span>
+                      </div>
+                    ))}
+                    {dayEvs.length > 2 && (
+                      <span className={`text-[8px] font-bold pl-1 ${isToday ? 'text-white/60' : 'text-slate-400'}`}>
+                        +{dayEvs.length - 2} more
+                      </span>
+                    )}
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* ── This-month legend ── */}
       {monthStats.total > 0 && (
-        <div className="mt-auto pt-4 border-t border-slate-100">
-          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2.5">
+        <div className="mt-4 pt-3 border-t border-slate-100 flex-shrink-0">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
             This Month
           </p>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {(Object.entries(CATEGORY_CONFIG) as [EventCategory, { label: string; color: string }][]).map(
               ([cat, cfg]) => {
                 const count = monthStats.counts[cat] ?? 0;
                 if (count === 0) return null;
                 const pct = Math.round((count / monthStats.total) * 100);
                 return (
-                  <div key={cat}>
-                    <div className="flex items-center justify-between mb-0.5">
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className="w-2 h-2 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: cfg.color }}
-                        />
-                        <span className="text-[11px] text-slate-500">{cfg.label}</span>
-                      </div>
-                      <span className="text-[11px] font-semibold text-slate-700">{count}</span>
-                    </div>
-                    <div className="h-0.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div key={cat} className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cfg.color }} />
+                    <span className="text-[11px] text-slate-500 flex-1 truncate">{cfg.label}</span>
+                    <div className="w-16 h-1 bg-slate-100 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full"
                         style={{ width: `${pct}%`, backgroundColor: cfg.color }}
                       />
                     </div>
+                    <span className="text-[11px] font-bold text-slate-700 w-4 text-right">{count}</span>
                   </div>
                 );
               }
