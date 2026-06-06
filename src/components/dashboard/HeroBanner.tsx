@@ -1,9 +1,15 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useAuthStore } from "../../store/auth-store";
 import { useQuery } from "../../hooks/useQuery";
 import { Skeleton } from "../ui/Skeleton";
 import { Link } from "react-router-dom";
 import type { Lead, Contact, TokenUsage } from "../../types/aios";
+import type { SecuritySummary } from "../../types/security";
+
+const API_URL =
+  (window as Window & { __env__?: { API_URL?: string } }).__env__?.API_URL ??
+  import.meta.env.VITE_API_URL ??
+  'http://localhost:3001';
 
 // ── Shared style constants ──────────────────────────────────────────────────
 
@@ -32,22 +38,39 @@ const chartTitleStyle: React.CSSProperties = {
 
 // ── ActiveServicesCard ──────────────────────────────────────────────────────
 
-const SERVICES = [
-  { icon: "✈️", name: "Telegram Bot",      detail: "@Neura_AIOS_demo_bot",    status: "active"  as const },
-  { icon: "🤖", name: "AI Orchestrator",   detail: "GPT-4o",                  status: "active"  as const },
-  { icon: "⚙️", name: "n8n Workflows",     detail: "3 workflows running",     status: "active"  as const },
-  { icon: "📧", name: "Gmail Sync",        detail: "last sync 2m ago",        status: "active"  as const },
-  { icon: "📅", name: "Calendar Notifier", detail: "08:00 daily cron",        status: "pending" as const },
-  { icon: "🛡️", name: "Security AI Agent", detail: "CyberSec · coming soon", status: "soon"    as const },
-] as const;
-
 const STATUS_STYLE = {
   active:  { bg: "rgba(16,185,129,0.15)", border: "rgba(16,185,129,0.25)", color: "#34d399", dot: "#34d399", label: "Active"    },
   pending: { bg: "rgba(245,158,11,0.15)", border: "rgba(245,158,11,0.25)", color: "#fbbf24", dot: null,      label: "⚠ Pending" },
+  alert:   { bg: "rgba(239,68,68,0.15)",  border: "rgba(239,68,68,0.25)",  color: "#f87171", dot: "#f87171", label: "⚠ Alert"   },
   soon:    { bg: "rgba(99,102,241,0.12)", border: "rgba(99,102,241,0.2)",  color: "#a5b4fc", dot: null,      label: "Soon"      },
 } as const;
 
-function ActiveServicesCard() {
+type ServiceStatus = keyof typeof STATUS_STYLE;
+
+interface ServicesCardProps {
+  secSummary: SecuritySummary | null;
+}
+
+function ActiveServicesCard({ secSummary }: ServicesCardProps) {
+  const highAlerts   = parseInt(secSummary?.high_unresolved ?? '0', 10);
+  const secStatus: ServiceStatus = secSummary === null
+    ? 'soon'
+    : highAlerts > 0 ? 'alert' : 'active';
+  const secDetail = secSummary === null
+    ? 'Connecting…'
+    : highAlerts > 0
+    ? `${highAlerts} high alert${highAlerts > 1 ? 's' : ''}`
+    : `${secSummary.total_today} events today`;
+
+  const SERVICES: { icon: string; name: string; detail: string; status: ServiceStatus }[] = [
+    { icon: "✈️", name: "Telegram Bot",      detail: "@Neura_AIOS_demo_bot", status: "active"  },
+    { icon: "🤖", name: "AI Orchestrator",   detail: "GPT-4o",               status: "active"  },
+    { icon: "⚙️", name: "n8n Workflows",     detail: "3 workflows running",  status: "active"  },
+    { icon: "📧", name: "Gmail Sync",        detail: "last sync 2m ago",     status: "active"  },
+    { icon: "📅", name: "Calendar Notifier", detail: "08:00 daily cron",     status: "pending" },
+    { icon: "🛡️", name: "Security AI Agent", detail: secDetail,              status: secStatus  },
+  ];
+
   const activeCount = SERVICES.filter(s => s.status === "active").length;
   return (
     <div style={{
@@ -266,22 +289,31 @@ function AICostPanel({ totalCost, agentList, maxAgentCost }: AICostPanelProps) {
 
 // ── SecurityHealthPanel ─────────────────────────────────────────────────────
 
-function SecurityHealthPanel() {
-  const score = 85;
+interface SecurityHealthProps {
+  secSummary: SecuritySummary | null;
+}
+
+function SecurityHealthPanel({ secSummary }: SecurityHealthProps) {
+  const highAlerts  = parseInt(secSummary?.high_unresolved ?? '0', 10);
+  const medAlerts   = parseInt(secSummary?.medium_count    ?? '0', 10);
+  const totalToday  = parseInt(secSummary?.total_today     ?? '0', 10);
+  const score       = secSummary === null ? 85 : highAlerts > 0 ? Math.max(40, 100 - highAlerts * 15) : 95;
+  const standing    = highAlerts > 0 ? "Alerts Active" : "Good Standing";
+  const scoreColor  = highAlerts > 0 ? "#f87171" : "#10b981";
   const circumference = 87.96;
   const dashLen = (score / 100) * circumference;
 
   return (
     <div style={chartBoxStyle}>
       <div style={chartTitleStyle}>
-        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#f87171", flexShrink: 0, display: "inline-block" }} />
+        <span style={{ width: 6, height: 6, borderRadius: "50%", background: scoreColor, flexShrink: 0, display: "inline-block" }} />
         Security Health
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
         <div style={{ position: "relative", width: 56, height: 56, flexShrink: 0 }}>
           <svg width={56} height={56} viewBox="0 0 36 36" style={{ transform: "rotate(-90deg)" }}>
             <circle r={14} cx={18} cy={18} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={5} />
-            <circle r={14} cx={18} cy={18} fill="none" stroke="#10b981" strokeWidth={5}
+            <circle r={14} cx={18} cy={18} fill="none" stroke={scoreColor} strokeWidth={5}
               strokeDasharray={`${dashLen} ${circumference}`} strokeDashoffset={0} />
           </svg>
           <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
@@ -290,8 +322,10 @@ function SecurityHealthPanel() {
           </div>
         </div>
         <div>
-          <h4 style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Good Standing</h4>
-          <p style={{ fontSize: 10, color: "#fcd34d", marginTop: 2 }}>Last scan: just now</p>
+          <h4 style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{standing}</h4>
+          <p style={{ fontSize: 10, color: "#fcd34d", marginTop: 2 }}>
+            {secSummary === null ? "Connecting…" : `${totalToday} events today`}
+          </p>
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 4, marginTop: 4,
             background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.25)",
@@ -303,10 +337,20 @@ function SecurityHealthPanel() {
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, flex: 1 }}>
         {[
-          { label: "Threats",       val: "0",     sub: "Detected",     color: "#34d399" },
-          { label: "Active Alerts", val: "2",     sub: "Low severity", color: "#fbbf24" },
-          { label: "Auth",          val: "JWT ✓", sub: "RLS active",   color: "#34d399" },
-          { label: "Compliance",    val: "OK",    sub: "GDPR ready",   color: "#34d399" },
+          {
+            label: "High Alerts",
+            val:   secSummary === null ? "—" : String(highAlerts),
+            sub:   highAlerts > 0 ? "Unresolved" : "None",
+            color: highAlerts > 0 ? "#f87171" : "#34d399",
+          },
+          {
+            label: "Medium",
+            val:   secSummary === null ? "—" : String(medAlerts),
+            sub:   medAlerts > 0 ? "Unresolved" : "Clear",
+            color: medAlerts > 0 ? "#fbbf24" : "#34d399",
+          },
+          { label: "Auth",       val: "JWT ✓", sub: "RLS active", color: "#34d399" },
+          { label: "Compliance", val: "OK",    sub: "GDPR ready", color: "#34d399" },
         ].map(m => (
           <div key={m.label} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,215,0,0.1)", borderRadius: 8, padding: "8px 10px" }}>
             <div style={{ fontSize: 9, color: "#fcd34d", textTransform: "uppercase", letterSpacing: "0.4px", marginBottom: 2 }}>{m.label}</div>
@@ -317,9 +361,9 @@ function SecurityHealthPanel() {
       </div>
       <div style={{ borderTop: "1px solid rgba(255,215,0,0.08)", paddingTop: 8, marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
         {[
-          { icon: "✅", text: "API encryption (HTTPS)"     },
-          { icon: "✅", text: "Row-Level Security active"  },
-          { icon: "⚠️", text: "2 endpoints to review"     },
+          { icon: "✅", text: "API encryption (HTTPS)"                                          },
+          { icon: "✅", text: "Row-Level Security active"                                       },
+          { icon: highAlerts > 0 ? "🔴" : "✅", text: highAlerts > 0 ? `${highAlerts} high priority alerts` : "No active threats" },
         ].map(c => (
           <div key={c.text} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, color: "#fcd34d" }}>
             <span>{c.icon}</span> {c.text}
@@ -391,10 +435,21 @@ function BottomKpiRow({ qualifiedLeads, wonLeads, totalTokens }: BottomKpiRowPro
 // ── HeroBanner (main export) ────────────────────────────────────────────────
 
 export function HeroBanner() {
-  const user = useAuthStore((s) => s.user);
+  const user  = useAuthStore((s) => s.user);
+  const token = useAuthStore((s) => s.token);
   const { data: leads,      loading: l1 } = useQuery<Lead>("leads");
   const { data: contacts,   loading: l2 } = useQuery<Contact>("contacts");
   const { data: tokenUsage, loading: l3 } = useQuery<TokenUsage>("token_usage");
+
+  const [secSummary, setSecSummary] = useState<SecuritySummary | null>(null);
+
+  useEffect(() => {
+    if (!token) return;
+    fetch(`${API_URL}/security/summary`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then((d: SecuritySummary) => setSecSummary(d))
+      .catch(() => {});
+  }, [token]);
 
   if (l1 || l2 || l3) {
     return (
@@ -505,7 +560,7 @@ export function HeroBanner() {
             View Latest Report ↗
           </Link>
 
-          <ActiveServicesCard />
+          <ActiveServicesCard secSummary={secSummary} />
         </div>
 
         {/* RIGHT 2×2 */}
@@ -513,7 +568,7 @@ export function HeroBanner() {
           <LeadsStatusChart leads={leads} statusCounts={statusCounts} />
           <PlatformHealthPanel />
           <AICostPanel totalCost={totalCost} agentList={agentList} maxAgentCost={maxAgentCost} />
-          <SecurityHealthPanel />
+          <SecurityHealthPanel secSummary={secSummary} />
         </div>
 
       </div>

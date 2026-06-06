@@ -8,7 +8,6 @@ import { Tabs } from "../components/ui/Tabs";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Skeleton } from "../components/ui/Skeleton";
-import { ThemeSelector } from "../components/settings/ThemeSelector";
 import { useTheme, type ColorPalette } from "../hooks/useTheme";
 import { Layers, Type, Sparkles, Activity, BarChart2, Palette, RotateCcw, Save } from "lucide-react";
 
@@ -436,12 +435,6 @@ function AppearanceTab() {
         <p className="text-sm text-slate-500">
           Customize every color in your AIOS workspace. Changes preview live — click Save to persist.
         </p>
-
-        <Section icon={<Palette className="h-4 w-4" />} title="Preset Themes">
-          <div className="py-3">
-            <ThemeSelector currentPalette={palette} onSelect={(p) => setPalette(p)} />
-          </div>
-        </Section>
 
         <Section icon={<Layers className="h-4 w-4" />} title="Backgrounds">
           <ColorRow label="App Background" description="Main bg, topbar, sidebar" value={palette.appBg} onChange={set("appBg")} />
