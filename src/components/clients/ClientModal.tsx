@@ -45,7 +45,9 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
   const [error, setError]                 = useState<string | null>(null);
 
   useEffect(() => {
-    postgrest.get<User>('users', { order: 'name.asc', limit: 200 }).then(setUsers).catch(() => {});
+    postgrest.get<User>('users', { order: 'name.asc', limit: 200 }).then(setUsers).catch((err) => {
+      console.error('[ClientModal] failed to load users:', err);
+    });
   }, []);
 
   useEffect(() => {
