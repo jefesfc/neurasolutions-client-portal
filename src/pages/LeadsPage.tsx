@@ -10,6 +10,8 @@ import { SearchInput } from "../components/shared/SearchInput";
 import { formatRelative } from "../lib/formatters";
 import { downloadLeadsPDF } from "../lib/pdf";
 import type { Lead } from "../types/aios";
+import { useAuthStore } from "../store/auth-store";
+import { ClientModal } from "../components/clients/ClientModal";
 
 type LeadStatus = Lead["status"] | "all";
 
@@ -42,6 +44,10 @@ export default function LeadsPage() {
   const { data: leads, loading, error } = useQuery<Lead>("leads", { order: "created_at.desc" });
   const [activeStatus, setActiveStatus] = useState<LeadStatus>("all");
   const [search, setSearch] = useState("");
+  const { user } = useAuthStore();
+  const canConvert = user?.role !== 'user';
+  const [convertingLead, setConvertingLead]   = useState<Lead | null>(null);
+  const [convertedLeadId, setConvertedLeadId] = useState<string | null>(null);
 
   const filtered = leads.filter((l) => {
     const matchStatus = activeStatus === "all" || l.status === activeStatus;
@@ -117,6 +123,7 @@ export default function LeadsPage() {
                 <th className="text-left px-4 py-3 font-medium text-slate-500">Status</th>
                 <th className="text-left px-4 py-3 font-medium text-slate-500">Score</th>
                 <th className="text-left px-4 py-3 font-medium text-slate-500">Added</th>
+                {canConvert && <th className="text-left px-4 py-3 font-medium text-slate-500">Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -142,6 +149,24 @@ export default function LeadsPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-slate-400">{formatRelative(lead.created_at)}</td>
+                    {canConvert && (
+                      <td className="px-4 py-3">
+                        {convertedLeadId === lead.id ? (
+                          <span className="text-xs text-green-600 font-medium">✓ Converted</span>
+                        ) : (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setConvertingLead(lead); }}
+                            className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${
+                              lead.status === 'won'
+                                ? 'border-green-300 text-green-700 bg-green-50 hover:bg-green-100'
+                                : 'border-slate-200 text-slate-600 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-700'
+                            }`}
+                          >
+                            Convert →
+                          </button>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 );
               })}
@@ -149,6 +174,20 @@ export default function LeadsPage() {
           </table>
         )}
       </div>
+
+      {convertingLead && (
+        <ClientModal
+          isOpen={Boolean(convertingLead)}
+          convertingFromLead={convertingLead}
+          onSuccess={() => {
+            const id = convertingLead.id;
+            setConvertingLead(null);
+            setConvertedLeadId(id);
+            setTimeout(() => setConvertedLeadId(null), 2000);
+          }}
+          onClose={() => setConvertingLead(null)}
+        />
+      )}
     </PageTransition>
   );
 }
