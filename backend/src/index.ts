@@ -11,6 +11,7 @@ import calendarRouter from './routes/calendar';
 import { securityMonitor } from './middleware/securityMonitor';
 import securityRouter from './routes/security';
 import notificationsRouter from './routes/notifications';
+import clientsRouter from './routes/clients';
 
 dotenv.config();
 
@@ -35,6 +36,7 @@ app.use('/emails', emailsRouter);
 app.use('/calendar', calendarRouter);
 app.use('/security', securityRouter);
 app.use('/notifications', notificationsRouter);
+app.use('/clients', clientsRouter);
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
