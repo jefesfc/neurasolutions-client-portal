@@ -47,6 +47,7 @@ function formatCalendarDate(iso: string): string {
 router.get('/', requireAuth, async (req: Request, res: Response) => {
   const tenantId = req.user!.tenant_id;
   const isAdmin  = req.user!.app_role === 'admin';
+  const isAdminOrManager = req.user!.app_role === 'admin' || req.user!.app_role === 'manager';
   const results: NotificationRow[] = [];
 
   // Source 1: security events (admin only)
@@ -103,6 +104,64 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
     }
   } catch (err) {
     console.error('[notifications] calendar_events query failed:', err);
+  }
+
+  // Source 3: renewal reminders — clients renewing in next 7 days (all roles)
+  try {
+    const { rows } = await db.query(
+      `SELECT id, name, company, next_renewal_at
+       FROM aios.clients
+       WHERE tenant_id = $1
+         AND next_renewal_at BETWEEN now()::date AND (now() + INTERVAL '7 days')::date
+       ORDER BY next_renewal_at ASC
+       LIMIT 10`,
+      [tenantId]
+    );
+    for (const row of rows) {
+      const dateStr = new Date(`${row.next_renewal_at as string}T00:00:00`)
+        .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      results.push({
+        id:          `cli_${row.id as string}`,
+        title:       `Renewal due — ${row.company as string}`,
+        description: `Contract renews on ${dateStr}`,
+        type:        'warning',
+        read:        false,
+        timestamp:   new Date(`${row.next_renewal_at as string}T00:00:00`).toISOString(),
+        link:        '/clients',
+        category:    'general',
+      });
+    }
+  } catch (err) {
+    console.error('[notifications] clients renewal query failed:', err);
+  }
+
+  // Source 4: new clients in last 48h (admin/manager only)
+  if (isAdminOrManager) {
+    try {
+      const { rows } = await db.query(
+        `SELECT id, name, company, converted_from_lead_id, created_at
+         FROM aios.clients
+         WHERE tenant_id = $1
+           AND created_at >= NOW() - INTERVAL '48 hours'
+         ORDER BY created_at DESC
+         LIMIT 10`,
+        [tenantId]
+      );
+      for (const row of rows) {
+        results.push({
+          id:          `cli_new_${row.id as string}`,
+          title:       `New client: ${row.company as string}`,
+          description: row.converted_from_lead_id ? 'Converted from lead' : 'Created manually',
+          type:        'success',
+          read:        false,
+          timestamp:   (row.created_at as Date).toISOString(),
+          link:        '/clients',
+          category:    'general',
+        });
+      }
+    } catch (err) {
+      console.error('[notifications] clients new query failed:', err);
+    }
   }
 
   // Sort combined results by timestamp DESC, cap at 30
