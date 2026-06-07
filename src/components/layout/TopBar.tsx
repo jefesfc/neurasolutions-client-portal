@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, MessageSquare, Search, Menu, LogOut, User, CheckCheck, AlertCircle, Info, CheckCircle, XCircle } from "lucide-react";
+import { Bell, MessageSquare, Search, Menu, LogOut, User, CheckCheck, AlertCircle, Info, CheckCircle, XCircle, ArrowRight } from "lucide-react";
+import { ROUTES } from "../../config/routes";
 import { useNotificationStore } from "../../store/notification-store";
 import { useAuthStore } from "../../store/auth-store";
 import { useSidebarStore } from "../../store/sidebar-store";
@@ -51,11 +52,11 @@ function NotifDropdown({ onClose }: { onClose: () => void }) {
         )}
       </div>
 
-      <div className="max-h-80 overflow-y-auto">
+      <div className="max-h-72 overflow-y-auto">
         {notifications.length === 0 ? (
           <div className="py-8 text-center text-sm text-slate-400">No notifications</div>
         ) : (
-          notifications.map((n) => (
+          notifications.slice(0, 8).map((n) => (
             <button
               key={n.id}
               onClick={() => handleClick(n)}
@@ -77,6 +78,15 @@ function NotifDropdown({ onClose }: { onClose: () => void }) {
           ))
         )}
       </div>
+
+      <Link
+        to={ROUTES.Notifications}
+        onClick={onClose}
+        className="flex items-center justify-center gap-1.5 w-full px-4 py-3 text-xs font-semibold text-indigo-600 hover:text-indigo-700 border-t border-slate-100 hover:bg-indigo-50/50 transition-colors"
+      >
+        View all notifications
+        <ArrowRight className="h-3.5 w-3.5" />
+      </Link>
     </div>
   );
 }

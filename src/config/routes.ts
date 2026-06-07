@@ -17,4 +17,5 @@ export const ROUTES = {
   Team: "/team",
   Settings: "/settings",
   Security: "/security",
+  Notifications: "/notifications",
 } as const;
