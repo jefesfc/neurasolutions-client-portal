@@ -10,6 +10,7 @@ import emailsRouter from './routes/emails';
 import calendarRouter from './routes/calendar';
 import { securityMonitor } from './middleware/securityMonitor';
 import securityRouter from './routes/security';
+import notificationsRouter from './routes/notifications';
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ app.use('/telegram', telegramRouter);
 app.use('/emails', emailsRouter);
 app.use('/calendar', calendarRouter);
 app.use('/security', securityRouter);
+app.use('/notifications', notificationsRouter);
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
