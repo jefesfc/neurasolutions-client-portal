@@ -2,7 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { Report } from '../types/report';
 import type { Invoice } from '../types/client';
-import type { Lead, Contact, TokenUsage } from '../types/aios';
+import type { Lead, Contact, TokenUsage, Client } from '../types/aios';
 import logoSrc from '../assets/neura-logo-white.png';
 
 const _logoImg = new Promise<HTMLImageElement>((resolve) => {
@@ -424,4 +424,67 @@ export async function downloadUsagePDF(rows: TokenUsage[], agentFilter: string):
 
   addPageFooters(doc);
   doc.save(`usage-report-${new Date().toISOString().slice(0, 10)}.pdf`);
+}
+
+// ── Clients ────────────────────────────────────────────────────────────────
+
+export async function downloadClientsPDF(clients: Client[], statusFilter: string, search: string): Promise<void> {
+  const doc = new jsPDF({ orientation: 'landscape' });
+
+  const filterDesc = [
+    statusFilter !== 'all' ? `Status: ${statusFilter}` : 'All statuses',
+    search ? `Search: "${search}"` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+  let y = await addPageHeader(doc, 'Clients Report', `${clients.length} clients · ${filterDesc}`);
+  y += 4;
+
+  const STATUS_COLOR: Record<string, [number, number, number]> = {
+    active:   [16, 185, 129],
+    inactive: [245, 158, 11],
+    churned:  [239, 68, 68],
+  };
+
+  autoTable(doc, {
+    startY: y,
+    head: [['Company', 'Name', 'Email', 'Contract Value', 'Status', 'Renewal']],
+    body: clients.map((c) => [
+      c.company,
+      c.name,
+      c.email,
+      c.contract_value != null
+        ? `£${c.contract_value.toLocaleString('en-GB', { minimumFractionDigits: 2 })}`
+        : '—',
+      c.status.charAt(0).toUpperCase() + c.status.slice(1),
+      c.next_renewal_at
+        ? new Date(c.next_renewal_at + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+        : '—',
+    ]),
+    headStyles: { fillColor: BRAND_RGB, textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' },
+    bodyStyles: { fontSize: 8.5, textColor: [15, 23, 42] },
+    alternateRowStyles: { fillColor: SURFACE_RGB },
+    columnStyles: {
+      0: { cellWidth: 50 },
+      1: { cellWidth: 45 },
+      2: { cellWidth: 62 },
+      3: { cellWidth: 35, halign: 'right' },
+      4: { cellWidth: 28 },
+      5: { cellWidth: 32 },
+    },
+    didParseCell(data) {
+      if (data.section === 'body' && data.column.index === 4) {
+        const client = clients[data.row.index];
+        if (client && STATUS_COLOR[client.status]) {
+          data.cell.styles.textColor = STATUS_COLOR[client.status];
+          data.cell.styles.fontStyle = 'bold';
+        }
+      }
+    },
+    margin: { left: 14, right: 14 },
+  });
+
+  addPageFooters(doc);
+  doc.save(`clients-report-${new Date().toISOString().slice(0, 10)}.pdf`);
 }
