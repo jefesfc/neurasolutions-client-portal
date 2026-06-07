@@ -6,6 +6,7 @@ import { useSidebarStore } from "../../store/sidebar-store";
 import { Avatar } from "../ui/Avatar";
 import { useState, useRef, useEffect, type ReactNode } from "react";
 import type { Notification } from "../../types/notification";
+import { useNotificationPolling } from "../../hooks/useNotificationPolling";
 
 const NOTIF_ICONS: Record<string, ReactNode> = {
   success: <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />,
@@ -81,6 +82,7 @@ function NotifDropdown({ onClose }: { onClose: () => void }) {
 }
 
 export function TopBar() {
+  useNotificationPolling();
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
