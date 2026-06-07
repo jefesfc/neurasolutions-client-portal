@@ -3,7 +3,7 @@ export const ROUTES = {
   Admin: "/admin",
   Dashboard: "/",
   Leads: "/leads",
-  Contacts: "/contacts",
+  Clients: "/clients",
   Calendar: "/calendar",
   Emails: "/emails",
   AISystems: "/systems",

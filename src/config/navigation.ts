@@ -1,7 +1,7 @@
 import {
   LayoutDashboard,
   Users,
-  BookUser,
+  Building2,
   CalendarDays,
   Mail,
   Cpu,
@@ -33,7 +33,7 @@ export interface NavSection {
 export const mainNavItems: NavItem[] = [
   { label: "Dashboard",  path: ROUTES.Dashboard, icon: LayoutDashboard },
   { label: "Leads",      path: ROUTES.Leads,     icon: Users,      permission: "leads"      },
-  { label: "CRM",        path: ROUTES.Contacts,  icon: BookUser,   permission: "crm"        },
+  { label: "Clients",    path: ROUTES.Clients,   icon: Building2,  permission: "crm"        },
   { label: "Calendar",   path: ROUTES.Calendar,  icon: CalendarDays, permission: "calendar" },
   { label: "Emails",     path: ROUTES.Emails,    icon: Mail,       permission: "emails"     },
   { label: "Usage",      path: ROUTES.Usage,     icon: Zap,        permission: "usage"      },
