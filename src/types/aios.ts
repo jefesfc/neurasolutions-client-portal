@@ -23,6 +23,26 @@ export interface Contact {
   created_at: string;
 }
 
+export interface Client {
+  id: string;
+  tenant_id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  company: string;
+  industry: string | null;
+  website: string | null;
+  contract_value: number | null;
+  status: 'active' | 'inactive' | 'churned';
+  notes: string | null;
+  assigned_to: string | null;
+  address: string | null;
+  next_renewal_at: string | null;
+  converted_from_lead_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface User {
   id: string;
   tenant_id: string;
