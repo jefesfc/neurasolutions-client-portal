@@ -73,7 +73,7 @@ function ActiveServicesCard({ secSummary }: ServicesCardProps) {
 
   const activeCount = SERVICES.filter(s => s.status === "active").length;
   return (
-    <div style={{
+    <div className="hover-neon" style={{
       background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,215,0,0.12)",
       borderRadius: 12, padding: "12px 14px", flex: 1,
     }}>
@@ -152,7 +152,7 @@ function LeadsStatusChart({ leads, statusCounts }: LeadsStatusProps) {
   const circumference = 87.96;
 
   return (
-    <div style={chartBoxStyle}>
+    <div className="hover-neon" style={chartBoxStyle}>
       <div style={chartTitleStyle}>
         <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#6366f1", flexShrink: 0, display: "inline-block" }} />
         Leads by Status
@@ -205,7 +205,7 @@ const HEALTH_BARS = [
 
 function PlatformHealthPanel() {
   return (
-    <div style={chartBoxStyle}>
+    <div className="hover-neon" style={chartBoxStyle}>
       <div style={chartTitleStyle}>
         <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", flexShrink: 0, display: "inline-block" }} />
         Platform Health
@@ -245,7 +245,7 @@ interface AICostPanelProps {
 
 function AICostPanel({ totalCost, agentList, maxAgentCost }: AICostPanelProps) {
   return (
-    <div style={chartBoxStyle}>
+    <div className="hover-neon" style={chartBoxStyle}>
       <div style={chartTitleStyle}>
         <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#f59e0b", flexShrink: 0, display: "inline-block" }} />
         AI Cost Breakdown
@@ -304,7 +304,7 @@ function SecurityHealthPanel({ secSummary }: SecurityHealthProps) {
   const dashLen = (score / 100) * circumference;
 
   return (
-    <div style={chartBoxStyle}>
+    <div className="hover-neon" style={chartBoxStyle}>
       <div style={chartTitleStyle}>
         <span style={{ width: 6, height: 6, borderRadius: "50%", background: scoreColor, flexShrink: 0, display: "inline-block" }} />
         Security Health
@@ -409,7 +409,7 @@ function BottomKpiRow({ qualifiedLeads, wonLeads, totalTokens }: BottomKpiRowPro
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
       {cards.map(c => (
-        <div key={c.label} style={{
+        <div key={c.label} className="hover-neon" style={{
           background: "#1e2535", borderRadius: 12, padding: "14px 16px",
           border: "1px solid rgba(255,215,0,0.15)",
           display: "flex", alignItems: "center", gap: 12,
@@ -529,7 +529,7 @@ export function HeroBanner() {
               { label: "Conversion",      value: `${conversionRate}%`,  sub: "Deals / Leads",        neutral: true  },
               { label: "AI Cost",         value: `$${totalCost.toFixed(2)}`, sub: "This month",      neutral: true  },
             ].map(s => (
-              <div key={s.label} style={{
+              <div key={s.label} className="hover-neon" style={{
                 background: "rgba(255,255,255,0.05)",
                 border: "1px solid rgba(255,215,0,0.12)",
                 borderRadius: 10, padding: "10px 12px",
