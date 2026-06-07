@@ -13,21 +13,31 @@ const healthColorMap: Record<string, "green" | "yellow" | "red" | "gray"> = {
 };
 
 const categoryColors: Record<string, string> = {
-  "lead-generation": "bg-brand-50 text-brand-700 border-brand-200",
-  "customer-support": "bg-blue-50 text-blue-700 border-blue-200",
-  "data-analysis": "bg-purple-50 text-purple-700 border-purple-200",
+  "lead-generation":     "bg-brand-50 text-brand-700 border-brand-200",
+  "customer-support":    "bg-blue-50 text-blue-700 border-blue-200",
+  "data-analysis":       "bg-purple-50 text-purple-700 border-purple-200",
   "workflow-automation": "bg-emerald-50 text-emerald-700 border-emerald-200",
-  "content-creation": "bg-amber-50 text-amber-700 border-amber-200",
-  "predictive-analytics": "bg-rose-50 text-rose-700 border-rose-200",
+  "content-creation":    "bg-amber-50 text-amber-700 border-amber-200",
+  "predictive-analytics":"bg-rose-50 text-rose-700 border-rose-200",
+  "ai-assistant":        "bg-indigo-50 text-indigo-700 border-indigo-200",
+  "voice-processing":    "bg-violet-50 text-violet-700 border-violet-200",
+  "security":            "bg-red-50 text-red-700 border-red-200",
+  "email-automation":    "bg-sky-50 text-sky-700 border-sky-200",
+  "calendar":            "bg-teal-50 text-teal-700 border-teal-200",
 };
 
 const categoryLabels: Record<string, string> = {
-  "lead-generation": "Lead Gen",
-  "customer-support": "Support",
-  "data-analysis": "Data Analysis",
+  "lead-generation":     "Lead Gen",
+  "customer-support":    "Support",
+  "data-analysis":       "Data Analysis",
   "workflow-automation": "Workflow",
-  "content-creation": "Content",
-  "predictive-analytics": "Predictive",
+  "content-creation":    "Content",
+  "predictive-analytics":"Predictive",
+  "ai-assistant":        "AI Assistant",
+  "voice-processing":    "Voice",
+  "security":            "Security",
+  "email-automation":    "Email",
+  "calendar":            "Calendar",
 };
 
 interface SystemCardProps {
