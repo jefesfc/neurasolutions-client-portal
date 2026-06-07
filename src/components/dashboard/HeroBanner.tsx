@@ -11,18 +11,41 @@ const API_URL =
   import.meta.env.VITE_API_URL ??
   'http://localhost:3001';
 
-// ── Shared style constants ──────────────────────────────────────────────────
+// ── Gradient border panel helper ────────────────────────────────────────────
 
-const chartBoxStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.04)",
-  border: "1px solid rgba(255,215,0,0.12)",
+type AccentKey = "indigo" | "emerald" | "amber" | "red" | "multi";
+
+const GLOW_COLORS: Record<AccentKey, string> = {
+  indigo:  "rgba(99,102,241,0.65), rgba(129,140,248,0.35)",
+  emerald: "rgba(16,185,129,0.65), rgba(52,211,153,0.35)",
+  amber:   "rgba(245,158,11,0.65), rgba(252,211,77,0.35)",
+  red:     "rgba(239,68,68,0.65), rgba(248,113,113,0.35)",
+  multi:   "rgba(99,102,241,0.4), rgba(16,185,129,0.4)",
+};
+
+function glowPanel(accent: AccentKey, inner = "#0d1424"): React.CSSProperties {
+  return {
+    background: `linear-gradient(${inner}, ${inner}) padding-box, linear-gradient(135deg, ${GLOW_COLORS[accent]}) border-box`,
+    border: "1.5px solid transparent",
+    borderRadius: 12,
+    display: "flex",
+    flexDirection: "column",
+  };
+}
+
+// ── Shared inner panel style (no bg/border — wrapper provides them) ─────────
+
+const panelInner: React.CSSProperties = {
+  background: "transparent",
+  border: "none",
   borderRadius: 12,
   padding: 12,
   display: "flex",
   flexDirection: "column",
+  flex: 1,
 };
 
-const chartTitleStyle: React.CSSProperties = {
+const panelTitle: React.CSSProperties = {
   color: "#fff",
   fontSize: 11,
   fontWeight: 700,
@@ -36,47 +59,39 @@ const chartTitleStyle: React.CSSProperties = {
   paddingBottom: 8,
 };
 
-// ── ActiveServicesCard ──────────────────────────────────────────────────────
+// ── ActiveServicesCard (horizontal full-width layout) ───────────────────────
 
 const STATUS_STYLE = {
-  active:  { bg: "rgba(16,185,129,0.15)", border: "rgba(16,185,129,0.25)", color: "#34d399", dot: "#34d399", label: "Active"    },
-  pending: { bg: "rgba(245,158,11,0.15)", border: "rgba(245,158,11,0.25)", color: "#fbbf24", dot: null,      label: "⚠ Pending" },
-  alert:   { bg: "rgba(239,68,68,0.15)",  border: "rgba(239,68,68,0.25)",  color: "#f87171", dot: "#f87171", label: "⚠ Alert"   },
-  soon:    { bg: "rgba(99,102,241,0.12)", border: "rgba(99,102,241,0.2)",  color: "#a5b4fc", dot: null,      label: "Soon"      },
+  active:  { bg: "rgba(16,185,129,0.15)",  border: "rgba(16,185,129,0.25)", color: "#34d399", dot: "#34d399", label: "Active"    },
+  pending: { bg: "rgba(245,158,11,0.15)",  border: "rgba(245,158,11,0.25)", color: "#fbbf24", dot: null,      label: "⚠ Pending" },
+  alert:   { bg: "rgba(239,68,68,0.15)",   border: "rgba(239,68,68,0.25)",  color: "#f87171", dot: "#f87171", label: "⚠ Alert"   },
+  soon:    { bg: "rgba(99,102,241,0.12)",  border: "rgba(99,102,241,0.2)",  color: "#a5b4fc", dot: null,      label: "Soon"      },
 } as const;
 
 type ServiceStatus = keyof typeof STATUS_STYLE;
 
-interface ServicesCardProps {
-  secSummary: SecuritySummary | null;
-}
+interface ServicesCardProps { secSummary: SecuritySummary | null }
 
 function ActiveServicesCard({ secSummary }: ServicesCardProps) {
-  const highAlerts   = parseInt(secSummary?.high_unresolved ?? '0', 10);
-  const secStatus: ServiceStatus = secSummary === null
-    ? 'soon'
-    : highAlerts > 0 ? 'alert' : 'active';
-  const secDetail = secSummary === null
+  const highAlerts = parseInt(secSummary?.high_unresolved ?? '0', 10);
+  const secStatus: ServiceStatus = secSummary === null ? 'soon' : highAlerts > 0 ? 'alert' : 'active';
+  const secDetail  = secSummary === null
     ? 'Connecting…'
-    : highAlerts > 0
-    ? `${highAlerts} high alert${highAlerts > 1 ? 's' : ''}`
-    : `${secSummary.total_today} events today`;
+    : highAlerts > 0 ? `${highAlerts} high alert${highAlerts > 1 ? 's' : ''}` : `${secSummary.total_today} events today`;
 
   const SERVICES: { icon: string; name: string; detail: string; status: ServiceStatus }[] = [
     { icon: "✈️", name: "Telegram Bot",      detail: "@Neura_AIOS_demo_bot", status: "active"  },
     { icon: "🤖", name: "AI Orchestrator",   detail: "GPT-4o",               status: "active"  },
-    { icon: "⚙️", name: "n8n Workflows",     detail: "3 workflows running",  status: "active"  },
+    { icon: "⚙️", name: "n8n Workflows",     detail: "3 running",            status: "active"  },
     { icon: "📧", name: "Gmail Sync",        detail: "last sync 2m ago",     status: "active"  },
     { icon: "📅", name: "Calendar Notifier", detail: "08:00 daily cron",     status: "pending" },
-    { icon: "🛡️", name: "Security AI Agent", detail: secDetail,              status: secStatus  },
+    { icon: "🛡️", name: "Security Agent",    detail: secDetail,              status: secStatus  },
   ];
 
   const activeCount = SERVICES.filter(s => s.status === "active").length;
+
   return (
-    <div className="hover-neon" style={{
-      background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,215,0,0.12)",
-      borderRadius: 12, padding: "12px 14px", flex: 1,
-    }}>
+    <div style={panelInner}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
         <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", textTransform: "uppercase", letterSpacing: "0.5px" }}>
           Active Services
@@ -90,24 +105,30 @@ function ActiveServicesCard({ secSummary }: ServicesCardProps) {
           {activeCount} / {SERVICES.length} Active
         </span>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 8 }}>
         {SERVICES.map(svc => {
           const st = STATUS_STYLE[svc.status];
           return (
             <div key={svc.name} style={{
-              display: "flex", alignItems: "center", gap: 8,
-              padding: "6px 9px", borderRadius: 8,
-              background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,215,0,0.1)",
+              display: "flex", flexDirection: "column", gap: 4,
+              padding: "8px 10px", borderRadius: 8,
+              background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,215,0,0.08)",
             }}>
-              <span style={{ fontSize: 13, width: 20, textAlign: "center" }}>{svc.icon}</span>
-              <span style={{ fontSize: 11, fontWeight: 600, flex: 1, color: "#fcd34d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>{svc.name}</span>
-              <span style={{ fontSize: 9, color: "#b45309", maxWidth: 88, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flexShrink: 0 }}>{svc.detail}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 1 }}>
+                <span style={{ fontSize: 13 }}>{svc.icon}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: "#fcd34d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {svc.name}
+                </span>
+              </div>
+              <span style={{ fontSize: 9, color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {svc.detail}
+              </span>
               <span style={{
-                display: "flex", alignItems: "center", gap: 4,
-                fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 20, whiteSpace: "nowrap",
+                display: "inline-flex", alignItems: "center", gap: 3, width: "fit-content",
+                fontSize: 8, fontWeight: 700, padding: "2px 6px", borderRadius: 20,
                 background: st.bg, border: `1px solid ${st.border}`, color: st.color,
               }}>
-                {st.dot && <span style={{ width: 5, height: 5, borderRadius: "50%", background: st.dot, animation: "pulse 2s infinite", display: "inline-block" }} />}
+                {st.dot && <span style={{ width: 4, height: 4, borderRadius: "50%", background: st.dot, animation: "pulse 2s infinite", display: "inline-block" }} />}
                 {st.label}
               </span>
             </div>
@@ -134,7 +155,7 @@ const LEAD_SEGMENTS = [
 ] as const;
 
 function buildDonut(counts: Record<string, number>, total: number) {
-  const circumference = 2 * Math.PI * 14; // r=14 → 87.96
+  const circumference = 2 * Math.PI * 14;
   let offset = 0;
   return LEAD_SEGMENTS.map(seg => {
     const count = counts[seg.key] ?? 0;
@@ -152,8 +173,8 @@ function LeadsStatusChart({ leads, statusCounts }: LeadsStatusProps) {
   const circumference = 87.96;
 
   return (
-    <div className="hover-neon" style={chartBoxStyle}>
-      <div style={chartTitleStyle}>
+    <div style={panelInner}>
+      <div style={panelTitle}>
         <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#6366f1", flexShrink: 0, display: "inline-block" }} />
         Leads by Status
       </div>
@@ -169,7 +190,8 @@ function LeadsStatusChart({ leads, statusCounts }: LeadsStatusProps) {
               transform="rotate(-90 18 18)"
             />
           ))}
-          <text x={18} y={16.5} textAnchor="middle" fontSize={5.5} fontWeight={900} fill="#fff">{total}</text>
+          <text x={18} y={16.5} textAnchor="middle" fontSize={5.5} fontWeight={900} fill="#fff"
+            style={{ filter: "drop-shadow(0 0 4px rgba(99,102,241,0.9))" }}>{total}</text>
           <text x={18} y={21.5} textAnchor="middle" fontSize={3.2} fill="#fcd34d">leads</text>
         </svg>
         <div style={{ display: "flex", flexDirection: "column", gap: 7, width: "100%" }}>
@@ -205,8 +227,8 @@ const HEALTH_BARS = [
 
 function PlatformHealthPanel() {
   return (
-    <div className="hover-neon" style={chartBoxStyle}>
-      <div style={chartTitleStyle}>
+    <div style={panelInner}>
+      <div style={panelTitle}>
         <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", flexShrink: 0, display: "inline-block" }} />
         Platform Health
       </div>
@@ -215,10 +237,14 @@ function PlatformHealthPanel() {
           <div key={bar.label}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
               <span style={{ fontSize: 11, color: "#fcd34d" }}>{bar.label}</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: bar.valColor }}>{bar.value}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: bar.valColor, textShadow: `0 0 8px ${bar.valColor}80` }}>{bar.value}</span>
             </div>
             <div style={{ background: "rgba(255,255,255,0.08)", borderRadius: 6, height: 8, overflow: "hidden" }}>
-              <div style={{ width: `${bar.pct}%`, height: "100%", borderRadius: 6, background: bar.color }} />
+              <div style={{
+                width: `${bar.pct}%`, height: "100%", borderRadius: 6,
+                background: `linear-gradient(90deg, ${bar.color}, ${bar.valColor})`,
+                boxShadow: `0 0 6px ${bar.color}80`,
+              }} />
             </div>
             <div style={{ fontSize: 9, color: "#b45309", marginTop: 2 }}>{bar.sub}</div>
           </div>
@@ -245,13 +271,15 @@ interface AICostPanelProps {
 
 function AICostPanel({ totalCost, agentList, maxAgentCost }: AICostPanelProps) {
   return (
-    <div className="hover-neon" style={chartBoxStyle}>
-      <div style={chartTitleStyle}>
+    <div style={panelInner}>
+      <div style={panelTitle}>
         <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#f59e0b", flexShrink: 0, display: "inline-block" }} />
         AI Cost Breakdown
       </div>
       <div style={{ marginBottom: 10 }}>
-        <span style={{ fontSize: 26, fontWeight: 900, color: "#fff" }}>${totalCost.toFixed(2)}</span>
+        <span style={{ fontSize: 26, fontWeight: 900, color: "#fff", textShadow: "0 0 16px rgba(245,158,11,0.75), 0 0 32px rgba(245,158,11,0.3)" }}>
+          ${totalCost.toFixed(2)}
+        </span>
         <span style={{ fontSize: 10, color: "#fcd34d", marginLeft: 4 }}>total this month</span>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 7, flex: 1 }}>
@@ -260,12 +288,12 @@ function AICostPanel({ totalCost, agentList, maxAgentCost }: AICostPanelProps) {
         ) : (
           agentList.map(([agent, data]) => {
             const barPct = (data.cost / maxAgentCost) * 100;
-            const color = AGENT_COLORS[agent] ?? "#6366f1";
+            const color  = AGENT_COLORS[agent] ?? "#6366f1";
             return (
               <div key={agent} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ fontSize: 10, color: "#fcd34d", minWidth: 90 }}>{agent}</span>
                 <div style={{ flex: 1, background: "rgba(255,255,255,0.08)", borderRadius: 4, height: 10, overflow: "hidden" }}>
-                  <div style={{ width: `${barPct}%`, height: "100%", borderRadius: 4, background: color }} />
+                  <div style={{ width: `${barPct}%`, height: "100%", borderRadius: 4, background: `linear-gradient(90deg, ${color}, ${color}99)`, boxShadow: `0 0 6px ${color}60` }} />
                 </div>
                 <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", minWidth: 36, textAlign: "right" }}>${data.cost.toFixed(2)}</span>
                 <span style={{ fontSize: 9, color: "#b45309", minWidth: 56, textAlign: "right" }}>
@@ -289,9 +317,7 @@ function AICostPanel({ totalCost, agentList, maxAgentCost }: AICostPanelProps) {
 
 // ── SecurityHealthPanel ─────────────────────────────────────────────────────
 
-interface SecurityHealthProps {
-  secSummary: SecuritySummary | null;
-}
+interface SecurityHealthProps { secSummary: SecuritySummary | null }
 
 function SecurityHealthPanel({ secSummary }: SecurityHealthProps) {
   const highAlerts  = parseInt(secSummary?.high_unresolved ?? '0', 10);
@@ -304,8 +330,8 @@ function SecurityHealthPanel({ secSummary }: SecurityHealthProps) {
   const dashLen = (score / 100) * circumference;
 
   return (
-    <div className="hover-neon" style={chartBoxStyle}>
-      <div style={chartTitleStyle}>
+    <div style={panelInner}>
+      <div style={panelTitle}>
         <span style={{ width: 6, height: 6, borderRadius: "50%", background: scoreColor, flexShrink: 0, display: "inline-block" }} />
         Security Health
       </div>
@@ -314,10 +340,11 @@ function SecurityHealthPanel({ secSummary }: SecurityHealthProps) {
           <svg width={56} height={56} viewBox="0 0 36 36" style={{ transform: "rotate(-90deg)" }}>
             <circle r={14} cx={18} cy={18} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={5} />
             <circle r={14} cx={18} cy={18} fill="none" stroke={scoreColor} strokeWidth={5}
-              strokeDasharray={`${dashLen} ${circumference}`} strokeDashoffset={0} />
+              strokeDasharray={`${dashLen} ${circumference}`} strokeDashoffset={0}
+              style={{ filter: `drop-shadow(0 0 4px ${scoreColor}90)` }} />
           </svg>
           <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ fontSize: 14, fontWeight: 900, color: "#fff", lineHeight: 1 }}>{score}</span>
+            <span style={{ fontSize: 14, fontWeight: 900, color: "#fff", lineHeight: 1, textShadow: `0 0 10px ${scoreColor}` }}>{score}</span>
             <span style={{ fontSize: 7, color: "#fcd34d" }}>/100</span>
           </div>
         </div>
@@ -337,32 +364,22 @@ function SecurityHealthPanel({ secSummary }: SecurityHealthProps) {
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, flex: 1 }}>
         {[
-          {
-            label: "High Alerts",
-            val:   secSummary === null ? "—" : String(highAlerts),
-            sub:   highAlerts > 0 ? "Unresolved" : "None",
-            color: highAlerts > 0 ? "#f87171" : "#34d399",
-          },
-          {
-            label: "Medium",
-            val:   secSummary === null ? "—" : String(medAlerts),
-            sub:   medAlerts > 0 ? "Unresolved" : "Clear",
-            color: medAlerts > 0 ? "#fbbf24" : "#34d399",
-          },
-          { label: "Auth",       val: "JWT ✓", sub: "RLS active", color: "#34d399" },
-          { label: "Compliance", val: "OK",    sub: "GDPR ready", color: "#34d399" },
+          { label: "High Alerts", val: secSummary === null ? "—" : String(highAlerts), sub: highAlerts > 0 ? "Unresolved" : "None",  color: highAlerts > 0 ? "#f87171" : "#34d399" },
+          { label: "Medium",      val: secSummary === null ? "—" : String(medAlerts),  sub: medAlerts > 0 ? "Unresolved" : "Clear",  color: medAlerts > 0 ? "#fbbf24" : "#34d399"  },
+          { label: "Auth",        val: "JWT ✓",  sub: "RLS active", color: "#34d399" },
+          { label: "Compliance",  val: "OK",     sub: "GDPR ready", color: "#34d399" },
         ].map(m => (
           <div key={m.label} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,215,0,0.1)", borderRadius: 8, padding: "8px 10px" }}>
             <div style={{ fontSize: 9, color: "#fcd34d", textTransform: "uppercase", letterSpacing: "0.4px", marginBottom: 2 }}>{m.label}</div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: m.color }}>{m.val}</div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: m.color, textShadow: `0 0 8px ${m.color}80` }}>{m.val}</div>
             <div style={{ fontSize: 9, color: "#b45309", marginTop: 1 }}>{m.sub}</div>
           </div>
         ))}
       </div>
       <div style={{ borderTop: "1px solid rgba(255,215,0,0.08)", paddingTop: 8, marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
         {[
-          { icon: "✅", text: "API encryption (HTTPS)"                                          },
-          { icon: "✅", text: "Row-Level Security active"                                       },
+          { icon: "✅", text: "API encryption (HTTPS)" },
+          { icon: "✅", text: "Row-Level Security active" },
           { icon: highAlerts > 0 ? "🔴" : "✅", text: highAlerts > 0 ? `${highAlerts} high priority alerts` : "No active threats" },
         ].map(c => (
           <div key={c.text} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, color: "#fcd34d" }}>
@@ -370,64 +387,6 @@ function SecurityHealthPanel({ secSummary }: SecurityHealthProps) {
           </div>
         ))}
       </div>
-    </div>
-  );
-}
-
-// ── BottomKpiRow ────────────────────────────────────────────────────────────
-
-interface BottomKpiRowProps {
-  qualifiedLeads: number;
-  wonLeads: number;
-  totalTokens: number;
-}
-
-function BottomKpiRow({ qualifiedLeads, wonLeads, totalTokens }: BottomKpiRowProps) {
-  const cards = [
-    {
-      icon: "⭐", iconBg: "rgba(99,102,241,0.2)",
-      label: "Qualified Leads", value: qualifiedLeads,
-      sub: "% of pipeline", subColor: "#34d399",
-    },
-    {
-      icon: "🏆", iconBg: "rgba(16,185,129,0.2)",
-      label: "Deals Won", value: wonLeads,
-      sub: "↑ 0.0% vs last month", subColor: "#34d399",
-    },
-    {
-      icon: "🤖", iconBg: "rgba(245,158,11,0.2)",
-      label: "Total Tokens Used", value: totalTokens.toLocaleString(),
-      sub: "GPT-4o + TTS + Whisper", subColor: "#b45309",
-    },
-    {
-      icon: "🎫", iconBg: "rgba(239,68,68,0.2)",
-      label: "Open Tickets", value: 4,
-      sub: "⚠ 2 high priority", subColor: "#f59e0b",
-    },
-  ];
-
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
-      {cards.map(c => (
-        <div key={c.label} className="hover-neon" style={{
-          background: "#1e2535", borderRadius: 12, padding: "14px 16px",
-          border: "1px solid rgba(255,215,0,0.15)",
-          display: "flex", alignItems: "center", gap: 12,
-        }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: c.iconBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, flexShrink: 0 }}>
-            {c.icon}
-          </div>
-          <div>
-            <small style={{ color: "#fff", fontSize: 10, fontWeight: 700, textTransform: "uppercase", display: "block", marginBottom: 2 }}>
-              {c.label}
-            </small>
-            <strong style={{ color: "#fcd34d", fontSize: 22, fontWeight: 900, display: "block", lineHeight: 1.2 }}>
-              {c.value}
-            </strong>
-            <span style={{ fontSize: 10, color: c.subColor }}>{c.sub}</span>
-          </div>
-        </div>
-      ))}
     </div>
   );
 }
@@ -454,12 +413,7 @@ export function HeroBanner() {
   if (l1 || l2 || l3) {
     return (
       <div className="mb-6">
-        <Skeleton className="h-80 rounded-2xl mb-3" />
-        <div className="grid grid-cols-4 gap-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-20 rounded-xl" />
-          ))}
-        </div>
+        <Skeleton className="h-[520px] rounded-2xl" />
       </div>
     );
   }
@@ -488,97 +442,136 @@ export function HeroBanner() {
       tokens: prev.tokens + t.tokens_in + t.tokens_out,
     });
   });
-  const agentList     = Array.from(agentMap.entries()).sort((a, b) => b[1].cost - a[1].cost);
-  const maxAgentCost  = agentList.reduce((m, [, v]) => Math.max(m, v.cost), 0.0001);
+  const agentList    = Array.from(agentMap.entries()).sort((a, b) => b[1].cost - a[1].cost);
+  const maxAgentCost = agentList.reduce((m, [, v]) => Math.max(m, v.cost), 0.0001);
+
+  const headerStats = [
+    { label: "Total Leads",     value: String(leads.length),           sub: "↑ active pipeline",  glow: "rgba(99,102,241,0.7)"  },
+    { label: "Active Contacts", value: String(activeContacts),         sub: "↑ this month",        glow: "rgba(16,185,129,0.7)"  },
+    { label: "Conversion",      value: `${conversionRate}%`,           sub: "Deals / Leads",       glow: "rgba(245,158,11,0.7)"  },
+    { label: "AI Cost",         value: `$${totalCost.toFixed(2)}`,     sub: "This month",          glow: "rgba(139,92,246,0.7)"  },
+  ];
+
+  const kpiCards = [
+    { icon: "⭐", iconBg: "rgba(99,102,241,0.2)",  label: "Qualified Leads",   value: String(qualifiedLeads),         sub: "% of pipeline",         glow: "rgba(99,102,241,0.75)"  },
+    { icon: "🏆", iconBg: "rgba(16,185,129,0.2)",  label: "Deals Won",         value: String(wonLeads),               sub: "↑ 0.0% vs last month",  glow: "rgba(16,185,129,0.75)"  },
+    { icon: "🤖", iconBg: "rgba(245,158,11,0.2)",  label: "Total Tokens Used", value: totalTokens.toLocaleString(),   sub: "GPT-4o + TTS + Whisper", glow: "rgba(245,158,11,0.75)"  },
+    { icon: "🎫", iconBg: "rgba(239,68,68,0.2)",   label: "Open Tickets",      value: "4",                            sub: "⚠ 2 high priority",     glow: "rgba(239,68,68,0.75)"   },
+  ];
 
   return (
-    <div className="mb-6">
-      {/* ── HERO ── */}
-      <div style={{
-        background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)",
-        borderRadius: 16, padding: 24,
-        display: "grid", gridTemplateColumns: "320px 1fr", gap: 20,
-        marginBottom: 12,
-      }}>
+    <div className="mb-6" style={{
+      background: "linear-gradient(135deg, #090e1c 0%, #1a1640 40%, #0e1628 100%)",
+      borderRadius: 20,
+      padding: "24px 28px",
+      border: "1px solid rgba(255,215,0,0.08)",
+      boxShadow: "0 0 60px rgba(99,102,241,0.06), 0 4px 32px rgba(0,0,0,0.4)",
+    }}>
 
-        {/* LEFT PANEL */}
-        <div style={{ display: "flex", flexDirection: "column" }}>
+      {/* ── HEADER STRIP ── */}
+      <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 22, flexWrap: "nowrap" }}>
 
-          {/* Badge */}
+        {/* Greeting */}
+        <div style={{ flexShrink: 0 }}>
           <div style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
+            display: "inline-flex", alignItems: "center", gap: 5,
             background: "rgba(99,102,241,0.2)", border: "1px solid rgba(99,102,241,0.3)",
-            color: "#a5b4fc", fontSize: 11, fontWeight: 600,
-            padding: "4px 10px", borderRadius: 20, marginBottom: 12, width: "fit-content",
+            color: "#a5b4fc", fontSize: 10, fontWeight: 600,
+            padding: "3px 10px", borderRadius: 20, marginBottom: 8,
           }}>
             ✦ Welcome back
           </div>
-
-          <h2 style={{ fontSize: 24, fontWeight: 800, color: "#fff", marginBottom: 4 }}>
+          <h2 style={{ fontSize: 21, fontWeight: 800, color: "#fff", margin: "0 0 2px", textShadow: "0 0 20px rgba(165,180,252,0.3)" }}>
             {user?.name ?? "Admin AIOS"}
           </h2>
-          <p style={{ color: "#fcd34d", fontSize: 12, marginBottom: 14 }}>
+          <p style={{ color: "#fcd34d", fontSize: 11, margin: 0, display: "flex", alignItems: "center", gap: 5 }}>
+            <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#34d399", animation: "pulse 2s infinite", display: "inline-block" }} />
             All systems operational · AI agents running
           </p>
+        </div>
 
-          {/* 4 big stats */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
-            {[
-              { label: "Total Leads",     value: leads.length,           sub: "↑ active pipeline",    neutral: false },
-              { label: "Active Contacts", value: activeContacts,         sub: "↑ this month",         neutral: false },
-              { label: "Conversion",      value: `${conversionRate}%`,  sub: "Deals / Leads",        neutral: true  },
-              { label: "AI Cost",         value: `$${totalCost.toFixed(2)}`, sub: "This month",      neutral: true  },
-            ].map(s => (
-              <div key={s.label} className="hover-neon" style={{
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,215,0,0.12)",
-                borderRadius: 10, padding: "10px 12px",
-              }}>
-                <div style={{ color: "#fcd34d", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.4px", marginBottom: 2 }}>
-                  {s.label}
-                </div>
-                <div style={{ color: "#fff", fontSize: 20, fontWeight: 900, lineHeight: 1.1 }}>
-                  {s.value}
-                </div>
-                <div style={{ color: s.neutral ? "#a5b4fc" : "#34d399", fontSize: 10, marginTop: 3 }}>
-                  {s.sub}
-                </div>
-              </div>
-            ))}
+        <div style={{ flex: 1 }} />
+
+        {/* 4 inline stat chips */}
+        {headerStats.map(s => (
+          <div key={s.label} style={{
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,215,0,0.1)",
+            borderRadius: 10, padding: "8px 14px",
+            textAlign: "center", flexShrink: 0,
+          }}>
+            <div style={{ color: "#94a3b8", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 2 }}>
+              {s.label}
+            </div>
+            <div style={{ color: "#fff", fontSize: 19, fontWeight: 900, lineHeight: 1.1, textShadow: `0 0 14px ${s.glow}` }}>
+              {s.value}
+            </div>
+            <div style={{ color: "#64748b", fontSize: 9, marginTop: 2 }}>{s.sub}</div>
           </div>
+        ))}
 
-          {/* Report button */}
-          <Link
-            to="/reports"
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 6,
-              background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)",
-              color: "#fff", padding: "8px 14px", borderRadius: 10, fontSize: 12, fontWeight: 500,
-              marginBottom: 12, width: "fit-content", textDecoration: "none",
-            }}
-          >
-            View Latest Report ↗
-          </Link>
-
-          <ActiveServicesCard secSummary={secSummary} />
-        </div>
-
-        {/* RIGHT 2×2 */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 12, minHeight: 0, alignItems: "stretch" }}>
-          <LeadsStatusChart leads={leads} statusCounts={statusCounts} />
-          <PlatformHealthPanel />
-          <AICostPanel totalCost={totalCost} agentList={agentList} maxAgentCost={maxAgentCost} />
-          <SecurityHealthPanel secSummary={secSummary} />
-        </div>
-
+        {/* Report button */}
+        <Link to="/reports" style={{
+          display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0,
+          background: "linear-gradient(135deg, rgba(99,102,241,0.22), rgba(139,92,246,0.12))",
+          border: "1px solid rgba(99,102,241,0.45)",
+          color: "#a5b4fc", padding: "9px 16px", borderRadius: 10,
+          fontSize: 12, fontWeight: 600, textDecoration: "none",
+          boxShadow: "0 0 16px rgba(99,102,241,0.15)",
+        }}>
+          View Report ↗
+        </Link>
       </div>
 
-      {/* ── BOTTOM KPI ROW ── */}
-      <BottomKpiRow
-        qualifiedLeads={qualifiedLeads}
-        wonLeads={wonLeads}
-        totalTokens={totalTokens}
-      />
+      {/* ── 4 PANELS ROW ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 12 }}>
+        <div className="hover-neon" style={glowPanel("indigo")}>
+          <LeadsStatusChart leads={leads} statusCounts={statusCounts} />
+        </div>
+        <div className="hover-neon" style={glowPanel("emerald")}>
+          <PlatformHealthPanel />
+        </div>
+        <div className="hover-neon" style={glowPanel("amber")}>
+          <AICostPanel totalCost={totalCost} agentList={agentList} maxAgentCost={maxAgentCost} />
+        </div>
+        <div className="hover-neon" style={glowPanel("red")}>
+          <SecurityHealthPanel secSummary={secSummary} />
+        </div>
+      </div>
+
+      {/* ── ACTIVE SERVICES (full width) ── */}
+      <div className="hover-neon" style={{ ...glowPanel("multi"), marginBottom: 16 }}>
+        <ActiveServicesCard secSummary={secSummary} />
+      </div>
+
+      {/* ── DIVIDER ── */}
+      <div style={{ height: 1, background: "rgba(255,215,0,0.07)", margin: "0 0 16px" }} />
+
+      {/* ── KPI ROW ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
+        {kpiCards.map(c => (
+          <div key={c.label} className="hover-neon" style={{
+            background: "rgba(255,255,255,0.025)",
+            borderRadius: 12, padding: "14px 16px",
+            border: "1px solid rgba(255,215,0,0.1)",
+            display: "flex", alignItems: "center", gap: 12,
+          }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: c.iconBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, flexShrink: 0 }}>
+              {c.icon}
+            </div>
+            <div>
+              <small style={{ color: "#94a3b8", fontSize: 10, fontWeight: 700, textTransform: "uppercase", display: "block", marginBottom: 2 }}>
+                {c.label}
+              </small>
+              <strong style={{ color: "#fff", fontSize: 22, fontWeight: 900, display: "block", lineHeight: 1.2, textShadow: `0 0 14px ${c.glow}` }}>
+                {c.value}
+              </strong>
+              <span style={{ fontSize: 10, color: "#64748b" }}>{c.sub}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
     </div>
   );
 }
