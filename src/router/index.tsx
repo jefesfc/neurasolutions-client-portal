@@ -8,7 +8,6 @@ import LoginPage from "../pages/LoginPage";
 import AdminPage from "../pages/admin/AdminPage";
 import DashboardPage from "../pages/DashboardPage";
 import LeadsPage from "../pages/LeadsPage";
-import ContactsPage from "../pages/ContactsPage";
 import ClientsPage from "../pages/ClientsPage";
 import CalendarPage from "../pages/CalendarPage";
 import EmailsPage from "../pages/EmailsPage";
