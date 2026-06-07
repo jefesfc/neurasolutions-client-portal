@@ -3,7 +3,6 @@ import {
   UserPlus, Star, Trophy, PhoneCall, XCircle,
   Building2, TrendingUp, AlertCircle, UserMinus,
 } from "lucide-react";
-import { Card } from "../ui/Card";
 import { Skeleton } from "../ui/Skeleton";
 import { StatusDot } from "../shared/StatusDot";
 import { ProgressBar } from "../ui/ProgressBar";
@@ -44,15 +43,26 @@ const HEALTH_COLOR: Record<string, "green" | "yellow" | "red" | "gray"> = {
   down:     "red",
 };
 
-// ── Section header ───────────────────────────────────────────────────────────
+// ── Section accent colours ───────────────────────────────────────────────────
 
-function SectionHeader({ title, linkTo }: { title: string; linkTo?: string }) {
+const SECTION_ACCENT = {
+  activity: { dot: "bg-indigo-500",  label: "text-indigo-600",  bg: "bg-indigo-50/60"  },
+  systems:  { dot: "bg-emerald-500", label: "text-emerald-600", bg: "bg-emerald-50/60" },
+  clients:  { dot: "bg-violet-500",  label: "text-violet-600",  bg: "bg-violet-50/60"  },
+};
+
+function SectionHeader({
+  title, linkTo, dot,
+}: { title: string; dot: string; linkTo?: string }) {
   return (
-    <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-      <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
+    <div className="flex items-center justify-between px-5 py-3.5">
+      <div className="flex items-center gap-2">
+        <span className={cn("w-2 h-2 rounded-full flex-shrink-0", dot)} />
+        <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
+      </div>
       {linkTo && (
-        <Link to={linkTo} className="text-sm text-indigo-600 hover:text-indigo-700 font-medium transition-colors">
-          View all
+        <Link to={linkTo} className="text-xs text-indigo-500 hover:text-indigo-700 font-semibold transition-colors">
+          View all →
         </Link>
       )}
     </div>
@@ -71,19 +81,26 @@ export function DashboardPanel() {
   const recentClients   = clients.slice(0, 6);
 
   return (
-    <Card padding="none" className="overflow-hidden">
-      {/* ── Header row ── */}
-      <div className="grid grid-cols-3 divide-x divide-slate-100 border-b border-slate-200 bg-slate-50/60">
-        <SectionHeader title="Recent Activity" />
-        <SectionHeader title="AI Systems"      linkTo={ROUTES.AISystems} />
-        <SectionHeader title="Clients"         linkTo={ROUTES.Clients}   />
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+
+      {/* ── Header strip ── */}
+      <div className="grid grid-cols-3 border-b border-slate-200" style={{ background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)" }}>
+        <div className={cn("border-r border-slate-200", SECTION_ACCENT.activity.bg)}>
+          <SectionHeader title="Recent Activity" dot={SECTION_ACCENT.activity.dot} />
+        </div>
+        <div className={cn("border-r border-slate-200", SECTION_ACCENT.systems.bg)}>
+          <SectionHeader title="AI Systems" dot={SECTION_ACCENT.systems.dot} linkTo={ROUTES.AISystems} />
+        </div>
+        <div className={SECTION_ACCENT.clients.bg}>
+          <SectionHeader title="Clients" dot={SECTION_ACCENT.clients.dot} linkTo={ROUTES.Clients} />
+        </div>
       </div>
 
       {/* ── Content row ── */}
-      <div className="grid grid-cols-3 divide-x divide-slate-100 min-h-[420px]">
+      <div className="grid grid-cols-3 min-h-[400px]" style={{ background: "#fafafa" }}>
 
         {/* ── Activity ── */}
-        <div className="divide-y divide-slate-100 overflow-y-auto max-h-[520px]">
+        <div className="border-r border-slate-200 divide-y divide-slate-100 overflow-y-auto max-h-[520px] bg-white">
           {l1 ? (
             <div className="p-4 space-y-3">
               {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-lg" />)}
@@ -98,15 +115,15 @@ export function DashboardPanel() {
               const cfg = LEAD_CFG[lead.status];
               const Icon = cfg.icon;
               return (
-                <div key={lead.id} className="flex items-start gap-3 px-5 py-3.5 hover:bg-slate-50 transition-colors">
-                  <div className={cn("mt-0.5 p-2 rounded-lg flex-shrink-0", cfg.bgCls, cfg.iconCls)}>
-                    <Icon className="h-4 w-4" />
+                <div key={lead.id} className="flex items-start gap-3 px-5 py-3.5 hover:bg-indigo-50/30 transition-colors cursor-default">
+                  <div className={cn("mt-0.5 p-2 rounded-xl flex-shrink-0", cfg.bgCls)}>
+                    <Icon className={cn("h-3.5 w-3.5", cfg.iconCls)} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-slate-800 truncate">{cfg.title(lead.name)}</p>
-                    <p className="text-sm text-slate-500 truncate mt-0.5">{cfg.desc(lead.source)}</p>
+                    <p className="text-sm font-semibold text-slate-800 truncate">{cfg.title(lead.name)}</p>
+                    <p className="text-xs text-slate-500 truncate mt-0.5">{cfg.desc(lead.source)}</p>
                   </div>
-                  <span className="text-xs text-slate-400 whitespace-nowrap mt-1">
+                  <span className="text-[10px] text-slate-400 whitespace-nowrap mt-1 bg-slate-100 px-2 py-0.5 rounded-full">
                     {formatRelative(lead.created_at)}
                   </span>
                 </div>
@@ -116,22 +133,22 @@ export function DashboardPanel() {
         </div>
 
         {/* ── AI Systems ── */}
-        <div className="divide-y divide-slate-100 overflow-y-auto max-h-[520px]">
+        <div className="border-r border-slate-200 divide-y divide-slate-100 overflow-y-auto max-h-[520px] bg-white">
           {mockAISystems.map(sys => (
             <Link
               key={sys.id}
               to={`/systems/${sys.id}`}
-              className="flex items-center gap-3 px-5 py-3.5 hover:bg-slate-50 transition-colors"
+              className="flex items-center gap-3 px-5 py-3.5 hover:bg-emerald-50/30 transition-colors"
             >
               <StatusDot
                 color={HEALTH_COLOR[sys.health] ?? "gray"}
                 pulse={sys.status === "active"}
               />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-800 truncate">{sys.name}</p>
+                <p className="text-sm font-semibold text-slate-800 truncate">{sys.name}</p>
                 <p className="text-xs text-slate-500 truncate">{sys.shortDescription}</p>
               </div>
-              <div className="hidden sm:block w-24">
+              <div className="hidden sm:block w-20">
                 <ProgressBar
                   value={sys.metrics.uptime}
                   max={100}
@@ -140,11 +157,11 @@ export function DashboardPanel() {
                 />
               </div>
               <span className={cn(
-                "text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0",
-                sys.status === "active"      && "bg-emerald-50 text-emerald-700",
-                sys.status === "maintenance" && "bg-amber-50 text-amber-700",
-                sys.status === "inactive"    && "bg-slate-100 text-slate-500",
-                sys.status === "error"       && "bg-red-50 text-red-700",
+                "text-[10px] font-semibold px-2.5 py-0.5 rounded-full flex-shrink-0 border",
+                sys.status === "active"      && "bg-emerald-50 text-emerald-700 border-emerald-200",
+                sys.status === "maintenance" && "bg-amber-50 text-amber-700 border-amber-200",
+                sys.status === "inactive"    && "bg-slate-100 text-slate-500 border-slate-200",
+                sys.status === "error"       && "bg-red-50 text-red-700 border-red-200",
               )}>
                 {sys.status}
               </span>
@@ -153,30 +170,22 @@ export function DashboardPanel() {
         </div>
 
         {/* ── Clients ── */}
-        <div className="flex flex-col overflow-y-auto max-h-[520px]">
+        <div className="flex flex-col overflow-y-auto max-h-[520px] bg-white">
           {/* KPI strip */}
-          <div className="grid grid-cols-3 divide-x divide-slate-100 border-b border-slate-100">
-            <div className="flex flex-col items-center py-3 gap-0.5">
-              <div className="flex items-center gap-1">
-                <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
-                <span className="text-base font-bold text-slate-800">{activeClients}</span>
+          <div className="grid grid-cols-3 border-b border-slate-200" style={{ background: "linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)" }}>
+            {[
+              { icon: TrendingUp, color: "text-emerald-600", val: activeClients,   label: "Active",   bg: "bg-emerald-100/60" },
+              { icon: AlertCircle, color: "text-amber-500",  val: inactiveClients, label: "Inactive", bg: "bg-amber-100/60"   },
+              { icon: UserMinus,  color: "text-red-500",     val: churnedClients,  label: "Churned",  bg: "bg-red-100/60"     },
+            ].map((s, i) => (
+              <div key={s.label} className={cn("flex flex-col items-center py-3.5 gap-1", i < 2 && "border-r border-slate-200/70")}>
+                <div className={cn("p-1.5 rounded-lg mb-0.5", s.bg)}>
+                  <s.icon className={cn("h-3.5 w-3.5", s.color)} />
+                </div>
+                <span className="text-lg font-bold text-slate-800">{s.val}</span>
+                <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">{s.label}</span>
               </div>
-              <span className="text-[10px] text-slate-400 uppercase tracking-wide">Active</span>
-            </div>
-            <div className="flex flex-col items-center py-3 gap-0.5">
-              <div className="flex items-center gap-1">
-                <AlertCircle className="h-3.5 w-3.5 text-amber-400" />
-                <span className="text-base font-bold text-slate-800">{inactiveClients}</span>
-              </div>
-              <span className="text-[10px] text-slate-400 uppercase tracking-wide">Inactive</span>
-            </div>
-            <div className="flex flex-col items-center py-3 gap-0.5">
-              <div className="flex items-center gap-1">
-                <UserMinus className="h-3.5 w-3.5 text-red-400" />
-                <span className="text-base font-bold text-slate-800">{churnedClients}</span>
-              </div>
-              <span className="text-[10px] text-slate-400 uppercase tracking-wide">Churned</span>
-            </div>
+            ))}
           </div>
 
           {/* Client list */}
@@ -186,9 +195,10 @@ export function DashboardPanel() {
                 {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10 rounded-lg" />)}
               </div>
             ) : recentClients.length === 0 ? (
-              <div className="flex flex-col items-center py-12 text-slate-400 gap-2">
-                <Building2 className="h-8 w-8 opacity-30" />
-                <p className="text-sm">No clients yet</p>
+              <div className="flex flex-col items-center py-12 text-slate-300 gap-2">
+                <Building2 className="h-9 w-9 opacity-40" />
+                <p className="text-sm font-medium text-slate-400">No clients yet</p>
+                <Link to={ROUTES.Clients} className="text-xs text-indigo-500 hover:underline">Add first client →</Link>
               </div>
             ) : (
               recentClients.map(c => {
@@ -197,16 +207,20 @@ export function DashboardPanel() {
                   <Link
                     key={c.id}
                     to={ROUTES.Clients}
-                    className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50 transition-colors"
+                    className="flex items-center gap-3 px-5 py-3 hover:bg-violet-50/30 transition-colors"
                   >
-                    <div className="h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-                      <Building2 className="h-4 w-4 text-indigo-500" />
+                    <div className="h-8 w-8 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center flex-shrink-0">
+                      <Building2 className="h-4 w-4 text-violet-500" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-800 truncate">{c.name}</p>
+                      <p className="text-sm font-semibold text-slate-800 truncate">{c.name}</p>
                       <p className="text-xs text-slate-400 truncate">{c.company}</p>
                     </div>
-                    <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0", st.badge)}>
+                    <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 border",
+                      c.status === "active"   && "bg-emerald-50 text-emerald-700 border-emerald-200",
+                      c.status === "inactive" && "bg-amber-50 text-amber-700 border-amber-200",
+                      c.status === "churned"  && "bg-red-50 text-red-600 border-red-200",
+                    )}>
                       {st.label}
                     </span>
                   </Link>
@@ -216,6 +230,6 @@ export function DashboardPanel() {
           </div>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
