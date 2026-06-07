@@ -8,7 +8,10 @@ export type SystemCategory =
   | "content-creation"
   | "predictive-analytics"
   | "ai-assistant"
-  | "voice-processing";
+  | "voice-processing"
+  | "security"
+  | "email-automation"
+  | "calendar";
 
 export const SYSTEM_STATUS = {
   Active: "active",
