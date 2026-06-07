@@ -161,6 +161,7 @@ router.post('/activate', requireAuth, async (req: Request, res: Response) => {
 // PATCH /emails/settings — tenant admin updates label_filter
 // Uses nested jsonb_set path {email,label_filter} to preserve all other settings
 router.patch('/settings', requireAuth, async (req: Request, res: Response) => {
+  if (req.user!.app_role !== 'admin') { res.status(403).json({ error: 'Admin role required' }); return; }
   const { label_filter } = req.body as { label_filter: string | null };
   try {
     await db.query(

@@ -9,11 +9,10 @@ import { emitSecurityEvent } from '../lib/securityEvents';
 
 const router = Router();
 
-const SYSTEM_PROMPT = `You are AIOS, an intelligent business assistant built by NeuraSolutions.
+const SYSTEM_PROMPT_BASE = `You are AIOS, an intelligent business assistant built by NeuraSolutions.
 You help the company's team analyze their business data: leads, contacts, calendar events, emails, sales pipeline, and AI usage metrics.
 You have tools to query live business data — always use them when the user asks about numbers, lists, stats, meetings, or scheduled events.
-Be concise, professional, and data-driven. Always respond in English.
-Today's date: ${new Date().toISOString().split('T')[0]}.`;
+Be concise, professional, and data-driven. Always respond in English.`;
 
 // GPT-4o pricing per token
 const COST_PER_INPUT_TOKEN = 0.0000025;
@@ -71,8 +70,10 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
       content: r.content as string,
     }));
 
+    const systemPrompt = SYSTEM_PROMPT_BASE + `\nToday's date: ${new Date().toISOString().split('T')[0]}.`;
+
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: systemPrompt },
       ...history,
       { role: 'user', content: message },
     ];

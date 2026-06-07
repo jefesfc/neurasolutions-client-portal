@@ -22,11 +22,11 @@ export default function SecurityPage() {
   const [loading, setLoading]     = useState(true);
   const [selected, setSelected]   = useState<SecurityEvent | null>(null);
 
-  // Admin-only guard — after hooks
-  if (user && user.role !== 'admin') {
-    void navigate('/');
-    return null;
-  }
+  useEffect(() => {
+    if (user && user.role !== 'admin') {
+      void navigate('/');
+    }
+  }, [user, navigate]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);

@@ -446,8 +446,8 @@ export function HeroBanner() {
   useEffect(() => {
     if (!token) return;
     fetch(`${API_URL}/security/summary`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json())
-      .then((d: SecuritySummary) => setSecSummary(d))
+      .then(r => r.ok ? r.json() : null)
+      .then((d: SecuritySummary | null) => { if (d) setSecSummary(d); })
       .catch(() => {});
   }, [token]);
 
