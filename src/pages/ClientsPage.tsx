@@ -68,7 +68,7 @@ export default function ClientsPage() {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok && res.status !== 204) throw new Error('Delete failed');
+      if (!res.ok) throw new Error('Delete failed');
       setSelectedClient(null);
       refetch();
     } catch (err) {
