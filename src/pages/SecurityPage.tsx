@@ -112,7 +112,8 @@ export default function SecurityPage() {
         })
       )
     );
-    setEvents(prev => prev.map(e => ({ ...e, resolved: true })));
+    // Refetch everything: events, summary, KPIs — gets real server-side data
+    await fetchData();
   }
 
   function exportCSV() {

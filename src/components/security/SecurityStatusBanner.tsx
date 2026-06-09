@@ -111,14 +111,14 @@ function SevPill({ label, count, color }: { label: string; count: number; color:
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      background: active ? `${color}18` : 'rgba(255,255,255,0.04)',
-      border: `1px solid ${active ? `${color}40` : 'rgba(255,255,255,0.08)'}`,
+      background: active ? `${color}18` : 'rgba(255,255,255,0.05)',
+      border: `1px solid ${active ? `${color}40` : 'rgba(255,255,255,0.1)'}`,
       borderRadius: 10, padding: '8px 16px', minWidth: 66,
       transition: 'all 0.35s ease',
     }}>
       <span style={{
         fontSize: 24, fontWeight: 800, lineHeight: 1,
-        color: active ? color : '#2d3a4e',
+        color: active ? color : '#475569',
         fontVariantNumeric: 'tabular-nums',
         transition: 'color 0.35s ease',
       }}>
@@ -127,7 +127,7 @@ function SevPill({ label, count, color }: { label: string; count: number; color:
       <span style={{
         fontSize: 9, fontWeight: 700, marginTop: 4,
         textTransform: 'uppercase', letterSpacing: '0.6px',
-        color: active ? `${color}cc` : '#1e2d3d',
+        color: active ? `${color}cc` : '#64748b',
         transition: 'color 0.35s ease',
       }}>
         {label}
@@ -201,10 +201,10 @@ export function SecurityStatusBanner({ events, loading, lastUpdated, onRefresh, 
             {cfg.label}
           </span>
         </div>
-        <p style={{ color: '#64748b', fontSize: 12, margin: '0 0 8px', lineHeight: 1.4 }}>{cfg.desc}</p>
+        <p style={{ color: '#94a3b8', fontSize: 12, margin: '0 0 8px', lineHeight: 1.4 }}>{cfg.desc}</p>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 11, color: '#334155', display: 'flex', alignItems: 'center', gap: 5 }}>
+          <span style={{ fontSize: 11, color: '#64748b', display: 'flex', alignItems: 'center', gap: 5 }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
             {info.totalEvents} eventos analizados
           </span>
@@ -213,7 +213,7 @@ export function SecurityStatusBanner({ events, loading, lastUpdated, onRefresh, 
               · {info.totalUnresolved} sin resolver
             </span>
           )}
-          <span style={{ fontSize: 11, color: '#1e2d3d', marginLeft: 'auto' }}>
+          <span style={{ fontSize: 11, color: '#475569', marginLeft: 'auto' }}>
             Actualizado: {relativeTime}
           </span>
         </div>
