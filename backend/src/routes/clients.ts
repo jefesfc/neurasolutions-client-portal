@@ -12,7 +12,7 @@ async function onClientCreated(tenantId: string, client: {
   // 1. Auto-create first invoice if contract_value exists
   if (client.contract_value && parseFloat(client.contract_value) > 0) {
     const monthStr = String(now.getMonth() + 1).padStart(2, '0');
-    const invNumber = `INV-${now.getFullYear()}-${monthStr}-AUTO`;
+    const invNumber = `INV-${now.getFullYear()}-${monthStr}-${client.id.slice(0, 8).toUpperCase()}`;
     const dueDate = new Date(now); dueDate.setDate(dueDate.getDate() + 30);
     const dueDateStr = dueDate.toISOString().split('T')[0];
     await db.query(
@@ -39,7 +39,7 @@ async function onClientCreated(tenantId: string, client: {
     `INSERT INTO aios.calendar_events
        (tenant_id, created_by, title, description, category, start_at, end_at, all_day, status, linked_type, linked_id)
      SELECT $1, id, $2, $3, 'contract', $4, $5, false, 'pending', 'client', $6
-     FROM aios.users WHERE tenant_id = $1 AND app_role = 'admin' LIMIT 1`,
+     FROM aios.users WHERE tenant_id = $1 AND role = 'admin' LIMIT 1`,
     [
       tenantId,
       `Contract Renewal — ${client.company}`,

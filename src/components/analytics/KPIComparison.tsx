@@ -6,7 +6,7 @@ import { USD_GBP } from '../../lib/rangeUtils';
 import { formatNumber } from '../../lib/formatters';
 
 interface Lead { created_at: string; status: string; }
-interface TokenUsage { created_at: string; cost: number; tokens: number; }
+interface TokenUsage { created_at: string; cost: number; tokens_in: number; tokens_out: number; }
 
 function getMonthBoundaries() {
   const now = new Date();
@@ -37,7 +37,7 @@ export function KPIComparison() {
   });
 
   const { data: usage } = useQuery<TokenUsage>('token_usage', {
-    select: 'created_at,cost,tokens',
+    select: 'created_at,cost,tokens_in,tokens_out',
     filters: { created_at: `gte.${startOfPrev}` },
   });
 
@@ -66,8 +66,8 @@ export function KPIComparison() {
     },
     {
       label: 'AI Cost (tokens)',
-      current: currentUsage.reduce((s, u) => s + (u.tokens ?? 0), 0),
-      prev: prevUsage.reduce((s, u) => s + (u.tokens ?? 0), 0),
+      current: currentUsage.reduce((s, u) => s + ((u.tokens_in ?? 0) + (u.tokens_out ?? 0)), 0),
+      prev: prevUsage.reduce((s, u) => s + ((u.tokens_in ?? 0) + (u.tokens_out ?? 0)), 0),
       format: (v) => formatNumber(v),
       positiveIsGood: false,
     },

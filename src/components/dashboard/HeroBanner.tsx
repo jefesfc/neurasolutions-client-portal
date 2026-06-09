@@ -3,7 +3,7 @@ import { useAuthStore } from "../../store/auth-store";
 import { useQuery } from "../../hooks/useQuery";
 import { Skeleton } from "../ui/Skeleton";
 import { Link } from "react-router-dom";
-import type { Lead, Contact, TokenUsage } from "../../types/aios";
+import type { Lead, Client, TokenUsage } from "../../types/aios";
 import type { SecuritySummary } from "../../types/security";
 
 const API_URL =
@@ -397,7 +397,7 @@ export function HeroBanner() {
   const user  = useAuthStore((s) => s.user);
   const token = useAuthStore((s) => s.token);
   const { data: leads,      loading: l1 } = useQuery<Lead>("leads",       { pollInterval: 30_000 });
-  const { data: contacts,   loading: l2 } = useQuery<Contact>("contacts",  { pollInterval: 30_000 });
+  const { data: clients,    loading: l2 } = useQuery<Client>("clients",    { pollInterval: 30_000 });
   const { data: tokenUsage, loading: l3 } = useQuery<TokenUsage>("token_usage", { pollInterval: 30_000 });
 
   const [secSummary, setSecSummary] = useState<SecuritySummary | null>(null);
@@ -435,7 +435,7 @@ export function HeroBanner() {
   // Computed values
   const wonLeads       = leads.filter(l => l.status === "won").length;
   const qualifiedLeads = leads.filter(l => l.status === "qualified").length;
-  const activeContacts = contacts.filter(c => c.status === "active").length;
+  const activeClients  = clients.filter(c => c.status === "active").length;
   const totalCost      = tokenUsage.reduce((sum, t) => sum + Number(t.cost), 0);
   const totalTokens    = tokenUsage.reduce((sum, t) => sum + t.tokens_in + t.tokens_out, 0);
   const conversionRate = leads.length > 0 ? Math.round((wonLeads / leads.length) * 100) : 0;
@@ -461,7 +461,7 @@ export function HeroBanner() {
 
   const headerStats = [
     { label: "Total Leads",     value: String(leads.length),           sub: "↑ active pipeline",  glow: "rgba(99,102,241,0.7)"  },
-    { label: "Active Contacts", value: String(activeContacts),         sub: "↑ this month",        glow: "rgba(16,185,129,0.7)"  },
+    { label: "Active Clients",   value: String(activeClients),          sub: "↑ this month",        glow: "rgba(16,185,129,0.7)"  },
     { label: "Conversion",      value: `${conversionRate}%`,           sub: "Deals / Leads",       glow: "rgba(245,158,11,0.7)"  },
     { label: "AI Cost",         value: `$${totalCost.toFixed(2)}`,     sub: "This month",          glow: "rgba(139,92,246,0.7)"  },
   ];
