@@ -137,7 +137,7 @@ export function DashboardPanel() {
           {mockAISystems.map(sys => (
             <Link
               key={sys.id}
-              to={`/systems/${sys.id}`}
+              to={`${ROUTES.AISystems}/${sys.id}`}
               className="flex items-center gap-3 px-5 py-3.5 hover:bg-emerald-50/30 transition-colors"
             >
               <StatusDot

@@ -14,6 +14,7 @@ import {
   Users2,
   ShieldCheck,
   Receipt,
+  Bell,
   type LucideIcon,
 } from "lucide-react";
 import { ROUTES } from "./routes";
@@ -44,7 +45,8 @@ export const mainNavItems: NavItem[] = [
   { label: "Reports",    path: ROUTES.Reports,   icon: FileText,   permission: "reports"    },
   { label: "Support",    path: ROUTES.Support,   icon: LifeBuoy,   permission: "support"    },
   { label: "Team",       path: ROUTES.Team,      icon: Users2,     permission: "team"       },
-  { label: "Security",   path: ROUTES.Security,  icon: ShieldCheck,  adminOnly: true },
+  { label: "Security",      path: ROUTES.Security,      icon: ShieldCheck, adminOnly: true },
+  { label: "Notifications", path: ROUTES.Notifications, icon: Bell },
 ];
 
 export const bottomNavItems: NavItem[] = [
