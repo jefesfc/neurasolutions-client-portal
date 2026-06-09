@@ -72,8 +72,8 @@ function SectionHeader({
 // ── DashboardPanel ───────────────────────────────────────────────────────────
 
 export function DashboardPanel() {
-  const { data: leads,   loading: l1 } = useQuery<Lead>("leads",   { order: "created_at.desc", limit: 8 });
-  const { data: clients, loading: l2 } = useQuery<Client>("clients", { order: "created_at.desc" });
+  const { data: leads,   loading: l1 } = useQuery<Lead>("leads",   { order: "created_at.desc", limit: 8, pollInterval: 30_000 });
+  const { data: clients, loading: l2 } = useQuery<Client>("clients", { order: "created_at.desc",           pollInterval: 30_000 });
 
   const activeClients   = clients.filter(c => c.status === "active").length;
   const inactiveClients = clients.filter(c => c.status === "inactive").length;

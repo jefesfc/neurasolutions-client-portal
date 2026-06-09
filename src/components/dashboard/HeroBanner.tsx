@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useAuthStore } from "../../store/auth-store";
 import { useQuery } from "../../hooks/useQuery";
 import { Skeleton } from "../ui/Skeleton";
@@ -396,19 +396,33 @@ function SecurityHealthPanel({ secSummary }: SecurityHealthProps) {
 export function HeroBanner() {
   const user  = useAuthStore((s) => s.user);
   const token = useAuthStore((s) => s.token);
-  const { data: leads,      loading: l1 } = useQuery<Lead>("leads");
-  const { data: contacts,   loading: l2 } = useQuery<Contact>("contacts");
-  const { data: tokenUsage, loading: l3 } = useQuery<TokenUsage>("token_usage");
+  const { data: leads,      loading: l1 } = useQuery<Lead>("leads",       { pollInterval: 30_000 });
+  const { data: contacts,   loading: l2 } = useQuery<Contact>("contacts",  { pollInterval: 30_000 });
+  const { data: tokenUsage, loading: l3 } = useQuery<TokenUsage>("token_usage", { pollInterval: 30_000 });
 
   const [secSummary, setSecSummary] = useState<SecuritySummary | null>(null);
 
-  useEffect(() => {
+  const fetchSecurity = useCallback(async () => {
     if (!token) return;
-    fetch(`${API_URL}/security/summary`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.ok ? r.json() : null)
-      .then((d: SecuritySummary | null) => { if (d) setSecSummary(d); })
-      .catch(() => {});
+    try {
+      const r = await fetch(`${API_URL}/security/summary`, { headers: { Authorization: `Bearer ${token}` } });
+      if (r.ok) setSecSummary(await r.json() as SecuritySummary);
+    } catch { /* silent */ }
   }, [token]);
+
+  // Initial + polling every 30s
+  useEffect(() => { void fetchSecurity(); }, [fetchSecurity]);
+  useEffect(() => {
+    const id = setInterval(() => void fetchSecurity(), 30_000);
+    return () => clearInterval(id);
+  }, [fetchSecurity]);
+
+  // Refresh when user returns to the tab
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === 'visible') void fetchSecurity(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [fetchSecurity]);
 
   if (l1 || l2 || l3) {
     return (
