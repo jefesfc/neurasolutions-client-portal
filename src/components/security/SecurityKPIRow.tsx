@@ -6,7 +6,7 @@ interface Props {
 }
 
 const CARDS = [
-  { key: 'total_today' as const,    label: 'Events Today',        color: '#6366f1' },
+  { key: 'total_events' as const,   label: 'Total Events',        color: '#6366f1' },
   { key: 'low_count' as const,      label: 'Low Severity',         color: '#6b7280' },
   { key: 'medium_count' as const,   label: 'Medium Severity',      color: '#f59e0b' },
   { key: 'high_unresolved' as const, label: 'High / Unresolved',   color: '#ef4444' },

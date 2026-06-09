@@ -77,7 +77,7 @@ function ActiveServicesCard({ secSummary }: ServicesCardProps) {
   const secStatus: ServiceStatus = secSummary === null ? 'soon' : highAlerts > 0 ? 'alert' : 'active';
   const secDetail  = secSummary === null
     ? 'Connecting…'
-    : highAlerts > 0 ? `${highAlerts} high alert${highAlerts > 1 ? 's' : ''}` : `${secSummary.total_today} events today`;
+    : highAlerts > 0 ? `${highAlerts} high alert${highAlerts > 1 ? 's' : ''}` : `${secSummary.total_events} events`;
 
   const SERVICES: { icon: string; name: string; detail: string; status: ServiceStatus }[] = [
     { icon: "✈️", name: "Telegram Bot",      detail: "@Neura_AIOS_demo_bot", status: "active"  },
@@ -322,7 +322,7 @@ interface SecurityHealthProps { secSummary: SecuritySummary | null }
 function SecurityHealthPanel({ secSummary }: SecurityHealthProps) {
   const highAlerts  = parseInt(secSummary?.high_unresolved ?? '0', 10);
   const medAlerts   = parseInt(secSummary?.medium_count    ?? '0', 10);
-  const totalToday  = parseInt(secSummary?.total_today     ?? '0', 10);
+  const totalToday  = parseInt(secSummary?.total_events     ?? '0', 10);
   const score       = secSummary === null ? 85 : highAlerts > 0 ? Math.max(40, 100 - highAlerts * 15) : 95;
   const standing    = highAlerts > 0 ? "Alerts Active" : "Good Standing";
   const scoreColor  = highAlerts > 0 ? "#f87171" : "#10b981";

@@ -20,11 +20,26 @@ export interface SecurityEvent {
   created_at: string;
 }
 
+export type SecurityTimeRange = '1w' | '1m' | '3m' | '1y';
+
 export interface SecuritySummary {
-  total_today: string;
+  total_events: string;
   low_count: string;
   medium_count: string;
+  high_count: string;
+  critical_count: string;
   high_unresolved: string;
+  resolved_count: string;
+  unique_event_types: string;
+  range: SecurityTimeRange;
+  days: number;
+}
+
+export interface SecurityAnalysisResult {
+  analysis: string;
+  events_analyzed: number;
+  range: SecurityTimeRange;
+  scheduled: boolean;
 }
 
 export const SEVERITY_CONFIG: Record<
