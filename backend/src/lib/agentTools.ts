@@ -105,6 +105,62 @@ export const toolDefinitions: OpenAI.Chat.Completions.ChatCompletionTool[] = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'query_clients',
+      description: 'Get company clients list. Filter by status (active/inactive/churned) or search by name/company. Returns contract values and renewal dates.',
+      parameters: {
+        type: 'object',
+        properties: {
+          status: { type: 'string', enum: ['active', 'inactive', 'churned'], description: 'Filter by client status.' },
+          limit: { type: 'number', description: 'Max clients to return (default 10, max 50).' },
+          search: { type: 'string', description: 'Search by name, email, or company.' },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_security_overview',
+      description: 'Get security KPIs and recent security events. Use when asked about security status, threats, login failures, or anomalies.',
+      parameters: {
+        type: 'object',
+        properties: {
+          limit: { type: 'number', description: 'Number of recent events to return (default 5, max 20).' },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_team_members',
+      description: 'Get list of team members (users) for this company with their roles.',
+      parameters: {
+        type: 'object',
+        properties: {
+          role: { type: 'string', enum: ['admin', 'manager', 'user'], description: 'Filter by role.' },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_invoicing_summary',
+      description: 'Get client invoicing summary: total revenue, outstanding invoices, recently paid. Use for revenue and financial questions.',
+      parameters: {
+        type: 'object',
+        properties: {},
+        required: [],
+      },
+    },
+  },
 ];
 
 export async function executeTool(name: string, args: Record<string, unknown>, tenantId: string): Promise<unknown> {
@@ -238,6 +294,71 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
 
       const calRes = await db.query(q, params);
       return { count: calRes.rowCount, from, to, events: calRes.rows };
+    }
+
+    case 'query_clients': {
+      const status = args.status as string | undefined;
+      const limit = Math.min(+(args.limit ?? 10), 50);
+      const search = args.search as string | undefined;
+      let q = `SELECT name, email, phone, company, industry, status, contract_value, next_renewal_at, created_at
+               FROM aios.clients WHERE tenant_id = $1`;
+      const params: unknown[] = [tenantId];
+      if (status) { params.push(status); q += ` AND status = $${params.length}`; }
+      if (search) {
+        params.push(`%${search.toLowerCase()}%`);
+        q += ` AND (LOWER(name) LIKE $${params.length} OR LOWER(COALESCE(company,'')) LIKE $${params.length})`;
+      }
+      params.push(limit);
+      q += ` ORDER BY created_at DESC LIMIT $${params.length}`;
+      const res = await db.query(q, params);
+      return { count: res.rowCount, clients: res.rows };
+    }
+
+    case 'get_security_overview': {
+      const limit = Math.min(+(args.limit ?? 5), 20);
+      const [summaryRes, eventsRes] = await Promise.all([
+        db.query(
+          `SELECT COUNT(*) AS total_7days,
+                  COUNT(*) FILTER (WHERE severity IN ('high','critical') AND resolved = false) AS critical_unresolved,
+                  COUNT(*) FILTER (WHERE severity = 'medium') AS medium_count,
+                  COUNT(*) FILTER (WHERE resolved = true) AS resolved_count
+           FROM aios.security_events WHERE tenant_id = $1 AND created_at >= NOW() - INTERVAL '7 days'`,
+          [tenantId]
+        ),
+        db.query(
+          `SELECT event_type, severity, actor_ip, created_at, resolved
+           FROM aios.security_events WHERE tenant_id = $1
+           ORDER BY created_at DESC LIMIT $2`,
+          [tenantId, limit]
+        ),
+      ]);
+      return { summary: summaryRes.rows[0], recent_events: eventsRes.rows };
+    }
+
+    case 'get_team_members': {
+      const role = args.role as string | undefined;
+      let q = `SELECT name, email, role, is_active, created_at
+               FROM aios.users WHERE tenant_id = $1 AND is_active = true`;
+      const params: unknown[] = [tenantId];
+      if (role) { params.push(role); q += ` AND role = $${params.length}`; }
+      q += ' ORDER BY name ASC';
+      const res = await db.query(q, params);
+      return { count: res.rowCount, members: res.rows };
+    }
+
+    case 'get_invoicing_summary': {
+      const res = await db.query(
+        `SELECT
+           COUNT(*) AS total_invoices,
+           COALESCE(SUM(amount) FILTER (WHERE status = 'paid'), 0) AS total_collected,
+           COALESCE(SUM(amount) FILTER (WHERE status = 'pending'), 0) AS total_pending,
+           COALESCE(SUM(amount) FILTER (WHERE status = 'overdue'), 0) AS total_overdue,
+           COUNT(*) FILTER (WHERE status = 'pending') AS pending_count,
+           COUNT(*) FILTER (WHERE status = 'overdue') AS overdue_count
+         FROM aios.client_invoices WHERE tenant_id = $1`,
+        [tenantId]
+      );
+      return res.rows[0];
     }
 
     default:
