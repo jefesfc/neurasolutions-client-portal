@@ -102,6 +102,19 @@ export default function SecurityPage() {
     setEvents(prev => prev.map(e => e.id === id ? { ...e, resolved: true } : e));
   }
 
+  async function handleResolveAll() {
+    const unresolved = events.filter(e => !e.resolved);
+    await Promise.all(
+      unresolved.map(e =>
+        fetch(`${API_URL}/security/resolve/${e.id}`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        })
+      )
+    );
+    setEvents(prev => prev.map(e => ({ ...e, resolved: true })));
+  }
+
   function exportCSV() {
     const headers = ['Date', 'Event Type', 'Severity', 'IP Address', 'Target Resource', 'Resolved'];
     const rows = events.map(e => [
@@ -169,6 +182,7 @@ export default function SecurityPage() {
           loading={loading}
           lastUpdated={lastUpdated}
           onRefresh={() => void fetchData()}
+          onResolveAll={handleResolveAll}
         />
 
         <SecurityKPIRow summary={summary} loading={loading} />
