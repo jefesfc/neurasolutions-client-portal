@@ -33,26 +33,6 @@ export const toolDefinitions: OpenAI.Chat.Completions.ChatCompletionTool[] = [
   {
     type: 'function',
     function: {
-      name: 'query_contacts',
-      description: 'Get contacts/clients list. Optionally filter by status and/or search.',
-      parameters: {
-        type: 'object',
-        properties: {
-          status: {
-            type: 'string',
-            enum: ['active', 'inactive'],
-            description: 'Filter by contact status. Omit to get all.',
-          },
-          limit: { type: 'number', description: 'Max number of contacts to return (default 10, max 50).' },
-          search: { type: 'string', description: 'Search by name, email, or company.' },
-        },
-        required: [],
-      },
-    },
-  },
-  {
-    type: 'function',
-    function: {
       name: 'get_recent_activity',
       description: 'Get recent leads added to the system, ordered by creation date.',
       parameters: {
@@ -179,7 +159,7 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
         ),
         db.query(
           `SELECT COUNT(*) AS total, COUNT(*) FILTER (WHERE status = 'active') AS active
-           FROM aios.contacts WHERE tenant_id = $1`,
+           FROM aios.clients WHERE tenant_id = $1`,
           [tenantId]
         ),
         db.query(
@@ -195,7 +175,7 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
       const convRate = l.total > 0 ? ((l.won / l.total) * 100).toFixed(1) : '0.0';
       return {
         leads: { total: +l.total, new: +l.new_leads, qualified: +l.qualified, won: +l.won, lost: +l.lost },
-        contacts: { total: +c.total, active: +c.active },
+        clients: { total: +c.total, active: +c.active },
         conversion_rate_pct: convRate,
         ai_cost_this_month_usd: (+u.monthly_cost).toFixed(4),
         ai_tokens_this_month: +u.total_tokens,
@@ -221,24 +201,6 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
       return { count: res.rowCount, leads: res.rows };
     }
 
-    case 'query_contacts': {
-      const status = args.status as string | undefined;
-      const limit = Math.min(+(args.limit ?? 10), 50);
-      const search = args.search as string | undefined;
-
-      let q = `SELECT name, email, phone, company, status, created_at
-               FROM aios.contacts WHERE tenant_id = $1`;
-      const params: unknown[] = [tenantId];
-
-      if (status) { params.push(status); q += ` AND status = $${params.length}`; }
-      if (search) { params.push(`%${search.toLowerCase()}%`); q += ` AND (LOWER(name) LIKE $${params.length} OR LOWER(email) LIKE $${params.length} OR LOWER(COALESCE(company,'')) LIKE $${params.length})`; }
-
-      params.push(limit);
-      q += ` ORDER BY created_at DESC LIMIT $${params.length}`;
-
-      const res = await db.query(q, params);
-      return { count: res.rowCount, contacts: res.rows };
-    }
 
     case 'get_recent_activity': {
       const limit = Math.min(+(args.limit ?? 5), 20);

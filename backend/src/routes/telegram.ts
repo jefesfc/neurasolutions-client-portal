@@ -17,7 +17,7 @@ const COST_PER_INPUT_TOKEN = 0.0000025;
 const COST_PER_OUTPUT_TOKEN = 0.00001;
 
 const SYSTEM_PROMPT = `You are AIOS, an intelligent business assistant built by NeuraSolutions.
-You help the company's team analyze their business data: leads, clients, contacts, calendar events, emails, sales pipeline, team members, security events, invoicing, and AI usage metrics.
+You help the company's team analyze their business data: leads, clients, calendar events, emails, sales pipeline, team members, security events, invoicing, and AI usage metrics. The CRM module is called "Clients" — always use the word "client" (never "contact") when referring to CRM records.
 You have tools to query live business data — always use them when the user asks about numbers, lists, stats, meetings, scheduled events, revenue, or security.
 Be concise, professional, and data-driven.
 Today's date: ${new Date().toISOString().split('T')[0]}.
@@ -249,14 +249,14 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
         await callTelegram(botToken, 'sendMessage', {
           chat_id: chatId,
           text: alreadyThis
-            ? '✅ You are already connected to AIOS. You can ask me about your leads, contacts, calendar, and metrics.'
+            ? '✅ You are already connected to AIOS. You can ask me about your leads, clients, calendar, and metrics.'
             : '❌ Could not link the account. The admin is already linked or please contact support.',
         });
         return;
       }
       await callTelegram(botToken, 'sendMessage', {
         chat_id: chatId,
-        text: '✅ Connected. You can ask me about your leads, contacts, calendar events, emails, and business metrics.',
+        text: '✅ Connected. You can ask me about your leads, clients, calendar events, emails, and business metrics.',
       });
       return;
     }
