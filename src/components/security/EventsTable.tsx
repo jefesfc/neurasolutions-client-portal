@@ -1,21 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CheckCircle } from 'lucide-react';
 import type { SecurityEvent } from '../../types/security';
 import { SEVERITY_CONFIG, EVENT_TYPE_LABELS } from '../../types/security';
 import { useAuthStore } from '../../store/auth-store';
+
+type FilterSeverity = 'all' | SecurityEvent['severity'];
 
 interface Props {
   events: SecurityEvent[];
   loading: boolean;
   onSelect: (event: SecurityEvent) => void;
   onResolve: (id: string) => void;
+  filterPreset?: FilterSeverity;
 }
 
-type FilterSeverity = 'all' | SecurityEvent['severity'];
-
-export function EventsTable({ events, loading, onSelect, onResolve }: Props) {
-  const [filter, setFilter] = useState<FilterSeverity>('all');
+export function EventsTable({ events, loading, onSelect, onResolve, filterPreset }: Props) {
+  const [filter, setFilter] = useState<FilterSeverity>(filterPreset ?? 'all');
   const [showResolved, setShowResolved] = useState(false);
+
+  useEffect(() => {
+    if (filterPreset) setFilter(filterPreset);
+  }, [filterPreset]);
   const { token } = useAuthStore();
 
   const filtered = events.filter((e) => {
@@ -44,7 +49,7 @@ export function EventsTable({ events, loading, onSelect, onResolve }: Props) {
   ];
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-4">
+    <div id="events-table" className="bg-white border border-slate-200 rounded-xl p-4">
       {/* Filters */}
       <div className="flex gap-2 mb-4 flex-wrap items-center">
         <p className="text-xs font-bold uppercase tracking-wide text-slate-700 mr-2">Events</p>
