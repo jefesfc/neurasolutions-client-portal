@@ -18,4 +18,5 @@ export const ROUTES = {
   Settings: "/settings",
   Security: "/security",
   Notifications: "/notifications",
+  Invoicing: "/invoicing",
 } as const;

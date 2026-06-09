@@ -13,6 +13,7 @@ import {
   Zap,
   Users2,
   ShieldCheck,
+  Receipt,
   type LucideIcon,
 } from "lucide-react";
 import { ROUTES } from "./routes";
@@ -34,6 +35,7 @@ export const mainNavItems: NavItem[] = [
   { label: "Dashboard",  path: ROUTES.Dashboard, icon: LayoutDashboard },
   { label: "Leads",      path: ROUTES.Leads,     icon: Users,      permission: "leads"      },
   { label: "Clients",    path: ROUTES.Clients,   icon: Building2,  permission: "crm"        },
+  { label: "Invoicing",  path: ROUTES.Invoicing, icon: Receipt,    permission: "billing"    },
   { label: "Calendar",   path: ROUTES.Calendar,  icon: CalendarDays, permission: "calendar" },
   { label: "Emails",     path: ROUTES.Emails,    icon: Mail,       permission: "emails"     },
   { label: "Usage",      path: ROUTES.Usage,     icon: Zap,        permission: "usage"      },

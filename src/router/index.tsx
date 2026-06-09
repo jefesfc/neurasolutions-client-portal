@@ -23,6 +23,7 @@ import TeamPage from "../pages/TeamPage";
 import SettingsPage from "../pages/SettingsPage";
 import SecurityPage from "../pages/SecurityPage";
 import NotificationsPage from "../pages/NotificationsPage";
+import InvoicingPage from "../pages/InvoicingPage";
 import NotFoundPage from "../pages/NotFoundPage";
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -146,6 +147,16 @@ export const router = createBrowserRouter([
       <Protected>
         <ModulePermissionsGuard permission="billing">
           <BillingPage />
+        </ModulePermissionsGuard>
+      </Protected>
+    ),
+  },
+  {
+    path: ROUTES.Invoicing,
+    element: (
+      <Protected>
+        <ModulePermissionsGuard permission="billing">
+          <InvoicingPage />
         </ModulePermissionsGuard>
       </Protected>
     ),
