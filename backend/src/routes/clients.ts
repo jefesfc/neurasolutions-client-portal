@@ -2,6 +2,79 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { db } from '../db';
 import { requireAuth } from '../middleware/requireAuth';
 
+async function onClientCreated(tenantId: string, client: {
+  id: string; name: string; company: string; contract_value: string | null;
+  next_renewal_at: string | null;
+}): Promise<void> {
+  const now = new Date();
+  const invoiceMonth = now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+
+  // 1. Auto-create first invoice if contract_value exists
+  if (client.contract_value && parseFloat(client.contract_value) > 0) {
+    const monthStr = String(now.getMonth() + 1).padStart(2, '0');
+    const invNumber = `INV-${now.getFullYear()}-${monthStr}-AUTO`;
+    const dueDate = new Date(now); dueDate.setDate(dueDate.getDate() + 30);
+    const dueDateStr = dueDate.toISOString().split('T')[0];
+    await db.query(
+      `INSERT INTO aios.client_invoices
+         (tenant_id, client_id, invoice_number, amount, currency, status, description, issued_at, due_date)
+       VALUES ($1,$2,$3,$4,'GBP','pending',$5,$6,$7)
+       ON CONFLICT DO NOTHING`,
+      [
+        tenantId, client.id, invNumber,
+        client.contract_value,
+        `Initial contract invoice — ${client.company} (${invoiceMonth})`,
+        now.toISOString().split('T')[0],
+        dueDateStr,
+      ]
+    ).catch(() => {});
+  }
+
+  // 2. Auto-create renewal calendar event
+  const renewalDate = client.next_renewal_at
+    ? new Date(`${client.next_renewal_at}T09:00:00`)
+    : (() => { const d = new Date(now); d.setMonth(d.getMonth() + 12); return d; })();
+  const renewalEnd = new Date(renewalDate); renewalEnd.setHours(renewalEnd.getHours() + 1);
+  await db.query(
+    `INSERT INTO aios.calendar_events
+       (tenant_id, created_by, title, description, category, start_at, end_at, all_day, status, linked_type, linked_id)
+     SELECT $1, id, $2, $3, 'contract', $4, $5, false, 'pending', 'client', $6
+     FROM aios.users WHERE tenant_id = $1 AND app_role = 'admin' LIMIT 1`,
+    [
+      tenantId,
+      `Contract Renewal — ${client.company}`,
+      `Periodic renewal follow-up for client ${client.name} (${client.company})`,
+      renewalDate.toISOString(),
+      renewalEnd.toISOString(),
+      client.id,
+    ]
+  ).catch(() => {});
+
+  // 3. Send Telegram notification
+  try {
+    const tenantRes = await db.query(
+      `SELECT settings FROM aios.tenants WHERE id = $1`, [tenantId]
+    );
+    const settings = tenantRes.rows[0]?.settings as {
+      telegram?: { enabled: boolean; bot_token: string };
+    } | undefined;
+    if (settings?.telegram?.enabled && settings.telegram.bot_token) {
+      const usersRes = await db.query(
+        `SELECT telegram_user_id FROM aios.users WHERE tenant_id = $1 AND telegram_user_id IS NOT NULL AND is_active = true`,
+        [tenantId]
+      );
+      const msg = `🎉 *New Client Added*\n\n*${client.company}*\n👤 ${client.name}\n${client.contract_value ? `💰 Contract value: £${parseFloat(client.contract_value).toLocaleString()}` : ''}\n\n_Invoice and renewal event created automatically._`;
+      for (const row of usersRes.rows as Array<{ telegram_user_id: string }>) {
+        await fetch(`https://api.telegram.org/bot${settings.telegram.bot_token}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: row.telegram_user_id, text: msg, parse_mode: 'Markdown' }),
+        }).catch(() => {});
+      }
+    }
+  } catch { /* non-critical */ }
+}
+
 const router = Router();
 
 function requireAdminOrManager(req: Request, res: Response, next: NextFunction): void {
@@ -41,6 +114,13 @@ router.post('/', requireAuth, requireAdminOrManager, async (req: Request, res: R
     ]);
 
     res.status(201).json(result.rows[0]);
+    void onClientCreated(tenantId, {
+      id: (result.rows[0] as { id: string }).id,
+      name: name as string,
+      company: (company as string) ?? '',
+      contract_value: (contract_value as string | null) ?? null,
+      next_renewal_at: (next_renewal_at as string | null) ?? null,
+    });
   } catch (err) {
     console.error('[clients POST /]', err);
     res.status(500).json({ error: 'Server error' });
