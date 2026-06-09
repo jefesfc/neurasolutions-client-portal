@@ -4,6 +4,44 @@ import { requireAuth } from '../middleware/requireAuth';
 
 const router = Router();
 
+async function notifyCalendarEvent(tenantId: string, event: { title: string; start_at: string; category: string }): Promise<void> {
+  try {
+    const tenantRes = await db.query(
+      `SELECT settings FROM aios.tenants WHERE id = $1`,
+      [tenantId]
+    );
+    if (!tenantRes.rows[0]) return;
+    const settings = tenantRes.rows[0].settings as {
+      telegram?: { enabled: boolean; bot_token: string };
+      calendar?: { telegram_notify: boolean; email_notify: boolean };
+    };
+    if (!settings?.calendar?.telegram_notify) return;
+    if (!settings?.telegram?.enabled || !settings?.telegram?.bot_token) return;
+
+    const botToken = settings.telegram.bot_token;
+    const dateStr = new Date(event.start_at).toLocaleString('en-GB', {
+      weekday: 'short', day: '2-digit', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+    const msg = `📅 *New Calendar Event*\n\n*${event.title}*\n📆 ${dateStr}\n🏷 Category: ${event.category}`;
+
+    const usersRes = await db.query(
+      `SELECT telegram_user_id FROM aios.users WHERE tenant_id = $1 AND telegram_user_id IS NOT NULL AND is_active = true`,
+      [tenantId]
+    );
+
+    for (const row of usersRes.rows as Array<{ telegram_user_id: string }>) {
+      await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: row.telegram_user_id, text: msg, parse_mode: 'Markdown' }),
+      }).catch(() => {});
+    }
+  } catch (err) {
+    console.error('[calendar] notifyCalendarEvent error:', err);
+  }
+}
+
 function requireAdminOrManager(req: Request, res: Response, next: NextFunction): void {
   if (req.user!.app_role !== 'admin' && req.user!.app_role !== 'manager') {
     res.status(403).json({ error: 'Forbidden' });
@@ -169,6 +207,7 @@ router.post('/', requireAuth, requireAdminOrManager, async (req: Request, res: R
         end_at ?? null, all_day ?? false, recurrence_rule ?? null,
         linked_type ?? null, linked_id ?? null, amount ?? null, currency ?? 'GBP']);
 
+    void notifyCalendarEvent(tenantId, { title: title as string, start_at: start_at as string, category: (category as string) ?? 'other' });
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error('[calendar POST /]', err);
