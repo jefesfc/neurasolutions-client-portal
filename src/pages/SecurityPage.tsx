@@ -56,7 +56,11 @@ export default function SecurityPage() {
 
   useEffect(() => { void fetchData(); }, [fetchData]);
 
-  function handleResolve(id: string) {
+  async function handleResolve(id: string) {
+    await fetch(`${API_URL}/security/resolve/${id}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
     setEvents(prev => prev.map(e => e.id === id ? { ...e, resolved: true } : e));
   }
 
