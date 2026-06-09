@@ -9,6 +9,7 @@ import { EventsTable } from '../components/security/EventsTable';
 import { EventDetailModal } from '../components/security/EventDetailModal';
 import { TimeRangeSelector } from '../components/security/TimeRangeSelector';
 import { SecurityAnalysisPanel } from '../components/security/SecurityAnalysisPanel';
+import { SecurityStatusBanner } from '../components/security/SecurityStatusBanner';
 import type { SecurityEvent, SecuritySummary, SecurityTimeRange } from '../types/security';
 import { Shield, Activity, Lock, Eye, AlertTriangle, CheckCircle2, Download } from 'lucide-react';
 
@@ -62,6 +63,7 @@ export default function SecurityPage() {
   const [tableFilter, setTableFilter]   = useState<FilterSeverity>('all');
   const [rlsToast, setRlsToast]         = useState(false);
   const [tileHover, setTileHover]       = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated]   = useState<Date | null>(null);
 
   useEffect(() => {
     if (user && user.role !== 'admin') void navigate('/');
@@ -79,11 +81,18 @@ export default function SecurityPage() {
       const summaryData = await summaryRes.json() as SecuritySummary;
       setEvents(Array.isArray(eventsData) ? eventsData : []);
       setSummary(summaryData);
+      setLastUpdated(new Date());
     } catch { /* silent */ }
     finally { setLoading(false); }
   }, [token, range]);
 
   useEffect(() => { void fetchData(); }, [fetchData]);
+
+  /* Auto-refresh every 30s for real-time status */
+  useEffect(() => {
+    const id = setInterval(() => void fetchData(), 30_000);
+    return () => clearInterval(id);
+  }, [fetchData]);
 
   async function handleResolve(id: string) {
     await fetch(`${API_URL}/security/resolve/${id}`, {
@@ -154,6 +163,13 @@ export default function SecurityPage() {
           />
           <TimeRangeSelector value={range} onChange={setRange} />
         </div>
+
+        <SecurityStatusBanner
+          events={events}
+          loading={loading}
+          lastUpdated={lastUpdated}
+          onRefresh={() => void fetchData()}
+        />
 
         <SecurityKPIRow summary={summary} loading={loading} />
 

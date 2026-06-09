@@ -124,3 +124,14 @@
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+@keyframes semaphore-pulse {
+  0%   { box-shadow: 0 0 0 0 var(--sem-color); opacity: 1; }
+  60%  { box-shadow: 0 0 0 10px transparent;   opacity: 0.85; }
+  100% { box-shadow: 0 0 0 0 transparent;      opacity: 1; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
