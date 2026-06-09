@@ -14,7 +14,7 @@ export function ClientInvoiceCard({ invoice, onMarkPaid, onEdit, onDelete }: Pro
   const [menu, setMenu] = useState(false);
   const cfg = STATUS_CONFIG[invoice.status];
   const sym = invoice.currency === 'GBP' ? '£' : '$';
-  const fmt = (v: number) => `${sym}${v.toLocaleString('en-GB', { minimumFractionDigits: 2 })}`;
+  const fmt = (v: number) => `${sym}${Number(v).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
     <div style={{

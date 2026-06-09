@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { RefreshCw, ChevronRight, X, Plus, Clock, CheckCircle2, AlertCircle, TrendingUp } from 'lucide-react';
+import { RefreshCw, ChevronDown, X, Plus, Clock, CheckCircle2, AlertCircle, TrendingUp, Users, Calendar } from 'lucide-react';
 import { PageTransition } from '../components/shared/PageTransition';
 import { PageHeader } from '../components/layout/PageHeader';
 import { InvoicingSummaryCards } from '../components/invoicing/InvoicingSummaryCards';
@@ -17,15 +17,20 @@ type SortKey  = 'latest' | 'oldest' | 'amount';
 const PANELS: {
   key: PanelKey;
   label: string;
+  metricLabel: string;
   Icon: React.ComponentType<{ size?: number; color?: string }>;
   color: string;
-  bg: string;
+  gradFrom: string;
+  gradTo: string;
 }[] = [
-  { key: 'pending',     label: 'Pending',     Icon: Clock,        color: '#f59e0b', bg: '#fffbeb' },
-  { key: 'paid',        label: 'Paid',        Icon: CheckCircle2, color: '#10b981', bg: '#f0fdf4' },
-  { key: 'overdue',     label: 'Overdue',     Icon: AlertCircle,  color: '#ef4444', bg: '#fef2f2' },
-  { key: 'projections', label: 'Projections', Icon: TrendingUp,   color: '#6366f1', bg: '#eef2ff' },
+  { key: 'pending',     label: 'Pending',     metricLabel: 'OUTSTANDING BALANCE', Icon: Clock,        color: '#f59e0b', gradFrom: '#fef3c7', gradTo: '#fffbeb' },
+  { key: 'paid',        label: 'Paid',        metricLabel: 'TOTAL COLLECTED',     Icon: CheckCircle2, color: '#10b981', gradFrom: '#d1fae5', gradTo: '#f0fdf4' },
+  { key: 'overdue',     label: 'Overdue',     metricLabel: 'OVERDUE BALANCE',     Icon: AlertCircle,  color: '#ef4444', gradFrom: '#fee2e2', gradTo: '#fef2f2' },
+  { key: 'projections', label: 'Projections', metricLabel: 'FINANCIAL FORECAST',  Icon: TrendingUp,   color: '#6366f1', gradFrom: '#e0e7ff', gradTo: '#eef2ff' },
 ];
+
+const fmtDate = (d: string | null) =>
+  d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '—';
 
 export default function InvoicingPage() {
   const { token, user } = useAuthStore();
@@ -79,15 +84,15 @@ export default function InvoicingPage() {
 
   function panelTotal(key: PanelKey): string {
     if (key === 'projections') return '';
-    const t = invoices.filter(i => i.status === key).reduce((s, i) => s + i.amount, 0);
-    return `£${t.toLocaleString('en-GB', { minimumFractionDigits: 2 })}`;
+    const t = invoices.filter(i => i.status === key).reduce((s, i) => s + Number(i.amount), 0);
+    return `£${t.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
   function panelInvoices(key: PanelKey): ClientInvoice[] {
     const base = key === 'projections' ? [] : invoices.filter(i => i.status === key);
-    if (sort === 'latest')  return [...base].sort((a, b) => new Date(b.issued_at).getTime() - new Date(a.issued_at).getTime());
-    if (sort === 'oldest')  return [...base].sort((a, b) => new Date(a.issued_at).getTime() - new Date(b.issued_at).getTime());
-    if (sort === 'amount')  return [...base].sort((a, b) => b.amount - a.amount);
+    if (sort === 'latest') return [...base].sort((a, b) => new Date(b.issued_at).getTime() - new Date(a.issued_at).getTime());
+    if (sort === 'oldest') return [...base].sort((a, b) => new Date(a.issued_at).getTime() - new Date(b.issued_at).getTime());
+    if (sort === 'amount') return [...base].sort((a, b) => Number(b.amount) - Number(a.amount));
     return base;
   }
 
@@ -102,17 +107,17 @@ export default function InvoicingPage() {
           <PageHeader title="Invoicing" description="Client invoices, revenue tracking, and financial projections" />
           <button
             onClick={() => void fetchAll()}
-            style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#475569' }}
+            style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#475569', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}
           >
             <RefreshCw size={14} /> Refresh
           </button>
         </div>
 
-        {/* KPI row */}
+        {/* KPI summary row */}
         <InvoicingSummaryCards summary={summary} loading={loading} />
 
-        {/* 4 Panel Cards — 2×2 tablet grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+        {/* 4 Panel Cards — 2×2 equal-height grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16, alignItems: 'stretch' }}>
           {PANELS.map(panel => {
             const isActive = activePanel === panel.key;
             const count    = panelCount(panel.key);
@@ -127,124 +132,179 @@ export default function InvoicingPage() {
                 onClick={() => setActivePanel(isActive ? null : panel.key)}
                 onKeyDown={e => e.key === 'Enter' && setActivePanel(isActive ? null : panel.key)}
                 style={{
-                  background: isActive ? panel.bg : '#fff',
-                  border: `2px solid ${isActive ? panel.color : '#e2e8f0'}`,
-                  borderRadius: 20,
-                  padding: 24,
+                  background: '#fff',
+                  borderTop: `4px solid ${panel.color}`,
+                  borderLeft: `1px solid ${isActive ? panel.color + '60' : '#e8ecf0'}`,
+                  borderRight: `1px solid ${isActive ? panel.color + '60' : '#e8ecf0'}`,
+                  borderBottom: `1px solid ${isActive ? panel.color + '60' : '#e8ecf0'}`,
+                  borderRadius: '0 0 16px 16px',
                   cursor: 'pointer',
-                  transition: 'border-color 0.2s, box-shadow 0.2s, background 0.2s',
+                  transition: 'box-shadow 0.2s, border-color 0.2s',
                   boxShadow: isActive
-                    ? `0 0 0 4px ${panel.color}18, 0 4px 20px rgba(0,0,0,0.08)`
-                    : '0 1px 4px rgba(0,0,0,0.05)',
-                  minHeight: 200,
+                    ? `0 0 0 3px ${panel.color}20, 0 8px 24px rgba(0,0,0,0.10)`
+                    : '0 2px 8px rgba(0,0,0,0.06)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 18,
-                  userSelect: 'none',
                   outline: 'none',
+                  userSelect: 'none',
+                  overflow: 'hidden',
                 }}
               >
-                {/* Card header row */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{
-                      width: 48, height: 48, borderRadius: 14,
-                      background: isActive ? panel.color : `${panel.color}18`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      transition: 'background 0.2s',
-                      flexShrink: 0,
-                    }}>
-                      <panel.Icon size={22} color={isActive ? '#fff' : panel.color} />
-                    </div>
-                    <div>
-                      <p style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', margin: 0 }}>{panel.label}</p>
-                      {panel.key !== 'projections' && (
-                        <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>
-                          {loading ? '—' : `${count} invoice${count !== 1 ? 's' : ''}`}
-                        </p>
-                      )}
-                      {panel.key === 'projections' && (
-                        <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>Financial forecast</p>
-                      )}
-                    </div>
-                  </div>
+                {/* Card inner padding wrapper */}
+                <div style={{ padding: '20px 22px 0', display: 'flex', flexDirection: 'column', gap: 0, flex: 1 }}>
 
-                  {/* Chevron toggle */}
-                  <div style={{
-                    width: 36, height: 36, borderRadius: 10,
-                    background: isActive ? panel.color : '#f1f5f9',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'background 0.2s',
-                    flexShrink: 0,
-                  }}>
-                    <ChevronRight
-                      size={18}
-                      color={isActive ? '#fff' : '#64748b'}
-                      style={{ transform: isActive ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
-                    />
-                  </div>
-                </div>
-
-                {/* Total amount */}
-                {panel.key !== 'projections' && (
-                  <p style={{ fontSize: 30, fontWeight: 800, color: panel.color, margin: 0, lineHeight: 1 }}>
-                    {loading ? '—' : total}
-                  </p>
-                )}
-
-                {/* Projections MRR/ARR preview */}
-                {panel.key === 'projections' && (
-                  <div style={{ display: 'flex', gap: 28 }}>
-                    <div>
-                      <p style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 4px' }}>MRR</p>
-                      <p style={{ fontSize: 24, fontWeight: 800, color: '#6366f1', margin: 0 }}>
-                        {loading ? '—' : projData ? `£${projData.mrr.toLocaleString('en-GB', { maximumFractionDigits: 0 })}` : '—'}
-                      </p>
-                    </div>
-                    <div>
-                      <p style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 4px' }}>ARR</p>
-                      <p style={{ fontSize: 24, fontWeight: 800, color: '#10b981', margin: 0 }}>
-                        {loading ? '—' : projData ? `£${projData.arr.toLocaleString('en-GB', { maximumFractionDigits: 0 })}` : '—'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Mini invoice preview rows */}
-                {panel.key !== 'projections' && !loading && preview.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {preview.map(inv => (
-                      <div
-                        key={inv.id}
-                        style={{
-                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                          padding: '7px 12px',
-                          background: isActive ? 'rgba(255,255,255,0.65)' : '#f8fafc',
-                          borderRadius: 9,
-                          border: '1px solid',
-                          borderColor: isActive ? `${panel.color}30` : '#f1f5f9',
-                        }}
-                      >
-                        <span style={{ fontSize: 12, color: '#334155', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '65%' }}>
-                          {inv.client_company ?? inv.client_name ?? '—'}
-                        </span>
-                        <span style={{ fontSize: 12, color: panel.color, fontWeight: 700, flexShrink: 0 }}>
-                          £{inv.amount.toLocaleString('en-GB', { minimumFractionDigits: 0 })}
-                        </span>
+                  {/* Header: icon + label + count + chevron */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{
+                        width: 44, height: 44, borderRadius: 12,
+                        background: `linear-gradient(135deg, ${panel.gradFrom}, ${panel.gradTo})`,
+                        border: `1px solid ${panel.color}30`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                      }}>
+                        <panel.Icon size={20} color={panel.color} />
                       </div>
-                    ))}
-                    {count > 3 && (
-                      <p style={{ fontSize: 11, color: '#94a3b8', margin: 0, textAlign: 'center', paddingTop: 2 }}>
-                        +{count - 3} more — tap to view all
+                      <div>
+                        <p style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', margin: 0, lineHeight: 1.2 }}>{panel.label}</p>
+                        <p style={{ fontSize: 12, color: '#94a3b8', margin: '3px 0 0', lineHeight: 1 }}>
+                          {panel.key === 'projections'
+                            ? 'Financial forecast'
+                            : loading ? '—' : `${count} invoice${count !== 1 ? 's' : ''}`}
+                        </p>
+                      </div>
+                    </div>
+                    <div style={{
+                      width: 32, height: 32, borderRadius: 8,
+                      background: isActive ? panel.color : '#f8fafc',
+                      border: `1px solid ${isActive ? panel.color : '#e2e8f0'}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      transition: 'all 0.2s', flexShrink: 0,
+                    }}>
+                      <ChevronDown
+                        size={16}
+                        color={isActive ? '#fff' : '#94a3b8'}
+                        style={{ transform: isActive ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Metric block */}
+                  <div style={{ marginBottom: 16 }}>
+                    <p style={{ fontSize: 10, fontWeight: 700, color: panel.color, textTransform: 'uppercase', letterSpacing: '0.8px', margin: '0 0 4px' }}>
+                      {panel.metricLabel}
+                    </p>
+                    {panel.key !== 'projections' ? (
+                      <p style={{ fontSize: 28, fontWeight: 800, color: '#0f172a', margin: 0, lineHeight: 1 }}>
+                        {loading ? '—' : total || '£0.00'}
                       </p>
+                    ) : (
+                      <div style={{ display: 'flex', gap: 24 }}>
+                        <div>
+                          <p style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, margin: '0 0 2px' }}>MRR</p>
+                          <p style={{ fontSize: 22, fontWeight: 800, color: '#6366f1', margin: 0 }}>
+                            {loading ? '—' : projData ? `£${Number(projData.mrr).toLocaleString('en-GB', { maximumFractionDigits: 0 })}` : '—'}
+                          </p>
+                        </div>
+                        <div>
+                          <p style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, margin: '0 0 2px' }}>ARR</p>
+                          <p style={{ fontSize: 22, fontWeight: 800, color: '#10b981', margin: 0 }}>
+                            {loading ? '—' : projData ? `£${Number(projData.arr).toLocaleString('en-GB', { maximumFractionDigits: 0 })}` : '—'}
+                          </p>
+                        </div>
+                      </div>
                     )}
                   </div>
-                )}
 
-                {/* Empty state mini */}
-                {panel.key !== 'projections' && !loading && count === 0 && (
-                  <p style={{ fontSize: 12, color: '#94a3b8', margin: 0 }}>No {panel.label.toLowerCase()} invoices</p>
-                )}
+                  {/* Divider */}
+                  <div style={{ height: 1, background: '#f1f5f9', margin: '0 -22px 14px' }} />
+
+                  {/* Preview section — fills remaining space */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0 }}>
+                    {panel.key !== 'projections' ? (
+                      !loading && preview.length > 0 ? (
+                        <>
+                          {preview.map((inv, idx) => (
+                            <div
+                              key={inv.id}
+                              style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                padding: '9px 0',
+                                borderBottom: idx < preview.length - 1 ? '1px solid #f8fafc' : 'none',
+                              }}
+                            >
+                              <div style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
+                                <p style={{ fontSize: 13, fontWeight: 600, color: '#1e293b', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {inv.client_company ?? inv.client_name ?? '—'}
+                                </p>
+                                <p style={{ fontSize: 11, color: '#94a3b8', margin: '2px 0 0' }}>
+                                  {inv.status === 'paid'
+                                    ? `Paid ${fmtDate(inv.paid_at)}`
+                                    : `Due ${fmtDate(inv.due_date)}`}
+                                  {' · '}
+                                  <span style={{ color: '#cbd5e1' }}>{inv.invoice_number}</span>
+                                </p>
+                              </div>
+                              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                <p style={{ fontSize: 13, fontWeight: 700, color: panel.color, margin: 0 }}>
+                                  £{Number(inv.amount).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </>
+                      ) : !loading ? (
+                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px 0' }}>
+                          <p style={{ fontSize: 12, color: '#cbd5e1', margin: 0 }}>No {panel.label.toLowerCase()} invoices</p>
+                        </div>
+                      ) : (
+                        Array.from({ length: 3 }).map((_, i) => (
+                          <div key={i} style={{ height: 36, background: '#f8fafc', borderRadius: 6, margin: '4px 0', animation: 'pulse 1.5s infinite' }} />
+                        ))
+                      )
+                    ) : (
+                      /* Projections card extra info */
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <div style={{ width: 32, height: 32, borderRadius: 8, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Users size={14} color="#64748b" />
+                          </div>
+                          <div>
+                            <p style={{ fontSize: 11, color: '#94a3b8', margin: 0 }}>Active Clients</p>
+                            <p style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                              {loading ? '—' : projData?.active_clients.length ?? '—'}
+                            </p>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <div style={{ width: 32, height: 32, borderRadius: 8, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Calendar size={14} color="#64748b" />
+                          </div>
+                          <div>
+                            <p style={{ fontSize: 11, color: '#94a3b8', margin: 0 }}>Revenue forecast</p>
+                            <p style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', margin: 0 }}>1 / 3 / 5 / 10 yr</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+
+                {/* Footer strip */}
+                <div style={{
+                  padding: '10px 22px',
+                  marginTop: 12,
+                  background: isActive ? `${panel.color}08` : '#fafbfc',
+                  borderTop: '1px solid #f1f5f9',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}>
+                  <span style={{ fontSize: 11, color: isActive ? panel.color : '#94a3b8', fontWeight: isActive ? 600 : 400 }}>
+                    {isActive ? 'Panel open — scroll down' : 'Tap to open'}
+                  </span>
+                  {panel.key !== 'projections' && count > 3 && (
+                    <span style={{ fontSize: 11, color: '#94a3b8' }}>+{count - 3} more</span>
+                  )}
+                </div>
               </div>
             );
           })}
@@ -254,40 +314,43 @@ export default function InvoicingPage() {
         {activePanel && activeMeta && (
           <div style={{
             background: '#fff',
-            border: `1px solid ${activeMeta.color}40`,
-            borderRadius: 20,
+            border: `1px solid ${activeMeta.color}30`,
+            borderTop: `3px solid ${activeMeta.color}`,
+            borderRadius: '0 0 16px 16px',
             overflow: 'hidden',
             boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
             animation: 'fadeIn 0.2s ease',
           }}>
-            {/* Panel toolbar */}
+            {/* Toolbar */}
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12,
-              padding: '18px 24px',
+              padding: '16px 24px',
+              background: `linear-gradient(to right, ${activeMeta.gradFrom}, #fff)`,
               borderBottom: '1px solid #f1f5f9',
-              background: activeMeta.bg,
             }}>
-              {/* Left: icon + label + count */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 38, height: 38, borderRadius: 10, background: activeMeta.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <activeMeta.Icon size={18} color="#fff" />
+                <div style={{
+                  width: 36, height: 36, borderRadius: 10,
+                  background: activeMeta.color,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}>
+                  <activeMeta.Icon size={17} color="#fff" />
                 </div>
                 <div>
-                  <p style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', margin: 0 }}>
-                    {activeMeta.label} {activePanel !== 'projections' ? 'Invoices' : ''}
+                  <p style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                    {activeMeta.label}{activePanel !== 'projections' ? ' Invoices' : ''}
                   </p>
                   {activePanel !== 'projections' && (
                     <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>
-                      {panelInvoices(activePanel).length} record{panelInvoices(activePanel).length !== 1 ? 's' : ''} · {panelTotal(activePanel)}
+                      {panelInvoices(activePanel).length} records · {panelTotal(activePanel)}
                     </p>
                   )}
                 </div>
               </div>
 
-              {/* Right: sort pills + new + close */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {activePanel !== 'projections' && (
-                  <div style={{ display: 'flex', gap: 3, background: 'rgba(255,255,255,0.8)', border: '1px solid #e2e8f0', borderRadius: 10, padding: 3 }}>
+                  <div style={{ display: 'flex', gap: 2, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: 3 }}>
                     {(['latest', 'oldest', 'amount'] as SortKey[]).map(s => (
                       <button
                         key={s}
@@ -296,10 +359,9 @@ export default function InvoicingPage() {
                           padding: '5px 14px', borderRadius: 7, border: 'none', cursor: 'pointer',
                           fontSize: 12, fontWeight: sort === s ? 600 : 400,
                           background: sort === s ? '#fff' : 'transparent',
-                          color: sort === s ? activeMeta.color : '#64748b',
-                          boxShadow: sort === s ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
-                          transition: 'all 0.15s',
-                          textTransform: 'capitalize',
+                          color: sort === s ? activeMeta.color : '#94a3b8',
+                          boxShadow: sort === s ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                          transition: 'all 0.15s', textTransform: 'capitalize',
                         }}
                       >
                         {s}
@@ -307,7 +369,6 @@ export default function InvoicingPage() {
                     ))}
                   </div>
                 )}
-
                 {activePanel !== 'projections' && canEdit && (
                   <button
                     onClick={e => e.stopPropagation()}
@@ -316,20 +377,19 @@ export default function InvoicingPage() {
                       padding: '8px 18px', borderRadius: 10, border: 'none',
                       background: activeMeta.color, color: '#fff',
                       cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                      boxShadow: `0 2px 8px ${activeMeta.color}50`,
+                      boxShadow: `0 2px 8px ${activeMeta.color}40`,
                     }}
                   >
                     <Plus size={14} /> New
                   </button>
                 )}
-
                 <button
                   onClick={() => setActivePanel(null)}
                   style={{
                     width: 36, height: 36, borderRadius: 10,
                     border: '1px solid #e2e8f0', background: '#fff',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', color: '#64748b', flexShrink: 0,
+                    cursor: 'pointer', color: '#94a3b8',
                   }}
                 >
                   <X size={16} />
@@ -337,7 +397,7 @@ export default function InvoicingPage() {
               </div>
             </div>
 
-            {/* Panel body */}
+            {/* Body */}
             <div style={{ padding: 24 }}>
               {activePanel === 'projections' ? (
                 <FinancialProjections data={projData} loading={loading} />
