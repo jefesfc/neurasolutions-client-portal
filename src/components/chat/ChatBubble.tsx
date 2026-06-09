@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, Plus, User, X } from "lucide-react";
+import { Send, Bot, Plus, User, X, Maximize2, Minimize2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChat } from "../../hooks/useChat";
 import { cn } from "../../lib/cn";
@@ -33,6 +33,7 @@ function TypingIndicator() {
 
 export function ChatBubble() {
   const [open, setOpen] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
   const { messages, loading, error, sendMessage, clearChat } = useChat();
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -75,8 +76,15 @@ export function ChatBubble() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 8 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            style={{ transformOrigin: "bottom right" }}
-            className="fixed bottom-20 right-6 z-50 w-[380px] h-[520px] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden"
+            style={fullscreen ? {
+              position: 'fixed', bottom: 0, right: 0, top: 0, left: 0,
+              width: '100vw', height: '100vh', zIndex: 9999,
+              borderRadius: 0,
+            } : { transformOrigin: "bottom right" }}
+            className={fullscreen
+              ? "bg-white flex flex-col overflow-hidden"
+              : "fixed bottom-20 right-6 z-50 w-[380px] h-[520px] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden"
+            }
           >
             {/* Header */}
             <div className="flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-brand-600 to-brand-500 flex-shrink-0">
@@ -93,6 +101,13 @@ export function ChatBubble() {
                 className="h-7 w-7 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors"
               >
                 <Plus className="h-3.5 w-3.5 text-white" />
+              </button>
+              <button
+                onClick={() => setFullscreen(v => !v)}
+                aria-label={fullscreen ? "Exit fullscreen" : "Fullscreen"}
+                className="h-7 w-7 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors"
+              >
+                {fullscreen ? <Minimize2 className="h-3.5 w-3.5 text-white" /> : <Maximize2 className="h-3.5 w-3.5 text-white" />}
               </button>
               <button
                 onClick={() => setOpen(false)}
