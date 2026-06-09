@@ -27,8 +27,8 @@ const STATUS_CONFIG = {
     color: '#22c55e',
     borderColor: 'rgba(34,197,94,0.3)',
     accentBg: 'rgba(34,197,94,0.06)',
-    label: 'Sistema Protegido',
-    desc: 'No hay amenazas activas — todos los eventos resueltos',
+    label: 'System Protected',
+    desc: 'No active threats — all events resolved',
     Icon: ShieldCheck,
     pulse: false,
   },
@@ -36,8 +36,8 @@ const STATUS_CONFIG = {
     color: '#f59e0b',
     borderColor: 'rgba(245,158,11,0.35)',
     accentBg: 'rgba(245,158,11,0.06)',
-    label: 'Eventos Pendientes',
-    desc: 'Hay eventos sin resolver que requieren revisión',
+    label: 'Pending Events',
+    desc: 'There are unresolved events that require review',
     Icon: ShieldAlert,
     pulse: true,
   },
@@ -45,8 +45,8 @@ const STATUS_CONFIG = {
     color: '#ef4444',
     borderColor: 'rgba(239,68,68,0.4)',
     accentBg: 'rgba(239,68,68,0.07)',
-    label: 'Amenaza Activa',
-    desc: 'Eventos de alta severidad detectados sin resolver',
+    label: 'Active Threat',
+    desc: 'High severity events detected and unresolved',
     Icon: ShieldX,
     pulse: true,
   },
@@ -150,9 +150,9 @@ export function SecurityStatusBanner({ events, loading, lastUpdated, onRefresh, 
   const relativeTime = useMemo(() => {
     if (!lastUpdated) return '—';
     const s = Math.floor((Date.now() - lastUpdated.getTime()) / 1000);
-    if (s < 10) return 'ahora mismo';
-    if (s < 60) return `hace ${s}s`;
-    return `hace ${Math.floor(s / 60)}m`;
+    if (s < 10) return 'just now';
+    if (s < 60) return `${s}s ago`;
+    return `${Math.floor(s / 60)}m ago`;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastUpdated, tick]);
 
@@ -206,15 +206,15 @@ export function SecurityStatusBanner({ events, loading, lastUpdated, onRefresh, 
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 11, color: '#64748b', display: 'flex', alignItems: 'center', gap: 5 }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
-            {info.totalEvents} eventos analizados
+            {info.totalEvents} events analyzed
           </span>
           {info.totalUnresolved > 0 && (
             <span style={{ fontSize: 11, color: cfg.color, fontWeight: 700 }}>
-              · {info.totalUnresolved} sin resolver
+              · {info.totalUnresolved} unresolved
             </span>
           )}
           <span style={{ fontSize: 11, color: '#475569', marginLeft: 'auto' }}>
-            Actualizado: {relativeTime}
+            Updated: {relativeTime}
           </span>
         </div>
       </div>
@@ -234,7 +234,7 @@ export function SecurityStatusBanner({ events, loading, lastUpdated, onRefresh, 
           <button
             onClick={() => void handleResolveAll()}
             disabled={resolving}
-            title="Marcar todos como resueltos"
+            title="Mark all as resolved"
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
               padding: '6px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700,
@@ -246,7 +246,7 @@ export function SecurityStatusBanner({ events, loading, lastUpdated, onRefresh, 
             }}
           >
             <CheckCheck size={13} style={{ animation: resolving ? 'spin 1s linear infinite' : 'none' }} />
-            {resolving ? 'Resolviendo...' : 'Resolver Todo'}
+            {resolving ? 'Resolving...' : 'Resolve All'}
           </button>
         )}
 
@@ -254,7 +254,7 @@ export function SecurityStatusBanner({ events, loading, lastUpdated, onRefresh, 
         <button
           onClick={onRefresh}
           disabled={loading}
-          title="Actualizar ahora"
+          title="Refresh now"
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '6px', borderRadius: 8,
