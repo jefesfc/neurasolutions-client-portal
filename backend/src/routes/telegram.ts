@@ -45,6 +45,35 @@ function stripMarkdown(text: string): string {
     .trim();
 }
 
+function generateReportCSV(r: TgReport): string {
+  const lines: string[] = ['Section,Metric,Value,Flag'];
+  for (const section of r.sections ?? []) {
+    for (const item of section.items ?? []) {
+      lines.push(`"${section.label}","${item.label}","${item.value}","${item.highlight ?? ''}"`);
+      for (const s of item.sub ?? []) {
+        lines.push(`"${section.label} — ${item.label}","${s.label}","${s.value}","${s.highlight ?? ''}"`);
+      }
+    }
+  }
+  return lines.join('\n');
+}
+
+async function sendDocumentTelegram(
+  botToken: string,
+  chatId: number,
+  buf: Buffer,
+  filename: string
+): Promise<void> {
+  const form = new FormData();
+  form.append('chat_id', String(chatId));
+  form.append('document', new Blob([buf], { type: 'text/csv' }), filename);
+  const res = await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
+    method: 'POST',
+    body: form,
+  });
+  if (!res.ok) throw new Error(`sendDocument failed: ${res.status}`);
+}
+
 const BACKEND_URL =
   process.env.BACKEND_URL ?? 'https://xneurasolutions-aios-backend.9lagn8.easypanel.host';
 const COST_PER_INPUT_TOKEN = 0.0000025;
@@ -66,6 +95,7 @@ TOOL USAGE RULES (mandatory):
 - "team" / "members" / "staff": call get_team_members
 - "AI usage" / "AI cost" / "tokens": included in get_business_stats
 - Any question about numbers, stats, or data: always call the relevant tool — never answer from memory
+- Every report response automatically includes a downloadable CSV file attachment with all metrics
 
 LANGUAGE RULE (mandatory): Detect the language of the user's message (text or transcribed voice) and reply in that EXACT same language. Spanish → Spanish. Chinese → Chinese. French → French. Arabic → Arabic. Portuguese → Portuguese. German → German. English → English. NEVER respond in English if the user wrote or spoke in another language. Mirror the user's language in every single reply, no exceptions.
 
@@ -387,11 +417,15 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
     // Format response for Telegram: expand JSON reports, strip markdown from plain text
     const strippedTg = assistantReply.replace(/^```(?:json)?\n?|\n?```$/g, '').trim();
     let replyText: string;
+    let parsedReport: TgReport | null = null;
     try {
       const parsed = JSON.parse(strippedTg) as TgReport;
-      replyText = parsed?.type === 'report'
-        ? formatReportForTelegram(parsed)
-        : stripMarkdown(assistantReply);
+      if (parsed?.type === 'report') {
+        parsedReport = parsed;
+        replyText = formatReportForTelegram(parsed);
+      } else {
+        replyText = stripMarkdown(assistantReply);
+      }
     } catch {
       replyText = stripMarkdown(assistantReply);
     }
@@ -437,6 +471,17 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
       }
     } else {
       await callTelegram(botToken, 'sendMessage', { chat_id: chatId, text: replyText });
+    }
+
+    // Auto-attach CSV for every report response
+    if (parsedReport) {
+      try {
+        const csv = generateReportCSV(parsedReport);
+        const today = new Date().toISOString().split('T')[0];
+        await sendDocumentTelegram(botToken, chatId, Buffer.from(csv, 'utf-8'), `AIOS_Report_${today}.csv`);
+      } catch (err) {
+        console.error('[telegram/csv]', err);
+      }
     }
   } catch (err) {
     console.error('[telegram/webhook]', err);
