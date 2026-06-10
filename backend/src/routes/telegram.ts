@@ -11,6 +11,40 @@ import type OpenAI from 'openai';
 
 const router = Router();
 
+interface TgReportItem { label: string; value: string; highlight?: string; sub?: Array<{ label: string; value: string; highlight?: string }> }
+interface TgReportSection { label: string; icon: string; items: TgReportItem[] }
+interface TgReport { type?: string; title?: string; subtitle?: string; intro?: string; sections?: TgReportSection[] }
+
+function formatReportForTelegram(r: TgReport): string {
+  const lines: string[] = [];
+  const header = r.subtitle ? `📊 ${r.title} — ${r.subtitle}` : `📊 ${r.title}`;
+  lines.push(header);
+  if (r.intro) { lines.push(''); lines.push(r.intro); }
+  for (const section of r.sections ?? []) {
+    lines.push('');
+    lines.push(`${section.icon} ${section.label.toUpperCase()}`);
+    for (const item of section.items ?? []) {
+      const badge = item.highlight === 'positive' ? ' ✅' : item.highlight === 'negative' ? ' ❌' : '';
+      lines.push(`• ${item.label}: ${item.value}${badge}`);
+      for (const s of item.sub ?? []) {
+        const sb = s.highlight === 'positive' ? ' ✅' : s.highlight === 'negative' ? ' ❌' : '';
+        lines.push(`  ↳ ${s.label}: ${s.value}${sb}`);
+      }
+    }
+  }
+  return lines.join('\n');
+}
+
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/`(.+?)`/g, '$1')
+    .replace(/^#{1,3}\s+/gm, '')
+    .replace(/^[-*]\s+/gm, '• ')
+    .trim();
+}
+
 const BACKEND_URL =
   process.env.BACKEND_URL ?? 'https://xneurasolutions-aios-backend.9lagn8.easypanel.host';
 const COST_PER_INPUT_TOKEN = 0.0000025;
@@ -339,17 +373,17 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
       return;
     }
 
-    // Extract readable text for Telegram (JSON reports can't be rendered in Telegram)
+    // Format response for Telegram: expand JSON reports, strip markdown from plain text
     const strippedTg = assistantReply.replace(/^```(?:json)?\n?|\n?```$/g, '').trim();
-    let replyText = assistantReply;
+    let replyText: string;
     try {
-      const parsed = JSON.parse(strippedTg) as { type?: string; intro?: string; title?: string };
-      if (parsed?.type === 'report') {
-        replyText = parsed.intro
-          ? `📊 ${parsed.intro}`
-          : `📊 ${parsed.title ?? 'Report generated.'} Open the AIOS web app for the full report.`;
-      }
-    } catch { /* plain text — replyText stays as assistantReply */ }
+      const parsed = JSON.parse(strippedTg) as TgReport;
+      replyText = parsed?.type === 'report'
+        ? formatReportForTelegram(parsed)
+        : stripMarkdown(assistantReply);
+    } catch {
+      replyText = stripMarkdown(assistantReply);
+    }
 
     // Persist conversation
     await db.query(
