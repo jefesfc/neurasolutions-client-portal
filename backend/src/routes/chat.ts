@@ -14,7 +14,13 @@ You help the company's team analyze their business data: leads, clients, calenda
 You have tools to query live business data — always use them when the user asks about numbers, lists, stats, meetings, scheduled events, revenue, or security.
 Be concise, professional, and data-driven.
 
-LANGUAGE RULE (mandatory): Detect the language of the user's message and reply in that EXACT same language. Spanish → Spanish. Chinese → Chinese. French → French. Arabic → Arabic. Portuguese → Portuguese. German → German. English → English. NEVER respond in English if the user wrote in another language. Mirror the user's language in every single reply, no exceptions.`;
+LANGUAGE RULE (mandatory): Detect the language of the user's message and reply in that EXACT same language. Spanish → Spanish. Chinese → Chinese. French → French. Arabic → Arabic. Portuguese → Portuguese. German → German. English → English. NEVER respond in English if the user wrote in another language. Mirror the user's language in every single reply, no exceptions.
+
+REPORT FORMAT (mandatory when your response contains structured data — metrics, KPIs, tables, lists with numbers, financial summaries, or business reports):
+Return ONLY a valid JSON object — no markdown code fences, no extra text before or after the JSON:
+{"type":"report","title":"<concise title>","subtitle":"<e.g. June 2026, optional>","intro":"<1 sentence intro, optional>","sections":[{"label":"<section name>","icon":"<1 emoji>","color":"<hex color>","items":[{"label":"<metric name>","value":"<formatted value>","highlight":"positive|negative (optional)","sub":[{"label":"<sub-label>","value":"<sub-value>","highlight":"positive|negative (optional)"}]}]}]}
+Rules: use "positive" highlight for good results (high sales, revenue gained), "negative" for bad (losses, failures, errors). Omit "highlight", "sub", "subtitle", "intro" when not needed. Choose meaningful emoji and a distinct hex color per section (e.g. #6366f1 for pipeline, #10b981 for clients, #f59e0b for performance, #8b5cf6 for AI usage).
+For purely conversational replies with no structured data, reply in plain text as always.`;
 
 // GPT-4o pricing per token
 const COST_PER_INPUT_TOKEN = 0.0000025;
@@ -121,6 +127,18 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
       return;
     }
 
+    // Detect structured report response
+    let response_type: 'text' | 'report' = 'text';
+    let report_data: Record<string, unknown> | null = null;
+    const stripped = assistantReply.replace(/^```(?:json)?\n?|\n?```$/g, '').trim();
+    try {
+      const parsed = JSON.parse(stripped) as { type?: string };
+      if (parsed?.type === 'report') {
+        response_type = 'report';
+        report_data = parsed as Record<string, unknown>;
+      }
+    } catch { /* plain text response — no action */ }
+
     // Persist user + assistant messages
     await db.query(
       `INSERT INTO aios.interactions (id, tenant_id, user_id, channel, role, content, entity_type, entity_id)
@@ -139,6 +157,8 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
 
     res.json({
       message: assistantReply,
+      response_type,
+      report_data,
       conversation_id: convId,
       usage: { tokens_in: totalTokensIn, tokens_out: totalTokensOut, cost_usd: cost.toFixed(6) },
     });

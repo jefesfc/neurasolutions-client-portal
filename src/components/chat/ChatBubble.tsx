@@ -3,6 +3,7 @@ import { Send, Bot, Plus, User, X, Maximize2, Minimize2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChat } from "../../hooks/useChat";
 import { cn } from "../../lib/cn";
+import { ReportMessage } from "./ReportMessage";
 
 const SUGGESTIONS = [
   "How many leads do we have this month?",
@@ -128,7 +129,7 @@ export function ChatBubble() {
                   <div>
                     <h3 className="text-sm font-semibold text-slate-800 mb-1">How can I help you?</h3>
                     <p className="text-xs text-slate-400">
-                      Ask about leads, contacts, calendar, or metrics.
+                      Ask about leads, clients, calendar, or metrics.
                     </p>
                   </div>
                   <div className="flex flex-col gap-1.5 w-full">
@@ -145,30 +146,39 @@ export function ChatBubble() {
                 </div>
               ) : (
                 <>
-                  {messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={cn("flex items-end gap-2", msg.role === "user" && "flex-row-reverse")}
-                    >
-                      <div className={cn(
-                        "h-7 w-7 rounded-full flex items-center justify-center flex-shrink-0",
-                        msg.role === "user" ? "bg-brand-500" : "bg-brand-100"
-                      )}>
-                        {msg.role === "user"
-                          ? <User className="h-3.5 w-3.5 text-white" />
-                          : <Bot className="h-3.5 w-3.5 text-brand-600" />
-                        }
+                  {messages.map((msg) => {
+                    const isReport = msg.role === 'assistant' && msg.response_type === 'report' && !!msg.report_data;
+                    return (
+                      <div
+                        key={msg.id}
+                        className={cn("flex items-end gap-2", msg.role === "user" && "flex-row-reverse")}
+                      >
+                        <div className={cn(
+                          "h-7 w-7 rounded-full flex items-center justify-center flex-shrink-0",
+                          msg.role === "user" ? "bg-brand-500" : "bg-brand-100"
+                        )}>
+                          {msg.role === "user"
+                            ? <User className="h-3.5 w-3.5 text-white" />
+                            : <Bot className="h-3.5 w-3.5 text-brand-600" />
+                          }
+                        </div>
+                        {isReport ? (
+                          <div className="max-w-[95%]">
+                            <ReportMessage report={msg.report_data!} />
+                          </div>
+                        ) : (
+                          <div className={cn(
+                            "max-w-[80%] px-3 py-2.5 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap shadow-sm",
+                            msg.role === "user"
+                              ? "bg-brand-500 text-white rounded-br-sm"
+                              : "bg-white border border-slate-200 text-slate-800 rounded-bl-sm"
+                          )}>
+                            {msg.content}
+                          </div>
+                        )}
                       </div>
-                      <div className={cn(
-                        "max-w-[80%] px-3 py-2.5 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap shadow-sm",
-                        msg.role === "user"
-                          ? "bg-brand-500 text-white rounded-br-sm"
-                          : "bg-white border border-slate-200 text-slate-800 rounded-bl-sm"
-                      )}>
-                        {msg.content}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {loading && <TypingIndicator />}
                   {error && (
                     <div className="flex justify-center">

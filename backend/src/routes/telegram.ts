@@ -22,7 +22,13 @@ You have tools to query live business data — always use them when the user ask
 Be concise, professional, and data-driven.
 Today's date: ${new Date().toISOString().split('T')[0]}.
 
-LANGUAGE RULE (mandatory): Detect the language of the user's message (text or transcribed voice) and reply in that EXACT same language. Spanish → Spanish. Chinese → Chinese. French → French. Arabic → Arabic. Portuguese → Portuguese. German → German. English → English. NEVER respond in English if the user wrote or spoke in another language. Mirror the user's language in every single reply, no exceptions.`;
+LANGUAGE RULE (mandatory): Detect the language of the user's message (text or transcribed voice) and reply in that EXACT same language. Spanish → Spanish. Chinese → Chinese. French → French. Arabic → Arabic. Portuguese → Portuguese. German → German. English → English. NEVER respond in English if the user wrote or spoke in another language. Mirror the user's language in every single reply, no exceptions.
+
+REPORT FORMAT (mandatory when your response contains structured data — metrics, KPIs, tables, lists with numbers, financial summaries, or business reports):
+Return ONLY a valid JSON object — no markdown code fences, no extra text before or after the JSON:
+{"type":"report","title":"<concise title>","subtitle":"<e.g. June 2026, optional>","intro":"<1 sentence intro, optional>","sections":[{"label":"<section name>","icon":"<1 emoji>","color":"<hex color>","items":[{"label":"<metric name>","value":"<formatted value>","highlight":"positive|negative (optional)","sub":[{"label":"<sub-label>","value":"<sub-value>","highlight":"positive|negative (optional)"}]}]}]}
+Rules: use "positive" highlight for good results, "negative" for bad. Omit optional fields when not needed.
+For purely conversational replies with no structured data, reply in plain text as always.`;
 
 interface TelegramUpdate {
   message?: {
@@ -333,6 +339,18 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
       return;
     }
 
+    // Extract readable text for Telegram (JSON reports can't be rendered in Telegram)
+    const strippedTg = assistantReply.replace(/^```(?:json)?\n?|\n?```$/g, '').trim();
+    let replyText = assistantReply;
+    try {
+      const parsed = JSON.parse(strippedTg) as { type?: string; intro?: string; title?: string };
+      if (parsed?.type === 'report') {
+        replyText = parsed.intro
+          ? `📊 ${parsed.intro}`
+          : `📊 ${parsed.title ?? 'Report generated.'} Open the AIOS web app for the full report.`;
+      }
+    } catch { /* plain text — replyText stays as assistantReply */ }
+
     // Persist conversation
     await db.query(
       `INSERT INTO aios.interactions (id, tenant_id, user_id, channel, role, content, entity_type, entity_id)
@@ -354,26 +372,26 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
         const tts = await openai.audio.speech.create({
           model: 'tts-1',
           voice: 'alloy',
-          input: assistantReply,
+          input: replyText,
         });
         const audioBuffer = Buffer.from(await tts.arrayBuffer());
 
         // Track TTS cost (character-based: $0.015 / 1K chars)
-        const ttsCost = (assistantReply.length / 1000) * 0.015;
+        const ttsCost = (replyText.length / 1000) * 0.015;
         await db.query(
           `INSERT INTO aios.token_usage (id, tenant_id, agent_name, tokens_in, tokens_out, model, cost)
            VALUES ($1,$2,'aios-telegram-tts',$3,0,'tts-1',$4)`,
-          [uuidv4(), tenantId, assistantReply.length, ttsCost]
+          [uuidv4(), tenantId, replyText.length, ttsCost]
         );
 
         await sendVoiceTelegram(botToken, chatId, audioBuffer);
       } catch (err) {
         console.error('[telegram/tts]', err);
         // Fallback: send text so the bot never goes silent
-        await callTelegram(botToken, 'sendMessage', { chat_id: chatId, text: assistantReply });
+        await callTelegram(botToken, 'sendMessage', { chat_id: chatId, text: replyText });
       }
     } else {
-      await callTelegram(botToken, 'sendMessage', { chat_id: chatId, text: assistantReply });
+      await callTelegram(botToken, 'sendMessage', { chat_id: chatId, text: replyText });
     }
   } catch (err) {
     console.error('[telegram/webhook]', err);

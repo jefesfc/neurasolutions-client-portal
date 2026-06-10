@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useAuthStore } from '../store/auth-store';
+import type { ReportData } from '../types/chat';
 
 declare global { interface Window { __env__?: { API_URL?: string; POSTGREST_URL?: string } } }
 const API_URL = window.__env__?.API_URL ?? import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
@@ -8,6 +9,8 @@ export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  response_type?: 'text' | 'report';
+  report_data?: ReportData;
 }
 
 export function useChat() {
@@ -31,11 +34,23 @@ export function useChat() {
         body: JSON.stringify({ message: text, conversation_id: conversationId.current }),
       });
 
-      const data = await res.json() as { message?: string; conversation_id?: string; error?: string };
+      const data = await res.json() as {
+        message?: string;
+        response_type?: 'text' | 'report';
+        report_data?: ReportData;
+        conversation_id?: string;
+        error?: string;
+      };
       if (!res.ok) { setError(data.error ?? 'Error contacting the server'); return; }
 
       conversationId.current = data.conversation_id;
-      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'assistant', content: data.message! }]);
+      setMessages((prev) => [...prev, {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: data.message!,
+        response_type: data.response_type,
+        report_data: data.report_data,
+      }]);
     } catch {
       setError('Could not connect to the server');
     } finally {
