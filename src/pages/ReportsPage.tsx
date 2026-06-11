@@ -1,27 +1,76 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
 import { ReportCard } from "../components/reports/ReportCard";
 import { ReportViewer } from "../components/reports/ReportViewer";
 import { Tabs } from "../components/ui/Tabs";
-import { mockReports } from "../lib/mock-data";
+import { useAuthStore } from "../store/auth-store";
 import type { Report } from "../types";
 
-const tabs = [
-  { id: "all",       label: "All",       count: mockReports.length },
-  { id: "monthly",   label: "Monthly",   count: mockReports.filter((r) => r.type === "monthly").length },
-  { id: "quarterly", label: "Quarterly", count: mockReports.filter((r) => r.type === "quarterly").length },
-  { id: "annual",    label: "Annual",    count: mockReports.filter((r) => r.type === "annual").length },
+const API_URL =
+  (window as Window & { __env__?: { API_URL?: string } }).__env__?.API_URL ??
+  import.meta.env.VITE_API_URL ??
+  "http://localhost:3001";
+
+const ALL_TABS = [
+  { id: "all",       label: "All" },
+  { id: "monthly",   label: "Monthly" },
+  { id: "quarterly", label: "Quarterly" },
+  { id: "roi",       label: "ROI" },
+  { id: "financial", label: "Financial" },
 ];
 
 export default function ReportsPage() {
+  const token = useAuthStore((s) => s.token);
   const [activeTab, setActiveTab] = useState("all");
+  const [reports, setReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    void fetch(`${API_URL}/reports`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json() as Promise<Report[]>)
+      .then(setReports)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [token]);
+
+  const handleOpen = useCallback(
+    async (report: Report) => {
+      setSelectedReport(report);
+      if (!report.aiGeneratedNote) {
+        try {
+          const res = await fetch(`${API_URL}/reports/generate/${report.id}`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json() as { aiGeneratedNote: string };
+          setSelectedReport((prev) =>
+            prev?.id === report.id ? { ...prev, aiGeneratedNote: data.aiGeneratedNote } : prev
+          );
+          setReports((prev) =>
+            prev.map((r) => (r.id === report.id ? { ...r, aiGeneratedNote: data.aiGeneratedNote } : r))
+          );
+        } catch {
+          // non-critical: viewer shows without AI note
+        }
+      }
+    },
+    [token]
+  );
 
   const filtered =
     activeTab === "all"
-      ? mockReports
-      : mockReports.filter((r) => r.type === activeTab);
+      ? reports
+      : reports.filter((r) => r.type === activeTab || r.category === activeTab);
+
+  const tabs = ALL_TABS.map((t) => ({
+    ...t,
+    count: t.id === "all" ? reports.length : reports.filter((r) => r.type === t.id || r.category === t.id).length,
+  }));
 
   return (
     <PageTransition>
@@ -32,12 +81,15 @@ export default function ReportsPage() {
       <div className="mb-6">
         <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {filtered.map((report) => (
-          <ReportCard key={report.id} report={report} onOpen={setSelectedReport} />
-        ))}
-      </div>
-
+      {loading ? (
+        <p className="text-sm text-slate-400">Generating reports...</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filtered.map((report) => (
+            <ReportCard key={report.id} report={report} onOpen={handleOpen} />
+          ))}
+        </div>
+      )}
       <ReportViewer report={selectedReport} onClose={() => setSelectedReport(null)} />
     </PageTransition>
   );

@@ -15,6 +15,7 @@ import clientsRouter from './routes/clients';
 import invoicingRouter from './routes/invoicing';
 import billingRouter from './routes/billing';
 import supportRouter from './routes/support';
+import reportsRouter from './routes/reports';
 
 dotenv.config();
 
@@ -43,6 +44,7 @@ app.use('/clients', clientsRouter);
 app.use('/invoicing', invoicingRouter);
 app.use('/billing', billingRouter);
 app.use('/support', supportRouter);
+app.use('/reports', reportsRouter);
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
