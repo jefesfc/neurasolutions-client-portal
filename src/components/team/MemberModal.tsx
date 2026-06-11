@@ -30,7 +30,7 @@ const ROLE_OPTIONS = [
 
 const MODULE_OPTIONS: { key: string; label: string }[] = [
   { key: "leads",      label: "Leads"       },
-  { key: "crm",        label: "CRM"         },
+  { key: "crm",        label: "Clients"     },
   { key: "calendar",   label: "Calendar"    },
   { key: "emails",     label: "Emails"      },
   { key: "usage",      label: "Usage"       },
