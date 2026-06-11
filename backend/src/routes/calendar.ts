@@ -53,7 +53,8 @@ function requireAdminOrManager(req: Request, res: Response, next: NextFunction):
 function expandRecurrenceInWindow(event: Record<string, unknown>, windowStart: Date, windowEnd: Date): Date[] {
   const rule = event.recurrence_rule as { freq: string; interval?: number; until?: string } | null;
   if (!rule) return [];
-  const { freq, interval = 1, until } = rule;
+  const { freq, until } = rule;
+  const interval = Math.max(1, rule.interval ?? 1);
   const untilDate = until ? new Date(until) : new Date('2100-01-01');
   const results: Date[] = [];
   let current = new Date(event.start_at as string);
@@ -112,11 +113,13 @@ router.get('/upcoming', requireAuth, async (req: Request, res: Response) => {
   try {
     const days = Math.max(1, Math.min(90, parseInt(req.query.days as string) || 7));
     const tenantId = req.user!.tenant_id;
-    const result = await db.query(
-      'SELECT * FROM aios.calendar_events WHERE tenant_id = $1', [tenantId]
-    );
     const now = new Date();
     const windowEnd = new Date(now.getTime() + days * 86400000);
+    const result = await db.query(
+      `SELECT * FROM aios.calendar_events WHERE tenant_id = $1
+       AND (start_at <= $2 OR recurrence_rule IS NOT NULL)`,
+      [tenantId, windowEnd.toISOString()]
+    );
     res.json(expandEventsInWindow(result.rows, now, windowEnd));
   } catch (err) {
     console.error('[calendar GET /upcoming]', err);
@@ -192,7 +195,7 @@ router.post('/', requireAuth, requireAdminOrManager, async (req: Request, res: R
     }
 
     if (linked_type && linked_id) {
-      const table = linked_type === 'lead' ? 'aios.leads' : 'aios.contacts';
+      const table = linked_type === 'lead' ? 'aios.leads' : linked_type === 'client' ? 'aios.clients' : 'aios.contacts';
       const check = await db.query(`SELECT id FROM ${table} WHERE id = $1 AND tenant_id = $2`, [linked_id, tenantId]);
       if (check.rows.length === 0) { res.status(400).json({ error: `${linked_type as string} not found` }); return; }
     }
@@ -280,8 +283,9 @@ router.patch('/:id', requireAuth, requireAdminOrManager, async (req: Request, re
     }
 
     setClauses.push('updated_at = now()');
-    params.push(id, tenantId);
-    const idIdx = params.length - 1;
+    params.push(id);
+    const idIdx = params.length;
+    params.push(tenantId);
     const tenantIdx = params.length;
 
     const result = await db.query(

@@ -372,7 +372,7 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
     }));
 
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: SYSTEM_PROMPT.replace(/Today's date: \d{4}-\d{2}-\d{2}/, `Today's date: ${new Date().toISOString().split('T')[0]}`) },
       ...history,
       { role: 'user', content: text },
     ];
@@ -396,7 +396,8 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
         messages.push(choice.message);
         for (const toolCall of choice.message.tool_calls) {
           if (toolCall.type !== 'function') continue;
-          const args = JSON.parse(toolCall.function.arguments) as Record<string, unknown>;
+          let args: Record<string, unknown> = {};
+          try { args = JSON.parse(toolCall.function.arguments) as Record<string, unknown>; } catch { /* malformed args — use empty */ }
           const result = await executeTool(toolCall.function.name, args, tenantId);
           messages.push({ role: 'tool', tool_call_id: toolCall.id, content: JSON.stringify(result) });
         }

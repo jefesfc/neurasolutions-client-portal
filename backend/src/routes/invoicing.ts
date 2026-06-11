@@ -153,10 +153,11 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
 router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
   if (!requireAdminOrManager(req, res)) return;
   try {
-    await db.query(
-      `DELETE FROM aios.client_invoices WHERE id = $1 AND tenant_id = $2`,
+    const result = await db.query(
+      `DELETE FROM aios.client_invoices WHERE id = $1 AND tenant_id = $2 RETURNING id`,
       [req.params.id, req.user!.tenant_id]
     );
+    if (result.rowCount === 0) { res.status(404).json({ error: 'Invoice not found' }); return; }
     res.json({ ok: true });
   } catch (err) {
     console.error('[invoicing/DELETE]', err);

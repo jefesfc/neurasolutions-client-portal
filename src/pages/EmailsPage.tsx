@@ -17,6 +17,11 @@ export default function EmailsPage() {
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [search, setSearch] = useState('');
 
+  const { data: emails, loading, error } = useQuery<Email>('emails', {
+    order: 'received_at.desc',
+    limit: 100,
+  });
+
   if (
     user &&
     user.role !== 'admin' &&
@@ -25,11 +30,6 @@ export default function EmailsPage() {
     void navigate('/');
     return null;
   }
-
-  const { data: emails, loading, error } = useQuery<Email>('emails', {
-    order: 'received_at.desc',
-    limit: 100,
-  });
 
   async function handleSelect(email: Email) {
     setSelectedEmail(email);

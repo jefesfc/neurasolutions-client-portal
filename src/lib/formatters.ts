@@ -1,7 +1,7 @@
 import { format, formatDistanceToNow, parseISO } from "date-fns";
 
-export function formatCurrency(value: number, currency = "USD"): string {
-  return new Intl.NumberFormat("en-US", {
+export function formatCurrency(value: number, currency = "GBP"): string {
+  return new Intl.NumberFormat("en-GB", {
     style: "currency",
     currency,
     minimumFractionDigits: 0,

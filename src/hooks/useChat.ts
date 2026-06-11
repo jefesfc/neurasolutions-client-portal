@@ -47,7 +47,7 @@ export function useChat() {
       setMessages((prev) => [...prev, {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: data.message!,
+        content: data.message ?? '',
         response_type: data.response_type,
         report_data: data.report_data,
       }]);

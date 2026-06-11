@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Download, Zap, DollarSign, Bot, Activity } from "lucide-react";
+import { Download, Zap, PoundSterling, Bot, Activity } from "lucide-react";
+import { USD_GBP } from "../lib/rangeUtils";
 import { useQuery } from "../hooks/useQuery";
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
@@ -46,7 +47,7 @@ export default function UsagePage() {
   const thisMonth = rows.filter((r) => r.created_at >= monthStart);
 
   const totalTokens = thisMonth.reduce((s, r) => s + r.tokens_in + r.tokens_out, 0);
-  const totalCost = thisMonth.reduce((s, r) => s + r.cost, 0);
+  const totalCost = thisMonth.reduce((s, r) => s + r.cost, 0) * USD_GBP;
   const agents = [...new Set(rows.map((r) => r.agent_name))];
   const topAgent = agents.reduce((best, a) => {
     const count = rows.filter((r) => r.agent_name === a).length;
@@ -96,7 +97,7 @@ export default function UsagePage() {
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <KPICard label="Total Tokens (this month)" value={formatNumber(totalTokens)} icon={Zap} />
-            <KPICard label="Total Cost (this month)" value={`$${totalCost.toFixed(4)}`} icon={DollarSign} />
+            <KPICard label="Total Cost (this month)" value={`£${totalCost.toFixed(4)}`} icon={PoundSterling} />
             <KPICard label="Most Used Agent" value={topAgent} icon={Bot} />
             <KPICard label="Total Calls (this month)" value={formatNumber(thisMonth.length)} icon={Activity} />
           </div>
@@ -164,7 +165,7 @@ export default function UsagePage() {
                       <td className="px-4 py-3 text-slate-500">{row.model}</td>
                       <td className="px-4 py-3 text-slate-500">{formatNumber(row.tokens_in)}</td>
                       <td className="px-4 py-3 text-slate-500">{formatNumber(row.tokens_out)}</td>
-                      <td className="px-4 py-3 font-medium text-slate-800">${row.cost.toFixed(4)}</td>
+                      <td className="px-4 py-3 font-medium text-slate-800">£{(row.cost * USD_GBP).toFixed(4)}</td>
                       <td className="px-4 py-3 text-slate-400">{formatDate(row.created_at)}</td>
                     </tr>
                   ))}

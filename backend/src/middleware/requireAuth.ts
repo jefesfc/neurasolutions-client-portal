@@ -26,6 +26,10 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   }
   try {
     const payload = jwt.verify(auth.slice(7), process.env.JWT_SECRET!) as JWTPayload;
+    if (!payload.is_service && !payload.tenant_id) {
+      res.status(401).json({ error: 'Invalid token payload' });
+      return;
+    }
     req.user = payload;
     next();
   } catch {

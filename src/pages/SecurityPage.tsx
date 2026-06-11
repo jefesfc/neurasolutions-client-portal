@@ -104,7 +104,7 @@ export default function SecurityPage() {
 
   async function handleResolveAll() {
     const unresolved = events.filter(e => !e.resolved);
-    await Promise.all(
+    await Promise.allSettled(
       unresolved.map(e =>
         fetch(`${API_URL}/security/resolve/${e.id}`, {
           method: 'POST',

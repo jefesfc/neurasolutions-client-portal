@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useAuthStore } from "../../store/auth-store";
 import { useQuery } from "../../hooks/useQuery";
+import { USD_GBP } from "../../lib/rangeUtils";
 import { Skeleton } from "../ui/Skeleton";
 import { Link } from "react-router-dom";
 import type { Lead, Client, TokenUsage } from "../../types/aios";
@@ -222,7 +223,7 @@ const HEALTH_BARS = [
   { label: "Uptime SLA",     value: "99.98%",   pct: 99.98, color: "#10b981", sub: "This month",        valColor: "#34d399" },
   { label: "Plan Usage",     value: "78.4%",    pct: 78.4,  color: "#6366f1", sub: "Interactions used", valColor: "#a5b4fc" },
   { label: "Open Tickets",   value: "4",        pct: 33,    color: "#f59e0b", sub: "2 high priority",   valColor: "#fbbf24" },
-  { label: "AI Cost Budget", value: "$0 / $50", pct: 0,     color: "#6366f1", sub: "Monthly limit",     valColor: "#fff"    },
+  { label: "AI Cost Budget", value: "£0 / £40", pct: 0,     color: "#6366f1", sub: "Monthly limit",     valColor: "#fff"    },
 ] as const;
 
 function PlatformHealthPanel() {
@@ -278,7 +279,7 @@ function AICostPanel({ totalCost, agentList, maxAgentCost }: AICostPanelProps) {
       </div>
       <div style={{ marginBottom: 10 }}>
         <span style={{ fontSize: 26, fontWeight: 900, color: "#fff", textShadow: "0 0 16px rgba(245,158,11,0.75), 0 0 32px rgba(245,158,11,0.3)" }}>
-          ${totalCost.toFixed(2)}
+          £{totalCost.toFixed(2)}
         </span>
         <span style={{ fontSize: 10, color: "#fcd34d", marginLeft: 4 }}>total this month</span>
       </div>
@@ -295,7 +296,7 @@ function AICostPanel({ totalCost, agentList, maxAgentCost }: AICostPanelProps) {
                 <div style={{ flex: 1, background: "rgba(255,255,255,0.08)", borderRadius: 4, height: 10, overflow: "hidden" }}>
                   <div style={{ width: `${barPct}%`, height: "100%", borderRadius: 4, background: `linear-gradient(90deg, ${color}, ${color}99)`, boxShadow: `0 0 6px ${color}60` }} />
                 </div>
-                <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", minWidth: 36, textAlign: "right" }}>${data.cost.toFixed(2)}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", minWidth: 36, textAlign: "right" }}>£{data.cost.toFixed(2)}</span>
                 <span style={{ fontSize: 9, color: "#b45309", minWidth: 56, textAlign: "right" }}>
                   {data.tokens.toLocaleString()} tok
                 </span>
@@ -436,7 +437,7 @@ export function HeroBanner() {
   const wonLeads       = leads.filter(l => l.status === "won").length;
   const qualifiedLeads = leads.filter(l => l.status === "qualified").length;
   const activeClients  = clients.filter(c => c.status === "active").length;
-  const totalCost      = tokenUsage.reduce((sum, t) => sum + Number(t.cost), 0);
+  const totalCost      = tokenUsage.reduce((sum, t) => sum + Number(t.cost), 0) * USD_GBP;
   const totalTokens    = tokenUsage.reduce((sum, t) => sum + t.tokens_in + t.tokens_out, 0);
   const conversionRate = leads.length > 0 ? Math.round((wonLeads / leads.length) * 100) : 0;
 
@@ -452,7 +453,7 @@ export function HeroBanner() {
   tokenUsage.forEach(t => {
     const prev = agentMap.get(t.agent_name) ?? { cost: 0, tokens: 0 };
     agentMap.set(t.agent_name, {
-      cost:   prev.cost + Number(t.cost),
+      cost:   prev.cost + Number(t.cost) * USD_GBP,
       tokens: prev.tokens + t.tokens_in + t.tokens_out,
     });
   });
@@ -463,7 +464,7 @@ export function HeroBanner() {
     { label: "Total Leads",     value: String(leads.length),           sub: "↑ active pipeline",  glow: "rgba(99,102,241,0.7)"  },
     { label: "Active Clients",   value: String(activeClients),          sub: "↑ this month",        glow: "rgba(16,185,129,0.7)"  },
     { label: "Conversion",      value: `${conversionRate}%`,           sub: "Deals / Leads",       glow: "rgba(245,158,11,0.7)"  },
-    { label: "AI Cost",         value: `$${totalCost.toFixed(2)}`,     sub: "This month",          glow: "rgba(139,92,246,0.7)"  },
+    { label: "AI Cost",         value: `£${totalCost.toFixed(2)}`,     sub: "This month",          glow: "rgba(139,92,246,0.7)"  },
   ];
 
   const kpiCards = [

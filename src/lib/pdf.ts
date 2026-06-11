@@ -221,12 +221,12 @@ export async function downloadInvoicePDF(invoice: Invoice): Promise<void> {
       ? invoice.items.map((item) => [
           item.description,
           String(item.quantity),
-          `$${item.unitPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-          `$${item.total.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+          `£${item.unitPrice.toLocaleString('en-GB', { minimumFractionDigits: 2 })}`,
+          `£${item.total.toLocaleString('en-GB', { minimumFractionDigits: 2 })}`,
         ])
       : [['NeuraSolutions AIOS — Professional Plan', '1',
-          `$${invoice.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-          `$${invoice.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`]];
+          `£${invoice.amount.toLocaleString('en-GB', { minimumFractionDigits: 2 })}`,
+          `£${invoice.amount.toLocaleString('en-GB', { minimumFractionDigits: 2 })}`]];
 
   autoTable(doc, {
     startY: y,
@@ -257,7 +257,7 @@ export async function downloadInvoicePDF(invoice: Invoice): Promise<void> {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(15);
   doc.setTextColor(BRAND_HEX);
-  doc.text(`$${invoice.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, w - 16, tableEndY + 16, { align: 'right' });
+  doc.text(`£${invoice.amount.toLocaleString('en-GB', { minimumFractionDigits: 2 })}`, w - 16, tableEndY + 16, { align: 'right' });
 
   addPageFooters(doc);
   doc.save(`${invoice.number}.pdf`);
@@ -396,20 +396,20 @@ export async function downloadUsagePDF(rows: TokenUsage[], agentFilter: string):
   doc.setFontSize(10);
   doc.setTextColor(TEXT_MID_HEX);
   doc.text(
-    `Total records: ${rows.length}   |   Total tokens: ${totalTokens.toLocaleString()}   |   Total cost: $${totalCost.toFixed(4)}`,
+    `Total records: ${rows.length}   |   Total tokens: ${totalTokens.toLocaleString()}   |   Total cost: £${(totalCost * 0.79).toFixed(4)}`,
     14,
     y + 8
   );
 
   autoTable(doc, {
     startY: y + 14,
-    head: [['Agent', 'Model', 'Tokens In', 'Tokens Out', 'Cost (USD)', 'Date']],
+    head: [['Agent', 'Model', 'Tokens In', 'Tokens Out', 'Cost (£)', 'Date']],
     body: rows.map((r) => [
       r.agent_name,
       r.model,
       r.tokens_in.toLocaleString(),
       r.tokens_out.toLocaleString(),
-      `$${r.cost.toFixed(4)}`,
+      `£${(r.cost * 0.79).toFixed(4)}`,
       new Date(r.created_at).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',

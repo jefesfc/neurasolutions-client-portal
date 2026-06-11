@@ -172,8 +172,9 @@ router.patch('/:id', requireAuth, requireAdminOrManager, async (req: Request, re
     }
 
     setClauses.push('updated_at = now()');
-    params.push(id, tenantId);
-    const idIdx = params.length - 1;
+    params.push(id);
+    const idIdx = params.length;
+    params.push(tenantId);
     const tenantIdx = params.length;
 
     const result = await db.query(

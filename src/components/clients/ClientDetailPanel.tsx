@@ -1,4 +1,4 @@
-import { X, ArrowRightLeft, User as UserIcon, Mail, Phone, Globe, MapPin, Calendar, DollarSign, Tag, FileText } from 'lucide-react';
+import { X, ArrowRightLeft, User as UserIcon, Mail, Phone, Globe, MapPin, Calendar, PoundSterling, Tag, FileText } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import type { Client } from '../../types/aios';
@@ -51,7 +51,7 @@ export function ClientDetailPanel({ client, canEdit, onEdit, onDelete, onClose }
           <Field icon={<Phone className="h-3.5 w-3.5" />}       label="Phone"          value={client.phone} />
           <Field icon={<Globe className="h-3.5 w-3.5" />}       label="Website"        value={client.website} />
           <Field icon={<Tag className="h-3.5 w-3.5" />}         label="Industry"       value={client.industry} />
-          <Field icon={<DollarSign className="h-3.5 w-3.5" />}  label="Contract Value" value={formatCurrency(client.contract_value)} />
+          <Field icon={<PoundSterling className="h-3.5 w-3.5" />}  label="Contract Value" value={formatCurrency(client.contract_value)} />
           <Field icon={<Calendar className="h-3.5 w-3.5" />}    label="Next Renewal"   value={formatDate(client.next_renewal_at)} />
           <Field icon={<UserIcon className="h-3.5 w-3.5" />}    label="Assigned To"    value={client.assigned_to} />
           <div className="col-span-2">

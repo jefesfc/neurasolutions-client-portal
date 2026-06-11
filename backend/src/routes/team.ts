@@ -9,6 +9,10 @@ const router = Router();
 const VALID_PERMISSIONS = ['leads','crm','calendar','emails','usage','ai_systems','analytics','reports','support','team','billing'] as const;
 
 router.post('/create', requireAuth, async (req: Request, res: Response) => {
+  if (req.user!.app_role !== 'admin' && req.user!.app_role !== 'manager') {
+    res.status(403).json({ error: 'Admin or Manager required' });
+    return;
+  }
   const { name, email, role, password, section_permissions } = req.body as {
     name: string;
     email: string;

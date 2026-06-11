@@ -1,4 +1,4 @@
-import { DollarSign, Clock, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { PoundSterling, Clock, AlertCircle, CheckCircle2 } from 'lucide-react';
 import type { InvoicingSummary } from '../../types/invoicing';
 
 interface Props { summary: InvoicingSummary | null; loading: boolean; currency?: string; }
@@ -11,7 +11,7 @@ export function InvoicingSummaryCards({ summary, loading, currency = 'GBP' }: Pr
     { icon: CheckCircle2, label: 'Collected',     value: fmt(summary?.total_collected), sub: `${summary?.paid_count ?? '0'} paid invoices`,       color: '#10b981' },
     { icon: Clock,        label: 'Pending',        value: fmt(summary?.total_pending),   sub: `${summary?.pending_count ?? '0'} awaiting payment`,  color: '#f59e0b' },
     { icon: AlertCircle,  label: 'Overdue',        value: fmt(summary?.total_overdue),   sub: `${summary?.overdue_count ?? '0'} overdue invoices`,   color: '#ef4444' },
-    { icon: DollarSign,   label: 'Total Invoiced', value: loading ? '—' : (() => {
+    { icon: PoundSterling,   label: 'Total Invoiced', value: loading ? '—' : (() => {
       const total = parseFloat(summary?.total_collected ?? '0') + parseFloat(summary?.total_pending ?? '0') + parseFloat(summary?.total_overdue ?? '0');
       return `${sym}${total.toLocaleString('en-GB', { minimumFractionDigits: 2 })}`;
     })(), sub: `${summary?.total_invoices ?? '0'} total invoices`, color: '#6366f1' },
