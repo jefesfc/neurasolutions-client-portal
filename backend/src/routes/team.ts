@@ -6,7 +6,7 @@ import { emitSecurityEvent } from '../lib/securityEvents';
 
 const router = Router();
 
-const VALID_PERMISSIONS = ['leads','crm','calendar','emails','usage','ai_systems','analytics','reports','support','team','billing'] as const;
+const VALID_PERMISSIONS = ['leads','crm','calendar','emails','invoicing','usage','ai_systems','analytics','reports','support','team','billing','notifications'] as const;
 
 router.post('/create', requireAuth, async (req: Request, res: Response) => {
   if (req.user!.app_role !== 'admin' && req.user!.app_role !== 'manager') {

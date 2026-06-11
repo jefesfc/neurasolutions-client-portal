@@ -29,17 +29,19 @@ const ROLE_OPTIONS = [
 ];
 
 const MODULE_OPTIONS: { key: string; label: string }[] = [
-  { key: "leads",      label: "Leads"       },
-  { key: "crm",        label: "Clients"     },
-  { key: "calendar",   label: "Calendar"    },
-  { key: "emails",     label: "Emails"      },
-  { key: "usage",      label: "Usage"       },
-  { key: "ai_systems", label: "AI Systems"  },
-  { key: "analytics",  label: "Analytics"   },
-  { key: "reports",    label: "Reports"     },
-  { key: "support",    label: "Support"     },
-  { key: "team",       label: "Team"        },
-  { key: "billing",    label: "Billing"     },
+  { key: "leads",         label: "Leads"         },
+  { key: "crm",           label: "Clients"       },
+  { key: "invoicing",     label: "Invoicing"     },
+  { key: "billing",       label: "Billing"       },
+  { key: "calendar",      label: "Calendar"      },
+  { key: "emails",        label: "Emails"        },
+  { key: "usage",         label: "Usage"         },
+  { key: "ai_systems",    label: "AI Systems"    },
+  { key: "analytics",     label: "Analytics"     },
+  { key: "reports",       label: "Reports"       },
+  { key: "support",       label: "Support"       },
+  { key: "team",          label: "Team"          },
+  { key: "notifications", label: "Notifications" },
 ];
 
 export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Props) {

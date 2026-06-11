@@ -36,7 +36,7 @@ export const mainNavItems: NavItem[] = [
   { label: "Dashboard",  path: ROUTES.Dashboard, icon: LayoutDashboard },
   { label: "Leads",      path: ROUTES.Leads,     icon: Users,      permission: "leads"      },
   { label: "Clients",    path: ROUTES.Clients,   icon: Building2,  permission: "crm"        },
-  { label: "Invoicing",  path: ROUTES.Invoicing, icon: Receipt,    permission: "billing"    },
+  { label: "Invoicing",  path: ROUTES.Invoicing, icon: Receipt,    permission: "invoicing"  },
   { label: "Calendar",   path: ROUTES.Calendar,  icon: CalendarDays, permission: "calendar" },
   { label: "Emails",     path: ROUTES.Emails,    icon: Mail,       permission: "emails"     },
   { label: "Usage",      path: ROUTES.Usage,     icon: Zap,        permission: "usage"      },
@@ -46,7 +46,7 @@ export const mainNavItems: NavItem[] = [
   { label: "Support",    path: ROUTES.Support,   icon: LifeBuoy,   permission: "support"    },
   { label: "Team",       path: ROUTES.Team,      icon: Users2,     permission: "team"       },
   { label: "Security",      path: ROUTES.Security,      icon: ShieldCheck, adminOnly: true },
-  { label: "Notifications", path: ROUTES.Notifications, icon: Bell },
+  { label: "Notifications", path: ROUTES.Notifications, icon: Bell, permission: "notifications" },
 ];
 
 export const bottomNavItems: NavItem[] = [

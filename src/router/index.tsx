@@ -155,7 +155,7 @@ export const router = createBrowserRouter([
     path: ROUTES.Invoicing,
     element: (
       <Protected>
-        <ModulePermissionsGuard permission="billing">
+        <ModulePermissionsGuard permission="invoicing">
           <InvoicingPage />
         </ModulePermissionsGuard>
       </Protected>
@@ -195,7 +195,13 @@ export const router = createBrowserRouter([
   },
   {
     path: ROUTES.Notifications,
-    element: <Protected><NotificationsPage /></Protected>,
+    element: (
+      <Protected>
+        <ModulePermissionsGuard permission="notifications">
+          <NotificationsPage />
+        </ModulePermissionsGuard>
+      </Protected>
+    ),
   },
   {
     path: "*",
