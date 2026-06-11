@@ -13,6 +13,7 @@ import securityRouter from './routes/security';
 import notificationsRouter from './routes/notifications';
 import clientsRouter from './routes/clients';
 import invoicingRouter from './routes/invoicing';
+import supportRouter from './routes/support';
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ app.use('/security', securityRouter);
 app.use('/notifications', notificationsRouter);
 app.use('/clients', clientsRouter);
 app.use('/invoicing', invoicingRouter);
+app.use('/support', supportRouter);
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
