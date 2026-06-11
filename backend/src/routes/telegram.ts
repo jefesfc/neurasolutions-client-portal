@@ -96,6 +96,8 @@ TOOL USAGE RULES (mandatory):
 - "AI usage" / "AI cost" / "tokens": included in get_business_stats
 - Any question about numbers, stats, or data: always call the relevant tool — never answer from memory
 - Every report response automatically includes a downloadable CSV file attachment with all metrics
+- "add client" / "create client" / "new client" / "añadir cliente": call create_client with name and email (ask for them if not provided)
+- "schedule meeting" / "add event" / "create event" / "add to calendar" / "agenda": call create_calendar_event with title, start_at, and category
 
 LANGUAGE RULE (mandatory): Detect the language of the user's message (text or transcribed voice) and reply in that EXACT same language. Spanish → Spanish. Chinese → Chinese. French → French. Arabic → Arabic. Portuguese → Portuguese. German → German. English → English. NEVER respond in English if the user wrote or spoke in another language. Mirror the user's language in every single reply, no exceptions.
 
@@ -486,6 +488,139 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
     }
   } catch (err) {
     console.error('[telegram/webhook]', err);
+  }
+});
+
+// POST /telegram/briefing — Service JWT only; collects daily digest and sends to all linked admins
+router.post('/briefing', requireAuth, async (req: Request, res: Response) => {
+  if (!req.user!.is_service) {
+    res.status(403).json({ error: 'Service token required' });
+    return;
+  }
+  const { tenant_id } = req.body as { tenant_id?: string };
+  if (!tenant_id) {
+    res.status(400).json({ error: 'tenant_id required' });
+    return;
+  }
+  try {
+    const tenantRes = await db.query(
+      `SELECT settings FROM aios.tenants WHERE id = $1`,
+      [tenant_id]
+    );
+    const settings = tenantRes.rows[0]?.settings as TenantSettings | undefined;
+    const botToken = settings?.telegram?.bot_token;
+    if (!botToken || !settings?.telegram?.enabled) {
+      res.status(400).json({ error: 'Telegram not configured for this tenant' });
+      return;
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const tomorrow = new Date(Date.now() + 86_400_000).toISOString().split('T')[0];
+
+    const [calRes, leadsRes, clientsRes, secRes, emailsRes, adminsRes] = await Promise.all([
+      db.query(
+        `SELECT title, start_at FROM aios.calendar_events
+         WHERE tenant_id = $1 AND start_at >= $2 AND start_at < $3 AND status != 'cancelled'
+         ORDER BY start_at ASC LIMIT 10`,
+        [tenant_id, today, tomorrow]
+      ),
+      db.query(
+        `SELECT COUNT(*) AS total,
+                COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '24 hours') AS new_today,
+                COUNT(*) FILTER (WHERE status = 'qualified') AS qualified,
+                COUNT(*) FILTER (WHERE status = 'won') AS won
+         FROM aios.leads WHERE tenant_id = $1`,
+        [tenant_id]
+      ),
+      db.query(
+        `SELECT COUNT(*) AS total, COUNT(*) FILTER (WHERE status = 'active') AS active
+         FROM aios.clients WHERE tenant_id = $1`,
+        [tenant_id]
+      ),
+      db.query(
+        `SELECT COUNT(*) FILTER (WHERE severity IN ('high','critical') AND resolved = false) AS critical_alerts
+         FROM aios.security_events WHERE tenant_id = $1 AND created_at >= NOW() - INTERVAL '24 hours'`,
+        [tenant_id]
+      ),
+      db.query(
+        `SELECT COUNT(*) FILTER (WHERE is_read = false) AS unread FROM aios.emails WHERE tenant_id = $1`,
+        [tenant_id]
+      ),
+      db.query(
+        `SELECT telegram_user_id FROM aios.users
+         WHERE tenant_id = $1 AND telegram_user_id IS NOT NULL AND role = 'admin'`,
+        [tenant_id]
+      ),
+    ]);
+
+    if (!adminsRes.rows.length) {
+      res.json({ ok: true, sent: 0, message: 'No linked admin accounts' });
+      return;
+    }
+
+    const dateStr = new Date().toLocaleDateString('en-GB', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    });
+    const lines: string[] = [];
+    lines.push(`☀️ Good morning! AIOS Briefing — ${dateStr}`);
+
+    const events = calRes.rows as Array<{ title: string; start_at: string }>;
+    lines.push('');
+    lines.push(`📅 TODAY'S SCHEDULE (${events.length} event${events.length !== 1 ? 's' : ''})`);
+    if (events.length === 0) {
+      lines.push('• No events scheduled today');
+    } else {
+      for (const e of events) {
+        const time = new Date(e.start_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        lines.push(`• ${time} — ${e.title}`);
+      }
+    }
+
+    const l = leadsRes.rows[0] as Record<string, string>;
+    lines.push('');
+    lines.push('📊 PIPELINE');
+    lines.push(`• New leads today: ${+l.new_today}`);
+    lines.push(`• Qualified: ${+l.qualified} | Won: ${+l.won} | Total: ${+l.total}`);
+
+    const c = clientsRes.rows[0] as Record<string, string>;
+    lines.push(`• Active clients: ${+c.active} / ${+c.total}`);
+
+    const critAlerts = +(secRes.rows[0] as Record<string, string>).critical_alerts;
+    lines.push('');
+    lines.push('🔒 SECURITY');
+    lines.push(
+      critAlerts === 0
+        ? '• ✅ All clear — no critical alerts in the last 24h'
+        : `• ⚠️ ${critAlerts} critical alert${critAlerts !== 1 ? 's' : ''} require attention`
+    );
+
+    const unread = +(emailsRes.rows[0] as Record<string, string>).unread;
+    lines.push('');
+    lines.push('📧 INBOX');
+    lines.push(`• ${unread} unread email${unread !== 1 ? 's' : ''}`);
+
+    lines.push('');
+    lines.push('Have a productive day! 🚀');
+
+    const briefingText = lines.join('\n');
+
+    let sent = 0;
+    for (const admin of adminsRes.rows as Array<{ telegram_user_id: string }>) {
+      try {
+        await callTelegram(botToken, 'sendMessage', {
+          chat_id: +admin.telegram_user_id,
+          text: briefingText,
+        });
+        sent++;
+      } catch (err) {
+        console.error('[telegram/briefing] send error for chat_id', admin.telegram_user_id, err);
+      }
+    }
+
+    res.json({ ok: true, sent });
+  } catch (err) {
+    console.error('[telegram/briefing]', err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

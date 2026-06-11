@@ -141,6 +141,46 @@ export const toolDefinitions: OpenAI.Chat.Completions.ChatCompletionTool[] = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'create_client',
+      description: 'Create a new client in the CRM. Use when the CEO wants to add a client directly from Telegram.',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Full name of the client.' },
+          email: { type: 'string', description: 'Client email address.' },
+          phone: { type: 'string', description: 'Phone number (optional).' },
+          company: { type: 'string', description: 'Company or organisation name (optional).' },
+          contract_value: { type: 'number', description: 'Contract value in GBP (optional).' },
+        },
+        required: ['name', 'email'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'create_calendar_event',
+      description: 'Create a new calendar event. Use when the CEO wants to schedule a meeting, reminder, or any event directly from Telegram.',
+      parameters: {
+        type: 'object',
+        properties: {
+          title: { type: 'string', description: 'Event title.' },
+          start_at: { type: 'string', description: 'Start datetime in ISO 8601 format (e.g. "2026-06-15T09:00:00Z").' },
+          end_at: { type: 'string', description: 'End datetime in ISO 8601 format (optional).' },
+          category: {
+            type: 'string',
+            enum: ['meeting', 'invoice', 'contract', 'reminder', 'other'],
+            description: 'Event category.',
+          },
+          description: { type: 'string', description: 'Event notes or description (optional).' },
+        },
+        required: ['title', 'start_at', 'category'],
+      },
+    },
+  },
 ];
 
 export async function executeTool(name: string, args: Record<string, unknown>, tenantId: string): Promise<unknown> {
@@ -321,6 +361,44 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
         [tenantId]
       );
       return res.rows[0];
+    }
+
+    case 'create_client': {
+      const name = args.name as string;
+      const email = args.email as string;
+      if (!name || !email) return { error: 'name and email are required' };
+      const phone = (args.phone as string | undefined) ?? null;
+      const company = (args.company as string | undefined) ?? '';
+      const contractValue = args.contract_value != null ? +(args.contract_value as number) : null;
+      const res = await db.query(
+        `INSERT INTO aios.clients (id, tenant_id, name, email, phone, company, contract_value)
+         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6)
+         RETURNING id, name, email, company, status, created_at`,
+        [tenantId, name, email, phone, company, contractValue]
+      );
+      return { success: true, client: res.rows[0] };
+    }
+
+    case 'create_calendar_event': {
+      const title = args.title as string;
+      const start_at = args.start_at as string;
+      if (!title || !start_at) return { error: 'title and start_at are required' };
+      const end_at = (args.end_at as string | undefined) ?? null;
+      const category = (args.category as string | undefined) ?? 'other';
+      const description = (args.description as string | undefined) ?? null;
+      const adminRes = await db.query(
+        `SELECT id FROM aios.users WHERE tenant_id = $1 AND role = 'admin' LIMIT 1`,
+        [tenantId]
+      );
+      const createdBy = adminRes.rows[0]?.id as string | undefined;
+      if (!createdBy) return { error: 'No admin user found for tenant' };
+      const res = await db.query(
+        `INSERT INTO aios.calendar_events (id, tenant_id, created_by, title, description, category, start_at, end_at)
+         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7)
+         RETURNING id, title, start_at, end_at, category, status`,
+        [tenantId, createdBy, title, description, category, start_at, end_at]
+      );
+      return { success: true, event: res.rows[0] };
     }
 
     default:
