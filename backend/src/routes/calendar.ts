@@ -195,7 +195,11 @@ router.post('/', requireAuth, requireAdminOrManager, async (req: Request, res: R
     }
 
     if (linked_type && linked_id) {
-      const table = linked_type === 'lead' ? 'aios.leads' : linked_type === 'client' ? 'aios.clients' : 'aios.contacts';
+      if (!['lead', 'client'].includes(linked_type as string)) {
+        res.status(400).json({ error: 'linked_type must be "lead" or "client"' });
+        return;
+      }
+      const table = linked_type === 'lead' ? 'aios.leads' : 'aios.clients';
       const check = await db.query(`SELECT id FROM ${table} WHERE id = $1 AND tenant_id = $2`, [linked_id, tenantId]);
       if (check.rows.length === 0) { res.status(400).json({ error: `${linked_type as string} not found` }); return; }
     }

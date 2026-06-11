@@ -89,10 +89,10 @@ export async function countRecentEvents(
   const result = await db.query(
     `SELECT COUNT(*) FROM aios.security_events
      WHERE tenant_id = $1
-       AND actor_ip = $2
+       AND actor_ip IS NOT DISTINCT FROM $2
        AND event_type = $3
-       AND created_at > NOW() - ($4 || ' minutes')::interval`,
-    [tenantId, actorIp ?? '', eventType, windowMinutes]
+       AND created_at > NOW() - (INTERVAL '1 minute' * $4)`,
+    [tenantId, actorIp ?? null, eventType, windowMinutes]
   );
   return parseInt(result.rows[0].count, 10);
 }

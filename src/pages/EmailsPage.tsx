@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useQuery } from '../hooks/useQuery';
-import { useAuthStore } from '../store/auth-store';
 import { postgrest } from '../lib/postgrest';
 import { PageTransition } from '../components/shared/PageTransition';
 import { PageHeader } from '../components/layout/PageHeader';
@@ -12,8 +10,6 @@ import { EmailPreview } from '../components/emails/EmailPreview';
 import type { Email } from '../types/aios';
 
 export default function EmailsPage() {
-  const user = useAuthStore((s) => s.user);
-  const navigate = useNavigate();
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [search, setSearch] = useState('');
 
@@ -21,15 +17,6 @@ export default function EmailsPage() {
     order: 'received_at.desc',
     limit: 100,
   });
-
-  if (
-    user &&
-    user.role !== 'admin' &&
-    !(user.section_permissions ?? []).includes('emails')
-  ) {
-    void navigate('/');
-    return null;
-  }
 
   async function handleSelect(email: Email) {
     setSelectedEmail(email);

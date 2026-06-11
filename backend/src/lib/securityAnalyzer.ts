@@ -95,7 +95,9 @@ Return this exact JSON shape:
     max_tokens: 400,
   });
 
-  const raw = response.choices[0].message.content ?? '{}';
+  const raw = (response.choices[0].message.content ?? '{}')
+    .replace(/^```(?:json)?\n?|\n?```$/g, '')
+    .trim();
 
   try {
     const analysis = JSON.parse(raw) as SecurityAnalysis;
@@ -105,6 +107,7 @@ Return this exact JSON shape:
     );
     return analysis;
   } catch {
+    console.warn('[securityAnalyzer] Failed to parse GPT response:', raw.substring(0, 200));
     return null;
   }
 }

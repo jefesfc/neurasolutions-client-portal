@@ -410,7 +410,7 @@ export async function downloadUsagePDF(rows: TokenUsage[], agentFilter: string):
       r.tokens_in.toLocaleString(),
       r.tokens_out.toLocaleString(),
       `£${(r.cost * 0.79).toFixed(4)}`,
-      new Date(r.created_at).toLocaleDateString('en-US', {
+      new Date(r.created_at).toLocaleDateString('en-GB', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',

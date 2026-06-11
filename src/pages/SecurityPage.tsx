@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth-store';
 import { PageTransition } from '../components/shared/PageTransition';
 import { PageHeader } from '../components/layout/PageHeader';
@@ -53,7 +53,6 @@ const OPERATIONAL_MODEL = [
 
 export default function SecurityPage() {
   const { user, token } = useAuthStore();
-  const navigate = useNavigate();
 
   const [range, setRange]               = useState<SecurityTimeRange>('1m');
   const [events, setEvents]             = useState<SecurityEvent[]>([]);
@@ -64,10 +63,6 @@ export default function SecurityPage() {
   const [rlsToast, setRlsToast]         = useState(false);
   const [tileHover, setTileHover]       = useState<string | null>(null);
   const [lastUpdated, setLastUpdated]   = useState<Date | null>(null);
-
-  useEffect(() => {
-    if (user && user.role !== 'admin') void navigate('/');
-  }, [user, navigate]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -93,6 +88,9 @@ export default function SecurityPage() {
     const id = setInterval(() => void fetchData(), 30_000);
     return () => clearInterval(id);
   }, [fetchData]);
+
+  if (user && user.role !== 'admin') return <Navigate to="/" replace />;
+  if (!token) return null;
 
   async function handleResolve(id: string) {
     await fetch(`${API_URL}/security/resolve/${id}`, {
@@ -259,7 +257,7 @@ export default function SecurityPage() {
 
         {/* AI Analysis Panel */}
         <div id="analysis-panel">
-          <SecurityAnalysisPanel token={token!} range={range} />
+          <SecurityAnalysisPanel token={token} range={range} />
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 16, minHeight: 500 }}>

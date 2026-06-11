@@ -31,6 +31,11 @@ router.post('/create', requireAuth, async (req: Request, res: Response) => {
     return;
   }
 
+  if (role === 'admin' && req.user!.app_role !== 'admin') {
+    res.status(403).json({ error: 'Only admins can create admin accounts' });
+    return;
+  }
+
   const perms = role === 'admin' ? [] : (section_permissions ?? []);
 
   if (perms.some((p) => !VALID_PERMISSIONS.includes(p as typeof VALID_PERMISSIONS[number]))) {
@@ -93,6 +98,11 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
 
   if (role && !['admin', 'manager', 'user'].includes(role)) {
     res.status(400).json({ error: 'Invalid role' });
+    return;
+  }
+
+  if (role === 'admin' && requestingUser.app_role !== 'admin') {
+    res.status(403).json({ error: 'Only admins can assign the admin role' });
     return;
   }
 

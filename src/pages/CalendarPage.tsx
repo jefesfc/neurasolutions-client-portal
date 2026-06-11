@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { useQuery } from '../hooks/useQuery';
 import { useAuthStore } from '../store/auth-store';
@@ -14,7 +13,6 @@ import type { CalendarEvent } from '../types/calendar';
 
 export default function CalendarPage() {
   const { user } = useAuthStore();
-  const navigate = useNavigate();
   const canEdit = user?.role === 'admin' || user?.role === 'manager';
 
   const { data: events, loading, error, refetch } = useQuery<CalendarEvent>('calendar_events', {
@@ -24,12 +22,6 @@ export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [modalOpen, setModalOpen]       = useState(false);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
-
-  // Permission guard AFTER all hooks
-  if (user && user.role !== 'admin' && !user.section_permissions.includes('calendar')) {
-    void navigate('/');
-    return null;
-  }
 
   function openCreate() {
     setEditingEvent(null);

@@ -33,7 +33,7 @@ router.get('/events', requireAuth, async (req: Request, res: Response) => {
   } else if (range) {
     const days = range === '1w' ? 7 : range === '1m' ? 30 : range === '3m' ? 90 : range === '1y' ? 365 : null;
     if (days !== null) {
-      conditions.push(`created_at >= NOW() - ($${idx++} || ' days')::INTERVAL`);
+      conditions.push(`created_at >= NOW() - (INTERVAL '1 day' * $${idx++})`);
       params.push(days);
     }
   }
@@ -87,7 +87,7 @@ router.get('/summary', requireAuth, async (req: Request, res: Response) => {
          COUNT(*) FILTER (WHERE resolved = true) AS resolved_count,
          COUNT(DISTINCT event_type) AS unique_event_types
        FROM aios.security_events
-       WHERE tenant_id = $1 AND created_at >= NOW() - ($2 || ' days')::INTERVAL`,
+       WHERE tenant_id = $1 AND created_at >= NOW() - (INTERVAL '1 day' * $2)`,
       [req.user!.tenant_id, days]
     );
     res.json({ ...rows[0], range, days });
@@ -101,10 +101,11 @@ router.get('/summary', requireAuth, async (req: Request, res: Response) => {
 router.post('/resolve/:id', requireAuth, async (req: Request, res: Response) => {
   if (!requireAdmin(req, res)) return;
   try {
-    await db.query(
-      `UPDATE aios.security_events SET resolved = true WHERE id = $1 AND tenant_id = $2`,
+    const result = await db.query(
+      `UPDATE aios.security_events SET resolved = true WHERE id = $1 AND tenant_id = $2 RETURNING id`,
       [req.params.id, req.user!.tenant_id]
     );
+    if (result.rows.length === 0) { res.status(404).json({ error: 'Event not found' }); return; }
     res.json({ ok: true });
   } catch (err) {
     console.error('[security/resolve]', err);

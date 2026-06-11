@@ -46,8 +46,8 @@ export function KPIComparison() {
   const currentUsage  = usage.filter((u) => u.created_at.substring(0, 10) >= startOfCurrent);
   const prevUsage     = usage.filter((u) => u.created_at.substring(0, 10) < startOfCurrent);
 
-  const currentConverted = currentLeads.filter((l) => l.status === 'converted').length;
-  const prevConverted    = prevLeads.filter((l) => l.status === 'converted').length;
+  const currentConverted = currentLeads.filter((l) => l.status === 'won').length;
+  const prevConverted    = prevLeads.filter((l) => l.status === 'won').length;
 
   const kpis: KPI[] = [
     {
