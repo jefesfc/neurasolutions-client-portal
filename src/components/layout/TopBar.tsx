@@ -1,32 +1,37 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, MessageSquare, Search, Menu, LogOut, User, CheckCheck, AlertCircle, Info, CheckCircle, XCircle, ArrowRight } from "lucide-react";
+import { Bell, MessageSquare, Search, Menu, LogOut, User, CheckCheck, AlertCircle, Info, CheckCircle, XCircle, ArrowRight, Languages } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { ROUTES } from "../../config/routes";
 import { useNotificationStore } from "../../store/notification-store";
 import { useAuthStore } from "../../store/auth-store";
 import { useSidebarStore } from "../../store/sidebar-store";
+import { useLanguageStore } from "../../store/language-store";
 import { Avatar } from "../ui/Avatar";
 import { useState, useRef, useEffect, type ReactNode } from "react";
 import type { Notification } from "../../types/notification";
 import { useNotificationPolling } from "../../hooks/useNotificationPolling";
+import { cn } from "../../lib/cn";
 
 const NOTIF_ICONS: Record<string, ReactNode> = {
   success: <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />,
   info:    <Info        className="w-3.5 h-3.5 text-blue-500"    />,
   warning: <AlertCircle className="w-3.5 h-3.5 text-amber-500"  />,
-  error:   <XCircle    className="w-3.5 h-3.5 text-red-500"     />,
+  error:   <XCircle     className="w-3.5 h-3.5 text-red-500"    />,
 };
 
-function timeAgo(iso: string) {
+function timeAgo(iso: string, t: (k: string, o?: Record<string, unknown>) => string) {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
-  if (m < 1) return 'just now';
-  if (m < 60) return `${m}m ago`;
+  if (m < 1) return t('time.justNow');
+  if (m < 60) return t('time.mAgo', { m });
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  if (h < 24) return t('time.hAgo', { h });
+  return t('time.dAgo', { d: Math.floor(h / 24) });
 }
 
 function NotifDropdown({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
+  const isRTL = useLanguageStore((s) => s.lang === 'ar');
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationStore();
   const navigate = useNavigate();
 
@@ -37,40 +42,44 @@ function NotifDropdown({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="absolute right-0 top-11 w-80 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-slate-800">Notifications</span>
+    <div className={cn(
+      "absolute top-11 w-80 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden",
+      isRTL ? "left-0" : "right-0"
+    )}>
+      <div className={cn("flex items-center justify-between px-4 py-3 border-b border-slate-100", isRTL && "flex-row-reverse")}>
+        <div className={cn("flex items-center gap-2", isRTL && "flex-row-reverse")}>
+          <span className="text-sm font-semibold text-slate-800">{t('topbar.notifications')}</span>
           {unreadCount > 0 && (
             <span className="bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{unreadCount}</span>
           )}
         </div>
         {unreadCount > 0 && (
-          <button onClick={markAllAsRead} className="flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-700 transition-colors">
+          <button onClick={markAllAsRead} className={cn("flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-700 transition-colors", isRTL && "flex-row-reverse")}>
             <CheckCheck className="w-3.5 h-3.5" />
-            Mark all read
+            {t('topbar.markAllRead')}
           </button>
         )}
       </div>
 
       <div className="max-h-72 overflow-y-auto">
         {notifications.length === 0 ? (
-          <div className="py-8 text-center text-sm text-slate-400">No notifications</div>
+          <div className="py-8 text-center text-sm text-slate-400">{t('topbar.noNotif')}</div>
         ) : (
           notifications.slice(0, 8).map((n) => (
             <button
               key={n.id}
               onClick={() => handleClick(n)}
-              className={[
-                "w-full text-left flex gap-3 px-4 py-3 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0",
+              className={cn(
+                "w-full flex gap-3 px-4 py-3 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0",
                 !n.read ? "bg-indigo-50/50" : "",
-              ].join(" ")}
+                isRTL ? "text-right flex-row-reverse" : "text-left"
+              )}
             >
               <div className="mt-0.5 flex-shrink-0">{NOTIF_ICONS[n.type]}</div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
+                <div className={cn("flex items-start gap-2", isRTL ? "flex-row-reverse" : "justify-between")}>
                   <p className={`text-xs font-semibold truncate ${n.read ? "text-slate-600" : "text-slate-800"}`}>{n.title}</p>
-                  <span className="text-[10px] text-slate-400 flex-shrink-0">{timeAgo(n.timestamp)}</span>
+                  <span className="text-[10px] text-slate-400 flex-shrink-0">{timeAgo(n.timestamp, t)}</span>
                 </div>
                 <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-2">{n.description}</p>
               </div>
@@ -83,10 +92,13 @@ function NotifDropdown({ onClose }: { onClose: () => void }) {
       <Link
         to={ROUTES.Notifications}
         onClick={onClose}
-        className="flex items-center justify-center gap-1.5 w-full px-4 py-3 text-xs font-semibold text-indigo-600 hover:text-indigo-700 border-t border-slate-100 hover:bg-indigo-50/50 transition-colors"
+        className={cn(
+          "flex items-center justify-center gap-1.5 w-full px-4 py-3 text-xs font-semibold text-indigo-600 hover:text-indigo-700 border-t border-slate-100 hover:bg-indigo-50/50 transition-colors",
+          isRTL && "flex-row-reverse"
+        )}
       >
-        View all notifications
-        <ArrowRight className="h-3.5 w-3.5" />
+        {t('topbar.viewAll')}
+        <ArrowRight className={cn("h-3.5 w-3.5", isRTL && "rotate-180")} />
       </Link>
     </div>
   );
@@ -94,10 +106,13 @@ function NotifDropdown({ onClose }: { onClose: () => void }) {
 
 export function TopBar() {
   useNotificationPolling();
+  const { t } = useTranslation();
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const setMobileOpen = useSidebarStore((s) => s.setMobileOpen);
+  const { lang, setLang } = useLanguageStore();
+  const isRTL = lang === 'ar';
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -121,8 +136,9 @@ export function TopBar() {
 
   return (
     <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-slate-200">
-      <div className="flex items-center justify-between h-16 px-4 lg:px-6">
-        <div className="flex items-center gap-3">
+      <div className={cn("flex items-center justify-between h-16 px-4 lg:px-6", isRTL && "flex-row-reverse")}>
+        {/* Left (or right in RTL) — hamburger + search */}
+        <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
           <button
             onClick={() => setMobileOpen(true)}
             className="lg:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-500"
@@ -130,21 +146,35 @@ export function TopBar() {
             <Menu className="h-5 w-5" />
           </button>
           <div className="hidden sm:block relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+            <Search className={cn("absolute top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none", isRTL ? "right-3" : "left-3")} />
             <input
               type="text"
-              placeholder="Search..."
-              className="w-64 rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-4 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+              placeholder={t('topbar.search')}
+              className={cn(
+                "w-64 rounded-lg border border-slate-200 bg-slate-50 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500",
+                isRTL ? "pr-9 pl-4 text-right" : "pl-9 pr-4"
+              )}
             />
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
+        {/* Right (or left in RTL) — actions */}
+        <div className={cn("flex items-center gap-1", isRTL && "flex-row-reverse")}>
           <button
             onClick={() => setSearchOpen(true)}
             className="sm:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-500"
           >
             <Search className="h-5 w-5" />
+          </button>
+
+          {/* Language toggle */}
+          <button
+            onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-colors text-xs font-semibold"
+            title="Switch language / تغيير اللغة"
+          >
+            <Languages className="h-4 w-4" />
+            <span>{lang === 'en' ? 'AR' : 'EN'}</span>
           </button>
 
           <Link to="/support" className="relative p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors">
@@ -166,32 +196,32 @@ export function TopBar() {
             {notifOpen && <NotifDropdown onClose={() => setNotifOpen(false)} />}
           </div>
 
-          <div ref={menuRef} className="relative hidden sm:flex items-center gap-2 ml-3 pl-3 border-l border-slate-200">
+          <div ref={menuRef} className={cn("relative hidden sm:flex items-center gap-2 ml-3 pl-3 border-l border-slate-200", isRTL && "ml-0 pl-0 mr-3 pr-3 border-l-0 border-r flex-row-reverse")}>
             <button
               onClick={() => setMenuOpen((v) => !v)}
-              className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors"
+              className={cn("flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors", isRTL && "flex-row-reverse")}
             >
               <Avatar fallback={user?.name} size="sm" className="bg-indigo-100 text-indigo-700" />
               <span className="text-sm font-medium text-slate-700">{user?.name}</span>
             </button>
 
             {menuOpen && (
-              <div className="absolute right-0 top-10 w-44 bg-white rounded-xl shadow-lg border border-slate-200 py-1 z-50">
+              <div className={cn("absolute top-10 w-44 bg-white rounded-xl shadow-lg border border-slate-200 py-1 z-50", isRTL ? "left-0" : "right-0")}>
                 <Link
                   to="/profile"
                   onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                  className={cn("flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50", isRTL && "flex-row-reverse")}
                 >
                   <User className="w-4 h-4 text-slate-400" />
-                  Profile
+                  {t('topbar.profile')}
                 </Link>
                 <hr className="my-1 border-slate-100" />
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-50"
+                  className={cn("w-full flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-50", isRTL && "flex-row-reverse")}
                 >
                   <LogOut className="w-4 h-4" />
-                  Sign out
+                  {t('topbar.signOut')}
                 </button>
               </div>
             )}
@@ -202,16 +232,17 @@ export function TopBar() {
       {searchOpen && (
         <div className="sm:hidden px-4 pb-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+            <Search className={cn("absolute top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none", isRTL ? "right-3" : "left-3")} />
             <input
               type="text"
-              placeholder="Search..."
+              placeholder={t('topbar.search')}
               autoFocus
               onBlur={() => setSearchOpen(false)}
-              onKeyDown={(e) => {
-                if (e.key === "Escape") setSearchOpen(false);
-              }}
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-4 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+              onKeyDown={(e) => { if (e.key === "Escape") setSearchOpen(false); }}
+              className={cn(
+                "w-full rounded-lg border border-slate-200 bg-slate-50 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500",
+                isRTL ? "pr-9 pl-4 text-right" : "pl-9 pr-4"
+              )}
             />
           </div>
         </div>

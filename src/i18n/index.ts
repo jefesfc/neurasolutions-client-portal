@@ -1,0 +1,123 @@
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+
+const en = {
+  nav: {
+    dashboard:      'Dashboard',
+    leads:          'Leads',
+    clients:        'Clients',
+    invoicing:      'Invoicing',
+    calendar:       'Calendar',
+    emails:         'Emails',
+    usage:          'Usage',
+    aiSystems:      'AI Systems',
+    analytics:      'Analytics',
+    reports:        'Reports',
+    support:        'Support',
+    team:           'Team',
+    security:       'Security',
+    notifications:  'Notifications',
+    billing:        'Billing',
+    settings:       'Settings',
+  },
+  sidebar: {
+    main:    'Main',
+    account: 'Account',
+    version: 'Noor Aesthetics v1.0',
+  },
+  topbar: {
+    search:       'Search...',
+    profile:      'Profile',
+    signOut:      'Sign out',
+    markAllRead:  'Mark all read',
+    noNotif:      'No notifications',
+    viewAll:      'View all notifications',
+    notifications: 'Notifications',
+  },
+  common: {
+    save:     'Save',
+    cancel:   'Cancel',
+    create:   'Create',
+    delete:   'Delete',
+    edit:     'Edit',
+    loading:  'Loading...',
+    active:   'Active',
+    inactive: 'Inactive',
+    pending:  'Pending',
+    search:   'Search',
+    noData:   'No data available',
+    viewAll:  'View all',
+    new:      'New',
+  },
+  time: {
+    justNow: 'just now',
+    mAgo:    '{{m}}m ago',
+    hAgo:    '{{h}}h ago',
+    dAgo:    '{{d}}d ago',
+  },
+};
+
+const ar: typeof en = {
+  nav: {
+    dashboard:      'لوحة التحكم',
+    leads:          'العملاء المحتملون',
+    clients:        'العملاء',
+    invoicing:      'الفواتير',
+    calendar:       'التقويم',
+    emails:         'البريد الإلكتروني',
+    usage:          'الاستخدام',
+    aiSystems:      'أنظمة الذكاء الاصطناعي',
+    analytics:      'التحليلات',
+    reports:        'التقارير',
+    support:        'الدعم',
+    team:           'الفريق',
+    security:       'الأمان',
+    notifications:  'الإشعارات',
+    billing:        'الفوترة',
+    settings:       'الإعدادات',
+  },
+  sidebar: {
+    main:    'الرئيسية',
+    account: 'الحساب',
+    version: 'نور للجماليات v1.0',
+  },
+  topbar: {
+    search:        'ابحث...',
+    profile:       'الملف الشخصي',
+    signOut:       'تسجيل الخروج',
+    markAllRead:   'تعليم الكل مقروءًا',
+    noNotif:       'لا توجد إشعارات',
+    viewAll:       'عرض كل الإشعارات',
+    notifications: 'الإشعارات',
+  },
+  common: {
+    save:     'حفظ',
+    cancel:   'إلغاء',
+    create:   'إنشاء',
+    delete:   'حذف',
+    edit:     'تعديل',
+    loading:  'جارٍ التحميل...',
+    active:   'نشط',
+    inactive: 'غير نشط',
+    pending:  'معلق',
+    search:   'بحث',
+    noData:   'لا توجد بيانات',
+    viewAll:  'عرض الكل',
+    new:      'جديد',
+  },
+  time: {
+    justNow: 'الآن',
+    mAgo:    'منذ {{m}} دقيقة',
+    hAgo:    'منذ {{h}} ساعة',
+    dAgo:    'منذ {{d}} يوم',
+  },
+};
+
+i18n.use(initReactI18next).init({
+  resources: { en: { translation: en }, ar: { translation: ar } },
+  lng: localStorage.getItem('aios-lang') ?? 'en',
+  fallbackLng: 'en',
+  interpolation: { escapeValue: false },
+});
+
+export default i18n;

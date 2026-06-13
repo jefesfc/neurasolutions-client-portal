@@ -5,6 +5,11 @@
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
+/* Arabic RTL — apply Cairo font to all text when dir=rtl */
+[dir="rtl"] {
+  font-family: "Cairo", "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
 /* ── All overrideable colors live in :root ─────────────────────────── */
 :root {
   /* Surface scale */
