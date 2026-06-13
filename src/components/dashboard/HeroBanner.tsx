@@ -82,7 +82,7 @@ function ActiveServicesCard({ secSummary }: ServicesCardProps) {
 
   const SERVICES: { icon: string; name: string; detail: string; status: ServiceStatus }[] = [
     { icon: "✈️", name: "Telegram Bot",      detail: "@Neura_AIOS_demo_bot", status: "active"  },
-    { icon: "🤖", name: "AI Orchestrator",   detail: "Claude Sonnet 4.6",    status: "active"  },
+    { icon: "🤖", name: "AI Orchestrator",   detail: "GPT-4o",               status: "active"  },
     { icon: "⚙️", name: "n8n Workflows",     detail: "3 running",            status: "active"  },
     { icon: "📧", name: "Gmail Sync",        detail: "last sync 2m ago",     status: "active"  },
     { icon: "📅", name: "Calendar Notifier", detail: "08:00 daily cron",     status: "pending" },
@@ -261,14 +261,11 @@ function PlatformHealthPanel({ totalCost }: { totalCost: number }) {
 // ── AICostPanel ─────────────────────────────────────────────────────────────
 
 const AGENT_COLORS: Record<string, string> = {
-  "aios-chat":           "#6366f1",
-  "aios-telegram":       "#8b5cf6",
-  "telegram-tts":        "#0ea5e9",
-  "whisper":             "#10b981",
-  "Appointment AI":      "#06b6d4",
-  "Skincare Advisor AI": "#10b981",
-  "Clinical Insights AI":"#8b5cf6",
-  "Chief of Staff AI":   "#f59e0b",
+  "aios-chat":         "#6366f1",
+  "aios-telegram":     "#3b82f6",
+  "aios-telegram-tts": "#8b5cf6",
+  "security-analyzer": "#f43f5e",
+  "aios-reports":      "#10b981",
 };
 
 interface AICostPanelProps {
@@ -314,7 +311,7 @@ function AICostPanel({ totalCost, agentList, maxAgentCost }: AICostPanelProps) {
       </div>
       <hr style={{ border: "none", borderTop: "1px solid rgba(255,215,0,0.1)", margin: "6px 0" }} />
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <small style={{ fontSize: 10, color: "#fcd34d" }}>claude-sonnet-4-6 · claude-haiku-4-5</small>
+        <small style={{ fontSize: 10, color: "#fcd34d" }}>gpt-4o · tts-1 · whisper-1</small>
         <span style={{ background: "rgba(16,185,129,0.15)", color: "#34d399", fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4 }}>
           ↓ Under budget
         </span>

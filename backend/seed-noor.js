@@ -254,18 +254,18 @@ async function seed() {
     `);
     console.log('   ✓ 8 invoices inserted');
 
-    // ── 7. TOKEN USAGE ─────────────────────────────────────────────────────
+    // ── 7. TOKEN USAGE — real agent names matching backend code ────────────────
     await db.query(`
       INSERT INTO aios.token_usage (id, tenant_id, agent_name, tokens_in, tokens_out, model, cost, created_at)
       VALUES
-      (gen_random_uuid(),'${TENANT}','Appointment AI',     1100, 720,'claude-haiku-4-5-20251001',0.008,NOW()-'1 day'::interval),
-      (gen_random_uuid(),'${TENANT}','Appointment AI',      870, 540,'claude-haiku-4-5-20251001',0.006,NOW()-'3 days'::interval),
-      (gen_random_uuid(),'${TENANT}','Skincare Advisor AI',3200,1900,'claude-sonnet-4-6',        0.052,NOW()-'1 day'::interval),
-      (gen_random_uuid(),'${TENANT}','Skincare Advisor AI',2400,1400,'claude-sonnet-4-6',        0.038,NOW()-'4 days'::interval),
-      (gen_random_uuid(),'${TENANT}','Clinical Insights AI',1600,980,'claude-sonnet-4-6',        0.026,NOW()-'2 days'::interval),
-      (gen_random_uuid(),'${TENANT}','Clinical Insights AI',2900,1700,'claude-sonnet-4-6',       0.047,NOW()-'5 days'::interval),
-      (gen_random_uuid(),'${TENANT}','Chief of Staff AI',  4100,2300,'claude-sonnet-4-6',        0.067,NOW()-'1 day'::interval),
-      (gen_random_uuid(),'${TENANT}','Chief of Staff AI',  3600,2000,'claude-sonnet-4-6',        0.056,NOW()-'6 days'::interval)
+      (gen_random_uuid(),'${TENANT}','aios-chat',        1840,1120,'gpt-4o',0.044,NOW()-'1 day'::interval),
+      (gen_random_uuid(),'${TENANT}','aios-chat',        2200,1400,'gpt-4o',0.053,NOW()-'2 days'::interval),
+      (gen_random_uuid(),'${TENANT}','aios-chat',        1500, 900,'gpt-4o',0.036,NOW()-'4 days'::interval),
+      (gen_random_uuid(),'${TENANT}','aios-telegram',    1100, 680,'gpt-4o',0.027,NOW()-'1 day'::interval),
+      (gen_random_uuid(),'${TENANT}','aios-telegram',     820, 510,'gpt-4o',0.020,NOW()-'3 days'::interval),
+      (gen_random_uuid(),'${TENANT}','aios-telegram-tts',   0, 420,'tts-1', 0.013,NOW()-'2 days'::interval),
+      (gen_random_uuid(),'${TENANT}','security-analyzer',3400,1800,'gpt-4o',0.068,NOW()-'1 day'::interval),
+      (gen_random_uuid(),'${TENANT}','security-analyzer',2600,1400,'gpt-4o',0.052,NOW()-'5 days'::interval)
     `);
     console.log('   ✓ 8 token_usage entries inserted');
 

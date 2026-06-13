@@ -5,11 +5,11 @@ import { db } from '../db';
 const router = Router();
 
 const AGENT_META: Record<string, { name: string; color: string; model: string; company: string }> = {
-  'aios-chat':         { name: 'Web AI Chat',       color: '#6366f1', model: 'gpt-4o',    company: 'OpenAI' },
+  'aios-chat':         { name: 'AI Orchestrator',    color: '#6366f1', model: 'gpt-4o',    company: 'OpenAI' },
   'aios-telegram':     { name: 'Telegram Bot',       color: '#3b82f6', model: 'gpt-4o',    company: 'OpenAI' },
   'aios-telegram-tts': { name: 'Telegram Voice',     color: '#8b5cf6', model: 'tts-1',     company: 'OpenAI' },
+  'security-analyzer': { name: 'Security Analyzer',  color: '#f43f5e', model: 'gpt-4o',    company: 'OpenAI' },
   'aios-reports':      { name: 'Report Generation',  color: '#10b981', model: 'gpt-4o',    company: 'OpenAI' },
-  'aios-security':     { name: 'Security Analysis',  color: '#f43f5e', model: 'gpt-4o',    company: 'OpenAI' },
 };
 
 // GET /billing/stats — token spending grouped by agent + usage counts
