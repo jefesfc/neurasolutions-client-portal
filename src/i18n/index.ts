@@ -1,5 +1,6 @@
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
+export type Lang = 'en' | 'ar';
+
+type Translations = typeof en;
 
 const en = {
   nav: {
@@ -26,38 +27,23 @@ const en = {
     version: 'Noor Aesthetics v1.0',
   },
   topbar: {
-    search:       'Search...',
-    profile:      'Profile',
-    signOut:      'Sign out',
-    markAllRead:  'Mark all read',
-    noNotif:      'No notifications',
-    viewAll:      'View all notifications',
+    search:        'Search...',
+    profile:       'Profile',
+    signOut:       'Sign out',
+    markAllRead:   'Mark all read',
+    noNotif:       'No notifications',
+    viewAll:       'View all notifications',
     notifications: 'Notifications',
-  },
-  common: {
-    save:     'Save',
-    cancel:   'Cancel',
-    create:   'Create',
-    delete:   'Delete',
-    edit:     'Edit',
-    loading:  'Loading...',
-    active:   'Active',
-    inactive: 'Inactive',
-    pending:  'Pending',
-    search:   'Search',
-    noData:   'No data available',
-    viewAll:  'View all',
-    new:      'New',
   },
   time: {
     justNow: 'just now',
-    mAgo:    '{{m}}m ago',
-    hAgo:    '{{h}}h ago',
-    dAgo:    '{{d}}d ago',
+    mAgo:    (m: number) => `${m}m ago`,
+    hAgo:    (h: number) => `${h}h ago`,
+    dAgo:    (d: number) => `${d}d ago`,
   },
 };
 
-const ar: typeof en = {
+const ar: Translations = {
   nav: {
     dashboard:      'لوحة التحكم',
     leads:          'العملاء المحتملون',
@@ -90,34 +76,17 @@ const ar: typeof en = {
     viewAll:       'عرض كل الإشعارات',
     notifications: 'الإشعارات',
   },
-  common: {
-    save:     'حفظ',
-    cancel:   'إلغاء',
-    create:   'إنشاء',
-    delete:   'حذف',
-    edit:     'تعديل',
-    loading:  'جارٍ التحميل...',
-    active:   'نشط',
-    inactive: 'غير نشط',
-    pending:  'معلق',
-    search:   'بحث',
-    noData:   'لا توجد بيانات',
-    viewAll:  'عرض الكل',
-    new:      'جديد',
-  },
   time: {
     justNow: 'الآن',
-    mAgo:    'منذ {{m}} دقيقة',
-    hAgo:    'منذ {{h}} ساعة',
-    dAgo:    'منذ {{d}} يوم',
+    mAgo:    (m: number) => `منذ ${m} دقيقة`,
+    hAgo:    (h: number) => `منذ ${h} ساعة`,
+    dAgo:    (d: number) => `منذ ${d} يوم`,
   },
 };
 
-i18n.use(initReactI18next).init({
-  resources: { en: { translation: en }, ar: { translation: ar } },
-  lng: localStorage.getItem('aios-lang') ?? 'en',
-  fallbackLng: 'en',
-  interpolation: { escapeValue: false },
-});
+export const translations: Record<Lang, Translations> = { en, ar };
 
-export default i18n;
+export function getT(lang: Lang) {
+  const dict = translations[lang];
+  return dict;
+}

@@ -88,7 +88,8 @@ export function ROIWidget() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
         {TILES.map((tile) => {
           const Icon = tile.icon;
-          const value = data ? tile.format(data[tile.key]) : "—";
+          const raw = data?.[tile.key];
+          const value = raw != null ? tile.format(raw) : "—";
           return (
             <div
               key={tile.key}

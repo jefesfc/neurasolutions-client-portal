@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/cn";
+import { useT } from "../../i18n/useT";
 import { useSidebarStore } from "../../store/sidebar-store";
 import { useLanguageStore } from "../../store/language-store";
 import { useIsMobile } from "../../hooks/use-media-query";
@@ -12,7 +12,7 @@ import { useAuthStore } from "../../store/auth-store";
 import logoWhite from "../../assets/neura-logo-white.png";
 
 export function Sidebar() {
-  const { t } = useTranslation();
+  const t = useT();
   const { isCollapsed, toggle, isMobileOpen, close } = useSidebarStore();
   const location = useLocation();
   const isMobile = useIsMobile();
@@ -51,7 +51,6 @@ export function Sidebar() {
     setHoverExpanded(false);
   }
 
-  // In RTL: collapse button and active indicator swap sides
   const CollapseIcon = isRTL
     ? isCollapsed ? ChevronLeft : ChevronRight
     : isCollapsed ? ChevronRight : ChevronLeft;
@@ -65,7 +64,6 @@ export function Sidebar() {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Logo */}
       <div className="flex items-center h-16 px-4 border-b border-slate-800">
         <Link to="/" className="flex items-center min-w-0">
           <AnimatePresence mode="wait">
@@ -105,14 +103,10 @@ export function Sidebar() {
         )}
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-6 overflow-y-auto">
         <div className="space-y-1">
           {(expanded || isMobile) && (
-            <p className={cn(
-              "px-3 text-xs font-medium text-slate-500 uppercase tracking-wider mb-2",
-              isRTL && "text-right"
-            )}>
+            <p className={cn("px-3 text-xs font-medium text-slate-500 uppercase tracking-wider mb-2", isRTL && "text-right")}>
               {t('sidebar.main')}
             </p>
           )}
@@ -137,7 +131,7 @@ export function Sidebar() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className={cn("text-sm font-medium whitespace-nowrap", isRTL && "font-['Cairo',sans-serif]")}
+                      className="text-sm font-medium whitespace-nowrap"
                     >
                       {t(item.labelKey)}
                     </motion.span>
@@ -156,10 +150,7 @@ export function Sidebar() {
 
         <div className="space-y-1">
           {(expanded || isMobile) && (
-            <p className={cn(
-              "px-3 text-xs font-medium text-slate-500 uppercase tracking-wider mb-2",
-              isRTL && "text-right"
-            )}>
+            <p className={cn("px-3 text-xs font-medium text-slate-500 uppercase tracking-wider mb-2", isRTL && "text-right")}>
               {t('sidebar.account')}
             </p>
           )}
@@ -184,7 +175,7 @@ export function Sidebar() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className={cn("text-sm font-medium whitespace-nowrap", isRTL && "font-['Cairo',sans-serif]")}
+                      className="text-sm font-medium whitespace-nowrap"
                     >
                       {t(item.labelKey)}
                     </motion.span>
@@ -196,7 +187,6 @@ export function Sidebar() {
         </div>
       </nav>
 
-      {/* Footer */}
       {(expanded || isMobile) && (
         <div className={cn("px-4 py-3 border-t border-slate-800", isRTL && "text-right")}>
           <div className="text-xs text-slate-500">

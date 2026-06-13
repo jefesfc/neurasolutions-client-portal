@@ -1,11 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Bell, MessageSquare, Search, Menu, LogOut, User, CheckCheck, AlertCircle, Info, CheckCircle, XCircle, ArrowRight, Languages } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import { ROUTES } from "../../config/routes";
 import { useNotificationStore } from "../../store/notification-store";
 import { useAuthStore } from "../../store/auth-store";
 import { useSidebarStore } from "../../store/sidebar-store";
 import { useLanguageStore } from "../../store/language-store";
+import { useT } from "../../i18n/useT";
 import { Avatar } from "../ui/Avatar";
 import { useState, useRef, useEffect, type ReactNode } from "react";
 import type { Notification } from "../../types/notification";
@@ -19,19 +19,19 @@ const NOTIF_ICONS: Record<string, ReactNode> = {
   error:   <XCircle     className="w-3.5 h-3.5 text-red-500"    />,
 };
 
-function timeAgo(iso: string, t: (k: string, o?: Record<string, unknown>) => string) {
+function timeAgo(iso: string, lang: 'en' | 'ar') {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
-  if (m < 1) return t('time.justNow');
-  if (m < 60) return t('time.mAgo', { m });
+  if (m < 1) return lang === 'ar' ? 'الآن' : 'just now';
+  if (m < 60) return lang === 'ar' ? `منذ ${m} دقيقة` : `${m}m ago`;
   const h = Math.floor(m / 60);
-  if (h < 24) return t('time.hAgo', { h });
-  return t('time.dAgo', { d: Math.floor(h / 24) });
+  if (h < 24) return lang === 'ar' ? `منذ ${h} ساعة` : `${h}h ago`;
+  return lang === 'ar' ? `منذ ${Math.floor(h / 24)} يوم` : `${Math.floor(h / 24)}d ago`;
 }
 
 function NotifDropdown({ onClose }: { onClose: () => void }) {
-  const { t } = useTranslation();
-  const isRTL = useLanguageStore((s) => s.lang === 'ar');
+  const t = useT();
+  const { lang, isRTL } = useLanguageStore((s) => ({ lang: s.lang, isRTL: s.lang === 'ar' }));
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationStore();
   const navigate = useNavigate();
 
@@ -42,10 +42,7 @@ function NotifDropdown({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className={cn(
-      "absolute top-11 w-80 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden",
-      isRTL ? "left-0" : "right-0"
-    )}>
+    <div className={cn("absolute top-11 w-80 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden", isRTL ? "left-0" : "right-0")}>
       <div className={cn("flex items-center justify-between px-4 py-3 border-b border-slate-100", isRTL && "flex-row-reverse")}>
         <div className={cn("flex items-center gap-2", isRTL && "flex-row-reverse")}>
           <span className="text-sm font-semibold text-slate-800">{t('topbar.notifications')}</span>
@@ -71,7 +68,7 @@ function NotifDropdown({ onClose }: { onClose: () => void }) {
               onClick={() => handleClick(n)}
               className={cn(
                 "w-full flex gap-3 px-4 py-3 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0",
-                !n.read ? "bg-indigo-50/50" : "",
+                !n.read && "bg-indigo-50/50",
                 isRTL ? "text-right flex-row-reverse" : "text-left"
               )}
             >
@@ -79,7 +76,7 @@ function NotifDropdown({ onClose }: { onClose: () => void }) {
               <div className="flex-1 min-w-0">
                 <div className={cn("flex items-start gap-2", isRTL ? "flex-row-reverse" : "justify-between")}>
                   <p className={`text-xs font-semibold truncate ${n.read ? "text-slate-600" : "text-slate-800"}`}>{n.title}</p>
-                  <span className="text-[10px] text-slate-400 flex-shrink-0">{timeAgo(n.timestamp, t)}</span>
+                  <span className="text-[10px] text-slate-400 flex-shrink-0">{timeAgo(n.timestamp, lang)}</span>
                 </div>
                 <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-2">{n.description}</p>
               </div>
@@ -92,10 +89,7 @@ function NotifDropdown({ onClose }: { onClose: () => void }) {
       <Link
         to={ROUTES.Notifications}
         onClick={onClose}
-        className={cn(
-          "flex items-center justify-center gap-1.5 w-full px-4 py-3 text-xs font-semibold text-indigo-600 hover:text-indigo-700 border-t border-slate-100 hover:bg-indigo-50/50 transition-colors",
-          isRTL && "flex-row-reverse"
-        )}
+        className={cn("flex items-center justify-center gap-1.5 w-full px-4 py-3 text-xs font-semibold text-indigo-600 hover:text-indigo-700 border-t border-slate-100 hover:bg-indigo-50/50 transition-colors", isRTL && "flex-row-reverse")}
       >
         {t('topbar.viewAll')}
         <ArrowRight className={cn("h-3.5 w-3.5", isRTL && "rotate-180")} />
@@ -106,7 +100,7 @@ function NotifDropdown({ onClose }: { onClose: () => void }) {
 
 export function TopBar() {
   useNotificationPolling();
-  const { t } = useTranslation();
+  const t = useT();
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
@@ -137,12 +131,8 @@ export function TopBar() {
   return (
     <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-slate-200">
       <div className={cn("flex items-center justify-between h-16 px-4 lg:px-6", isRTL && "flex-row-reverse")}>
-        {/* Left (or right in RTL) — hamburger + search */}
         <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
-          <button
-            onClick={() => setMobileOpen(true)}
-            className="lg:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-500"
-          >
+          <button onClick={() => setMobileOpen(true)} className="lg:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-500">
             <Menu className="h-5 w-5" />
           </button>
           <div className="hidden sm:block relative">
@@ -158,12 +148,8 @@ export function TopBar() {
           </div>
         </div>
 
-        {/* Right (or left in RTL) — actions */}
         <div className={cn("flex items-center gap-1", isRTL && "flex-row-reverse")}>
-          <button
-            onClick={() => setSearchOpen(true)}
-            className="sm:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-500"
-          >
+          <button onClick={() => setSearchOpen(true)} className="sm:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-500">
             <Search className="h-5 w-5" />
           </button>
 

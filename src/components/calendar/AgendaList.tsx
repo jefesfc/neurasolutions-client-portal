@@ -84,7 +84,7 @@ function EventCard({ event, occurrenceDate, onClick }: EventCardProps) {
                   className="text-[10px] font-bold px-1.5 py-0.5 rounded"
                   style={{ backgroundColor: `${cfg.color}1a`, color: cfg.color }}
                 >
-                  {event.currency} {event.amount.toLocaleString()}
+                  {event.currency} {event.amount != null ? Number(event.amount).toLocaleString() : '—'}
                 </span>
               )}
               {event.description && (
