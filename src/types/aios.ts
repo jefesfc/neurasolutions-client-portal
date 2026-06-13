@@ -23,6 +23,8 @@ export interface Contact {
   created_at: string;
 }
 
+export type ClientStage = 'admission' | 'investigation' | 'follow_up' | 'discharge' | 'active';
+
 export interface Client {
   id: string;
   tenant_id: string;
@@ -34,11 +36,20 @@ export interface Client {
   website: string | null;
   contract_value: number | null;
   status: 'active' | 'inactive' | 'churned';
+  stage: ClientStage;
   notes: string | null;
   assigned_to: string | null;
   address: string | null;
   next_renewal_at: string | null;
   converted_from_lead_id: string | null;
+  admission_date: string | null;
+  admission_notes: string | null;
+  investigation_date: string | null;
+  investigation_notes: string | null;
+  follow_up_date: string | null;
+  follow_up_notes: string | null;
+  discharge_date: string | null;
+  discharge_notes: string | null;
   created_at: string;
   updated_at: string;
 }

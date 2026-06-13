@@ -5,7 +5,7 @@ import { Input } from '../ui/Input';
 import { Textarea } from '../ui/Textarea';
 import { useAuthStore } from '../../store/auth-store';
 import { postgrest } from '../../lib/postgrest';
-import type { Client, Lead, User } from '../../types/aios';
+import type { Client, ClientStage, Lead, User } from '../../types/aios';
 
 const API_URL =
   (window as Window & { __env__?: { API_URL?: string } }).__env__?.API_URL ??
@@ -15,6 +15,14 @@ const API_URL =
 const labelCls = 'block text-sm font-medium text-slate-700 mb-1';
 const selectCls =
   'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500';
+
+const STAGE_CONFIG: Record<ClientStage, { label: string; color: string; bg: string }> = {
+  admission:    { label: 'Admission',    color: '#6366f1', bg: '#eef2ff' },
+  investigation:{ label: 'Investigation',color: '#f59e0b', bg: '#fffbeb' },
+  follow_up:    { label: 'Follow Up',    color: '#10b981', bg: '#f0fdf4' },
+  discharge:    { label: 'Discharge',    color: '#94a3b8', bg: '#f8fafc' },
+  active:       { label: 'Active',       color: '#06b6d4', bg: '#ecfeff' },
+};
 
 interface Props {
   isOpen: boolean;
@@ -28,21 +36,32 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
   const { token } = useAuthStore();
   const isEdit = Boolean(initialData?.id);
 
-  const [company, setCompany]             = useState('');
-  const [name, setName]                   = useState('');
-  const [email, setEmail]                 = useState('');
-  const [phone, setPhone]                 = useState('');
-  const [industry, setIndustry]           = useState('');
-  const [website, setWebsite]             = useState('');
-  const [contractValue, setContractValue] = useState('');
-  const [status, setStatus]               = useState<Client['status']>('active');
-  const [address, setAddress]             = useState('');
-  const [nextRenewalAt, setNextRenewalAt] = useState('');
-  const [assignedTo, setAssignedTo]       = useState('');
-  const [notes, setNotes]                 = useState('');
-  const [users, setUsers]                 = useState<User[]>([]);
-  const [saving, setSaving]               = useState(false);
-  const [error, setError]                 = useState<string | null>(null);
+  const [company, setCompany]                       = useState('');
+  const [name, setName]                             = useState('');
+  const [email, setEmail]                           = useState('');
+  const [phone, setPhone]                           = useState('');
+  const [industry, setIndustry]                     = useState('');
+  const [website, setWebsite]                       = useState('');
+  const [contractValue, setContractValue]           = useState('');
+  const [status, setStatus]                         = useState<Client['status']>('active');
+  const [stage, setStage]                           = useState<ClientStage>('admission');
+  const [address, setAddress]                       = useState('');
+  const [nextRenewalAt, setNextRenewalAt]           = useState('');
+  const [assignedTo, setAssignedTo]                 = useState('');
+  const [notes, setNotes]                           = useState('');
+  // Clinical journey
+  const [admissionDate, setAdmissionDate]           = useState('');
+  const [admissionNotes, setAdmissionNotes]         = useState('');
+  const [investigationDate, setInvestigationDate]   = useState('');
+  const [investigationNotes, setInvestigationNotes] = useState('');
+  const [followUpDate, setFollowUpDate]             = useState('');
+  const [followUpNotes, setFollowUpNotes]           = useState('');
+  const [dischargeDate, setDischargeDate]           = useState('');
+  const [dischargeNotes, setDischargeNotes]         = useState('');
+
+  const [users, setUsers]   = useState<User[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError]   = useState<string | null>(null);
 
   useEffect(() => {
     postgrest.get<User>('users', { order: 'name.asc', limit: 200 }).then(setUsers).catch((err) => {
@@ -55,11 +74,15 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
       setName(convertingFromLead.name);
       setEmail(convertingFromLead.email);
       setPhone(convertingFromLead.phone ?? '');
-      setCompany('');
-      setIndustry(''); setWebsite(''); setContractValue('');
-      setStatus('active'); setAddress(''); setNextRenewalAt('');
+      setCompany(''); setIndustry(''); setWebsite(''); setContractValue('');
+      setStatus('active'); setStage('admission');
+      setAddress(''); setNextRenewalAt('');
       setAssignedTo(convertingFromLead.assigned_to ?? '');
       setNotes(convertingFromLead.notes ?? '');
+      setAdmissionDate(''); setAdmissionNotes('');
+      setInvestigationDate(''); setInvestigationNotes('');
+      setFollowUpDate(''); setFollowUpNotes('');
+      setDischargeDate(''); setDischargeNotes('');
     } else if (initialData) {
       setCompany(initialData.company ?? '');
       setName(initialData.name ?? '');
@@ -69,15 +92,28 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
       setWebsite(initialData.website ?? '');
       setContractValue(initialData.contract_value != null ? String(initialData.contract_value) : '');
       setStatus(initialData.status ?? 'active');
+      setStage(initialData.stage ?? 'admission');
       setAddress(initialData.address ?? '');
       setNextRenewalAt(initialData.next_renewal_at ?? '');
       setAssignedTo(initialData.assigned_to ?? '');
       setNotes(initialData.notes ?? '');
+      setAdmissionDate(initialData.admission_date ?? '');
+      setAdmissionNotes(initialData.admission_notes ?? '');
+      setInvestigationDate(initialData.investigation_date ?? '');
+      setInvestigationNotes(initialData.investigation_notes ?? '');
+      setFollowUpDate(initialData.follow_up_date ?? '');
+      setFollowUpNotes(initialData.follow_up_notes ?? '');
+      setDischargeDate(initialData.discharge_date ?? '');
+      setDischargeNotes(initialData.discharge_notes ?? '');
     } else {
       setCompany(''); setName(''); setEmail(''); setPhone('');
       setIndustry(''); setWebsite(''); setContractValue('');
-      setStatus('active'); setAddress(''); setNextRenewalAt('');
-      setAssignedTo(''); setNotes('');
+      setStatus('active'); setStage('admission');
+      setAddress(''); setNextRenewalAt(''); setAssignedTo(''); setNotes('');
+      setAdmissionDate(''); setAdmissionNotes('');
+      setInvestigationDate(''); setInvestigationNotes('');
+      setFollowUpDate(''); setFollowUpNotes('');
+      setDischargeDate(''); setDischargeNotes('');
     }
     setError(null);
   }, [initialData, convertingFromLead, isOpen]);
@@ -88,18 +124,27 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
     setError(null);
 
     const body: Record<string, unknown> = {
-      company:         company.trim(),
-      name:            name.trim(),
-      email:           email.trim(),
-      phone:           phone.trim() || null,
-      industry:        industry.trim() || null,
-      website:         website.trim() || null,
-      contract_value:  contractValue ? parseFloat(contractValue) : null,
+      company:              company.trim(),
+      name:                 name.trim(),
+      email:                email.trim(),
+      phone:                phone.trim() || null,
+      industry:             industry.trim() || null,
+      website:              website.trim() || null,
+      contract_value:       contractValue ? parseFloat(contractValue) : null,
       status,
-      address:         address.trim() || null,
-      next_renewal_at: nextRenewalAt || null,
-      assigned_to:     assignedTo || null,
-      notes:           notes.trim() || null,
+      stage,
+      address:              address.trim() || null,
+      next_renewal_at:      nextRenewalAt || null,
+      assigned_to:          assignedTo || null,
+      notes:                notes.trim() || null,
+      admission_date:       admissionDate || null,
+      admission_notes:      admissionNotes.trim() || null,
+      investigation_date:   investigationDate || null,
+      investigation_notes:  investigationNotes.trim() || null,
+      follow_up_date:       followUpDate || null,
+      follow_up_notes:      followUpNotes.trim() || null,
+      discharge_date:       dischargeDate || null,
+      discharge_notes:      dischargeNotes.trim() || null,
     };
     if (convertingFromLead) body.converted_from_lead_id = convertingFromLead.id;
 
@@ -127,9 +172,18 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
     ? `Convert "${convertingFromLead.name}" to Client`
     : isEdit ? 'Edit Client' : 'New Client';
 
+  const JOURNEY_STAGES: { key: ClientStage; label: string; date: string; setDate: (v: string) => void; noteVal: string; setNote: (v: string) => void }[] = [
+    { key: 'admission',     label: 'Admission',     date: admissionDate,     setDate: setAdmissionDate,     noteVal: admissionNotes,     setNote: setAdmissionNotes },
+    { key: 'investigation', label: 'Investigation',  date: investigationDate, setDate: setInvestigationDate, noteVal: investigationNotes, setNote: setInvestigationNotes },
+    { key: 'follow_up',     label: 'Follow Up',     date: followUpDate,      setDate: setFollowUpDate,      noteVal: followUpNotes,      setNote: setFollowUpNotes },
+    { key: 'discharge',     label: 'Discharge',     date: dischargeDate,     setDate: setDischargeDate,     noteVal: dischargeNotes,     setNote: setDischargeNotes },
+  ];
+
   return (
     <Modal open={isOpen} onClose={onClose} title={title} size="lg">
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
+
+        {/* ── Basic info ── */}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>Company *</label>
@@ -155,23 +209,18 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>Industry</label>
-            <Input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="Technology" />
+            <Input value={industry} onChange={e => setIndustry(e.target.value)} placeholder="Aesthetics" />
           </div>
           <div>
             <label className={labelCls}>Website</label>
-            <Input value={website} onChange={e => setWebsite(e.target.value)} placeholder="https://acme.com" />
+            <Input value={website} onChange={e => setWebsite(e.target.value)} placeholder="https://example.com" />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>Contract Value (£)</label>
-            <Input
-              type="number" min={0} step="0.01"
-              value={contractValue}
-              onChange={e => setContractValue(e.target.value)}
-              placeholder="0.00"
-            />
+            <Input type="number" min={0} step="0.01" value={contractValue} onChange={e => setContractValue(e.target.value)} placeholder="0.00" />
           </div>
           <div>
             <label className={labelCls}>Status</label>
@@ -204,7 +253,67 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
 
         <div>
           <label className={labelCls}>Notes</label>
-          <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="Additional notes…" />
+          <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} placeholder="General notes…" />
+        </div>
+
+        {/* ── Clinical Journey ── */}
+        <div>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex-1 h-px bg-slate-200" />
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Clinical Journey</span>
+            <div className="flex-1 h-px bg-slate-200" />
+          </div>
+
+          {/* Current stage selector */}
+          <div className="mb-4">
+            <label className={labelCls}>Current Stage</label>
+            <div className="flex gap-2 flex-wrap">
+              {(Object.entries(STAGE_CONFIG) as [ClientStage, typeof STAGE_CONFIG[ClientStage]][]).map(([key, cfg]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setStage(key)}
+                  className="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all"
+                  style={{
+                    background:   stage === key ? cfg.color : cfg.bg,
+                    color:        stage === key ? '#fff' : cfg.color,
+                    borderColor:  stage === key ? cfg.color : `${cfg.color}40`,
+                  }}
+                >
+                  {cfg.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Stage milestones */}
+          <div className="space-y-3">
+            {JOURNEY_STAGES.map(({ key, label, date, setDate, noteVal, setNote }) => {
+              const cfg = STAGE_CONFIG[key];
+              return (
+                <div
+                  key={key}
+                  className="rounded-xl border p-3"
+                  style={{ borderColor: `${cfg.color}30`, background: cfg.bg }}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 rounded-full" style={{ background: cfg.color }} />
+                    <span className="text-xs font-bold" style={{ color: cfg.color }}>{label}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">Date</label>
+                      <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">Notes</label>
+                      <Input value={noteVal} onChange={e => setNote(e.target.value)} placeholder={`${label} notes…`} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {error && <p className="text-sm text-danger">{error}</p>}

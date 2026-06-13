@@ -90,7 +90,11 @@ router.post('/', requireAuth, requireAdminOrManager, async (req: Request, res: R
   try {
     const {
       name, email, company, phone, industry, website, contract_value,
-      status, notes, assigned_to, address, next_renewal_at, converted_from_lead_id,
+      status, stage, notes, assigned_to, address, next_renewal_at, converted_from_lead_id,
+      admission_date, admission_notes,
+      investigation_date, investigation_notes,
+      follow_up_date, follow_up_notes,
+      discharge_date, discharge_notes,
     } = req.body as Record<string, unknown>;
     const tenantId = req.user!.tenant_id;
 
@@ -102,15 +106,23 @@ router.post('/', requireAuth, requireAdminOrManager, async (req: Request, res: R
     const result = await db.query(`
       INSERT INTO aios.clients
         (tenant_id, name, email, company, phone, industry, website, contract_value,
-         status, notes, assigned_to, address, next_renewal_at, converted_from_lead_id)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+         status, stage, notes, assigned_to, address, next_renewal_at, converted_from_lead_id,
+         admission_date, admission_notes,
+         investigation_date, investigation_notes,
+         follow_up_date, follow_up_notes,
+         discharge_date, discharge_notes)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
       RETURNING *
     `, [
       tenantId, name, email, company,
       phone ?? null, industry ?? null, website ?? null, contract_value ?? null,
-      status ?? 'active', notes ?? null,
+      status ?? 'active', stage ?? 'admission', notes ?? null,
       assigned_to ?? null, address ?? null, next_renewal_at ?? null,
       converted_from_lead_id ?? null,
+      admission_date ?? null, admission_notes ?? null,
+      investigation_date ?? null, investigation_notes ?? null,
+      follow_up_date ?? null, follow_up_notes ?? null,
+      discharge_date ?? null, discharge_notes ?? null,
     ]);
 
     res.status(201).json(result.rows[0]);
@@ -161,10 +173,19 @@ router.patch('/:id', requireAuth, requireAdminOrManager, async (req: Request, re
     addDirect('website', 'website');
     addDirect('contract_value', 'contract_value');
     addCoalesce('status', 'status');
+    addCoalesce('stage', 'stage');
     addDirect('notes', 'notes');
     addDirect('assigned_to', 'assigned_to');
     addDirect('address', 'address');
     addDirect('next_renewal_at', 'next_renewal_at');
+    addDirect('admission_date', 'admission_date');
+    addDirect('admission_notes', 'admission_notes');
+    addDirect('investigation_date', 'investigation_date');
+    addDirect('investigation_notes', 'investigation_notes');
+    addDirect('follow_up_date', 'follow_up_date');
+    addDirect('follow_up_notes', 'follow_up_notes');
+    addDirect('discharge_date', 'discharge_date');
+    addDirect('discharge_notes', 'discharge_notes');
 
     if (setClauses.length === 0) {
       res.status(400).json({ error: 'No fields to update' });

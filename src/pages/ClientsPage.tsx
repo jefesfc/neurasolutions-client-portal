@@ -11,7 +11,7 @@ import { SearchInput } from '../components/shared/SearchInput';
 import { ClientDetailPanel } from '../components/clients/ClientDetailPanel';
 import { ClientModal } from '../components/clients/ClientModal';
 import { downloadClientsPDF } from '../lib/pdf';
-import type { Client } from '../types/aios';
+import type { Client, ClientStage } from '../types/aios';
 
 const API_URL =
   (window as Window & { __env__?: { API_URL?: string } }).__env__?.API_URL ??
@@ -19,6 +19,7 @@ const API_URL =
   'http://localhost:3001';
 
 type ClientStatus = Client['status'] | 'all';
+type StageFilter  = ClientStage | 'all';
 
 const STATUS_TABS: { key: ClientStatus; label: string }[] = [
   { key: 'all',      label: 'All'      },
@@ -27,35 +28,59 @@ const STATUS_TABS: { key: ClientStatus; label: string }[] = [
   { key: 'churned',  label: 'Churned'  },
 ];
 
+const STAGE_TABS: { key: StageFilter; label: string; color: string }[] = [
+  { key: 'all',           label: 'All Stages',    color: '#64748b' },
+  { key: 'admission',     label: 'Admission',     color: '#6366f1' },
+  { key: 'investigation', label: 'Investigation', color: '#f59e0b' },
+  { key: 'follow_up',     label: 'Follow Up',     color: '#10b981' },
+  { key: 'discharge',     label: 'Discharge',     color: '#94a3b8' },
+  { key: 'active',        label: 'Active',        color: '#06b6d4' },
+];
+
 const STATUS_BADGE: Record<Client['status'], { variant: 'success' | 'warning' | 'danger'; label: string }> = {
   active:   { variant: 'success', label: 'Active'   },
   inactive: { variant: 'warning', label: 'Inactive' },
   churned:  { variant: 'danger',  label: 'Churned'  },
 };
 
+const STAGE_LABEL: Record<ClientStage, string> = {
+  admission:     'Admission',
+  investigation: 'Investigation',
+  follow_up:     'Follow Up',
+  discharge:     'Discharge',
+  active:        'Active',
+};
+
 export default function ClientsPage() {
   const { data: clients, loading, error, refetch } = useQuery<Client>('clients', { order: 'created_at.desc' });
   const { user, token } = useAuthStore();
-  const [activeStatus, setActiveStatus] = useState<ClientStatus>('all');
-  const [search, setSearch]             = useState('');
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [modalOpen, setModalOpen]           = useState(false);
-  const [modalData, setModalData]           = useState<Partial<Client> | undefined>(undefined);
+  const [activeStatus, setActiveStatus]         = useState<ClientStatus>('all');
+  const [activeStage, setActiveStage]           = useState<StageFilter>('all');
+  const [search, setSearch]                     = useState('');
+  const [selectedClient, setSelectedClient]     = useState<Client | null>(null);
+  const [modalOpen, setModalOpen]               = useState(false);
+  const [modalData, setModalData]               = useState<Partial<Client> | undefined>(undefined);
 
   const canEdit = user?.role !== 'user';
 
   const filtered = clients.filter((c) => {
     const matchStatus = activeStatus === 'all' || c.status === activeStatus;
+    const matchStage  = activeStage  === 'all' || (c.stage ?? 'admission') === activeStage;
     const matchSearch =
       !search ||
       c.name.toLowerCase().includes(search.toLowerCase()) ||
       c.email.toLowerCase().includes(search.toLowerCase()) ||
       c.company.toLowerCase().includes(search.toLowerCase());
-    return matchStatus && matchSearch;
+    return matchStatus && matchStage && matchSearch;
   });
 
-  const countFor = (s: ClientStatus) =>
+  const countForStatus = (s: ClientStatus) =>
     s === 'all' ? clients.length : clients.filter((c) => c.status === s).length;
+
+  const countForStage = (s: StageFilter) =>
+    s === 'all'
+      ? clients.length
+      : clients.filter((c) => (c.stage ?? 'admission') === s).length;
 
   function openCreate() { setModalData(undefined); setModalOpen(true); }
   function openEdit()   { if (!selectedClient) return; setModalData(selectedClient); setModalOpen(true); }
@@ -87,7 +112,7 @@ export default function ClientsPage() {
     <PageTransition>
       <PageHeader
         title="Clients"
-        description="Manage your converted accounts and contracts"
+        description="Manage your patient accounts and clinical journey"
         actions={
           <div className="flex gap-2">
             <Button
@@ -110,7 +135,7 @@ export default function ClientsPage() {
       />
 
       {/* Status tabs */}
-      <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit mb-5 flex-wrap">
+      <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit mb-3 flex-wrap">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.key}
@@ -125,10 +150,39 @@ export default function ClientsPage() {
             <span className={`text-xs rounded-full px-1.5 py-0.5 ${
               activeStatus === tab.key ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-500'
             }`}>
-              {countFor(tab.key)}
+              {countForStatus(tab.key)}
             </span>
           </button>
         ))}
+      </div>
+
+      {/* Stage tabs */}
+      <div className="flex gap-1.5 mb-4 flex-wrap">
+        {STAGE_TABS.map((tab) => {
+          const isActive = activeStage === tab.key;
+          const count = countForStage(tab.key);
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveStage(tab.key)}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all"
+              style={{
+                background:  isActive ? tab.color : '#fff',
+                color:       isActive ? '#fff' : tab.color,
+                borderColor: isActive ? tab.color : `${tab.color}40`,
+                boxShadow:   isActive ? `0 2px 8px ${tab.color}30` : 'none',
+              }}
+            >
+              {tab.label}
+              <span
+                className="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
+                style={{ background: isActive ? 'rgba(255,255,255,0.25)' : `${tab.color}15`, color: isActive ? '#fff' : tab.color }}
+              >
+                {count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Search */}
@@ -156,13 +210,16 @@ export default function ClientsPage() {
                   {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">Name</th>}
                   {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">Email</th>}
                   <th className="text-left px-4 py-3 font-medium text-slate-500">Value</th>
-                  <th className="text-left px-4 py-3 font-medium text-slate-500">Status</th>
+                  <th className="text-left px-4 py-3 font-medium text-slate-500">Stage</th>
+                  {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">Status</th>}
                   {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">Renewal</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filtered.map((client) => {
-                  const badge = STATUS_BADGE[client.status];
+                  const badge      = STATUS_BADGE[client.status];
+                  const clientStage = (client.stage ?? 'admission') as ClientStage;
+                  const stageCfg   = STAGE_TABS.find(s => s.key === clientStage);
                   const isSelected = selectedClient?.id === client.id;
                   return (
                     <tr
@@ -179,8 +236,21 @@ export default function ClientsPage() {
                           : '—'}
                       </td>
                       <td className="px-4 py-3">
-                        <Badge variant={badge.variant} dot>{badge.label}</Badge>
+                        <span
+                          className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                          style={{
+                            color:      stageCfg?.color ?? '#64748b',
+                            background: `${stageCfg?.color ?? '#64748b'}15`,
+                          }}
+                        >
+                          {STAGE_LABEL[clientStage]}
+                        </span>
                       </td>
+                      {!selectedClient && (
+                        <td className="px-4 py-3">
+                          <Badge variant={badge.variant} dot>{badge.label}</Badge>
+                        </td>
+                      )}
                       {!selectedClient && (
                         <td className="px-4 py-3 text-slate-400">
                           {client.next_renewal_at
@@ -210,7 +280,6 @@ export default function ClientsPage() {
         )}
       </div>
 
-      {/* Modal — only mount when open */}
       {modalOpen && (
         <ClientModal
           isOpen={modalOpen}
