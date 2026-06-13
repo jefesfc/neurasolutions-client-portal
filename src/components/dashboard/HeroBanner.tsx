@@ -82,7 +82,7 @@ function ActiveServicesCard({ secSummary }: ServicesCardProps) {
 
   const SERVICES: { icon: string; name: string; detail: string; status: ServiceStatus }[] = [
     { icon: "✈️", name: "Telegram Bot",      detail: "@Neura_AIOS_demo_bot", status: "active"  },
-    { icon: "🤖", name: "AI Orchestrator",   detail: "GPT-4o",               status: "active"  },
+    { icon: "🤖", name: "AI Orchestrator",   detail: "Claude Sonnet 4.6",    status: "active"  },
     { icon: "⚙️", name: "n8n Workflows",     detail: "3 running",            status: "active"  },
     { icon: "📧", name: "Gmail Sync",        detail: "last sync 2m ago",     status: "active"  },
     { icon: "📅", name: "Calendar Notifier", detail: "08:00 daily cron",     status: "pending" },
@@ -218,15 +218,18 @@ function LeadsStatusChart({ leads, statusCounts }: LeadsStatusProps) {
 
 // ── PlatformHealthPanel ─────────────────────────────────────────────────────
 
-const HEALTH_BARS = [
-  { label: "Active Systems", value: "6 / 6",    pct: 100,   color: "#10b981", sub: "All operational",   valColor: "#34d399" },
-  { label: "Uptime SLA",     value: "99.98%",   pct: 99.98, color: "#10b981", sub: "This month",        valColor: "#34d399" },
-  { label: "Plan Usage",     value: "78.4%",    pct: 78.4,  color: "#6366f1", sub: "Interactions used", valColor: "#a5b4fc" },
-  { label: "Open Tickets",   value: "4",        pct: 33,    color: "#f59e0b", sub: "2 high priority",   valColor: "#fbbf24" },
-  { label: "AI Cost Budget", value: "£0 / £40", pct: 0,     color: "#6366f1", sub: "Monthly limit",     valColor: "#fff"    },
-] as const;
+const AI_MONTHLY_BUDGET = 40;
 
-function PlatformHealthPanel() {
+function PlatformHealthPanel({ totalCost }: { totalCost: number }) {
+  const budgetPct = Math.min((totalCost / AI_MONTHLY_BUDGET) * 100, 100);
+  const budgetColor = budgetPct > 80 ? "#ef4444" : budgetPct > 50 ? "#f59e0b" : "#6366f1";
+  const healthBars = [
+    { label: "Active Systems", value: "6 / 6",    pct: 100,      color: "#10b981", sub: "All operational",   valColor: "#34d399" },
+    { label: "Uptime SLA",     value: "99.98%",   pct: 99.98,    color: "#10b981", sub: "This month",        valColor: "#34d399" },
+    { label: "Plan Usage",     value: "78.4%",    pct: 78.4,     color: "#6366f1", sub: "Interactions used", valColor: "#a5b4fc" },
+    { label: "Open Tickets",   value: "4",        pct: 33,       color: "#f59e0b", sub: "2 high priority",   valColor: "#fbbf24" },
+    { label: "AI Cost Budget", value: `£${totalCost.toFixed(2)} / £${AI_MONTHLY_BUDGET}`, pct: budgetPct, color: budgetColor, sub: "Monthly limit", valColor: "#fff" },
+  ];
   return (
     <div style={panelInner}>
       <div style={panelTitle}>
@@ -234,7 +237,7 @@ function PlatformHealthPanel() {
         Platform Health
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 9, flex: 1, justifyContent: "center" }}>
-        {HEALTH_BARS.map(bar => (
+        {healthBars.map(bar => (
           <div key={bar.label}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
               <span style={{ fontSize: 11, color: "#fcd34d" }}>{bar.label}</span>
@@ -258,10 +261,14 @@ function PlatformHealthPanel() {
 // ── AICostPanel ─────────────────────────────────────────────────────────────
 
 const AGENT_COLORS: Record<string, string> = {
-  "aios-chat":     "#6366f1",
-  "aios-telegram": "#8b5cf6",
-  "telegram-tts":  "#0ea5e9",
-  "whisper":       "#10b981",
+  "aios-chat":           "#6366f1",
+  "aios-telegram":       "#8b5cf6",
+  "telegram-tts":        "#0ea5e9",
+  "whisper":             "#10b981",
+  "Appointment AI":      "#06b6d4",
+  "Skincare Advisor AI": "#10b981",
+  "Clinical Insights AI":"#8b5cf6",
+  "Chief of Staff AI":   "#f59e0b",
 };
 
 interface AICostPanelProps {
@@ -307,7 +314,7 @@ function AICostPanel({ totalCost, agentList, maxAgentCost }: AICostPanelProps) {
       </div>
       <hr style={{ border: "none", borderTop: "1px solid rgba(255,215,0,0.1)", margin: "6px 0" }} />
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <small style={{ fontSize: 10, color: "#fcd34d" }}>gpt-4o · tts-1 · whisper-1</small>
+        <small style={{ fontSize: 10, color: "#fcd34d" }}>claude-sonnet-4-6 · claude-haiku-4-5</small>
         <span style={{ background: "rgba(16,185,129,0.15)", color: "#34d399", fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4 }}>
           ↓ Under budget
         </span>
@@ -544,7 +551,7 @@ export function HeroBanner() {
           <LeadsStatusChart leads={leads} statusCounts={statusCounts} />
         </div>
         <div className="hover-neon" style={glowPanel("emerald")}>
-          <PlatformHealthPanel />
+          <PlatformHealthPanel totalCost={totalCost} />
         </div>
         <div className="hover-neon" style={glowPanel("amber")}>
           <AICostPanel totalCost={totalCost} agentList={agentList} maxAgentCost={maxAgentCost} />
