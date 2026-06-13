@@ -1,8 +1,12 @@
 import { useAuthStore } from '../store/auth-store';
 
-const BASE_URL = (window as Window & { __env__?: { POSTGREST_URL?: string } }).__env__?.POSTGREST_URL
-  ?? import.meta.env.VITE_POSTGREST_URL
-  ?? 'https://xneurasolutions-postgrest.9lagn8.easypanel.host';
+// All reads are proxied through the Express backend (/pg) so they share
+// the same origin as other API calls — avoids cross-origin blocks in Brave/Firefox.
+const API_URL = (window as Window & { __env__?: { API_URL?: string } }).__env__?.API_URL
+  ?? import.meta.env.VITE_API_URL
+  ?? 'http://localhost:3001';
+
+const BASE_URL = `${API_URL}/pg`;
 
 function getHeaders(): HeadersInit {
   const token = useAuthStore.getState().token;

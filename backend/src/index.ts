@@ -16,6 +16,7 @@ import invoicingRouter from './routes/invoicing';
 import billingRouter from './routes/billing';
 import supportRouter from './routes/support';
 import reportsRouter from './routes/reports';
+import postgrestProxyRouter from './routes/postgrestProxy';
 
 dotenv.config();
 
@@ -46,6 +47,7 @@ app.use('/billing', billingRouter);
 app.use('/support', supportRouter);
 app.use('/reports', reportsRouter);
 
+app.use('/pg', postgrestProxyRouter);
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
 app.listen(PORT, () => {
