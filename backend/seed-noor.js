@@ -28,6 +28,7 @@ async function seed() {
     await db.query('BEGIN');
 
     // ── 1. CLEAR existing tenant data ─────────────────────────────────────
+    await db.query(`DELETE FROM aios.support_tickets  WHERE tenant_id = '${TENANT}'`);
     await db.query(`DELETE FROM aios.client_invoices WHERE tenant_id = '${TENANT}'`);
     await db.query(`DELETE FROM aios.calendar_events  WHERE tenant_id = '${TENANT}'`);
     await db.query(`DELETE FROM aios.clients          WHERE tenant_id = '${TENANT}'`);
@@ -268,6 +269,32 @@ async function seed() {
       (gen_random_uuid(),'${TENANT}','security-analyzer',2600,1400,'gpt-4o',0.052,NOW()-'5 days'::interval)
     `);
     console.log('   ✓ 8 token_usage entries inserted');
+
+    // ── 8. SUPPORT TICKETS ─────────────────────────────────────────────────
+    await db.query(`
+      INSERT INTO aios.support_tickets (tenant_id, user_id, subject, description, category, priority, status, created_at)
+      VALUES
+      ('${TENANT}','${ADMIN}',
+       'AI Orchestrator response delay during peak hours',
+       'During busy clinic sessions (10am–1pm), the AI chat takes 8–12 seconds to respond instead of the usual 2–3s. Likely a rate-limit issue on the GPT-4o side.',
+       'technical','high','open',NOW()-'3 days'::interval),
+
+      ('${TENANT}','${ADMIN}',
+       'Telegram voice messages not transcribing correctly in Arabic',
+       'When patients send voice messages in Arabic via Telegram, the Whisper transcription is returning garbled text. English voice messages work fine.',
+       'technical','high','open',NOW()-'5 days'::interval),
+
+      ('${TENANT}','${ADMIN}',
+       'Invoice NOOR-2026-0001 — request for payment plan',
+       'Dr. Aisha Al-Khalid has requested to split the £5,200 annual subscription into quarterly payments. Please update the billing configuration.',
+       'billing','medium','open',NOW()-'1 day'::interval),
+
+      ('${TENANT}','${ADMIN}',
+       'Add patient satisfaction survey after discharge',
+       'Feature request: automatically send a satisfaction survey link via Telegram/email 48 hours after a client is marked as discharged.',
+       'feature-request','low','open',NOW()-'7 days'::interval)
+    `);
+    console.log('   ✓ 4 support tickets inserted');
 
     await db.query('COMMIT');
     console.log('');

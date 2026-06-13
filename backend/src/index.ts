@@ -24,6 +24,7 @@ const app = express();
 const PORT = process.env.PORT ?? 3001;
 
 const allowedOrigins = [
+  'https://ios.neurasolutions.cloud',
   process.env.FRONTEND_URL ?? 'http://localhost:5173',
   'http://localhost:5173',
   'http://localhost:5174',
