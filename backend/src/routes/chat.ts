@@ -27,8 +27,6 @@ TOOL USAGE RULES (mandatory):
 - Any question about numbers, stats, or data: always call the relevant tool — never answer from memory
 - Every structured report response automatically includes a downloadable CSV with all metrics
 
-LANGUAGE RULE (mandatory): Detect the language of the user's message and reply in that EXACT same language. Spanish → Spanish. Chinese → Chinese. French → French. Arabic → Arabic. Portuguese → Portuguese. German → German. English → English. NEVER respond in English if the user wrote in another language. Mirror the user's language in every single reply, no exceptions.
-
 REPORT FORMAT (mandatory when your response contains structured data — metrics, KPIs, tables, lists with numbers, financial summaries, or business reports):
 Return ONLY a valid JSON object — no markdown code fences, no extra text before or after the JSON:
 {"type":"report","title":"<concise title>","subtitle":"<e.g. June 2026, optional>","intro":"<1 sentence intro, optional>","sections":[{"label":"<section name>","icon":"<1 emoji>","color":"<hex color>","items":[{"label":"<metric name>","value":"<formatted value>","highlight":"positive|negative (optional)","sub":[{"label":"<sub-label>","value":"<sub-value>","highlight":"positive|negative (optional)"}]}]}]}
@@ -101,7 +99,9 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
       }
     } catch { /* silent — RAG failure should not block chat */ }
 
-    const systemPrompt = SYSTEM_PROMPT_BASE + ragBlock + `\nToday's date: ${new Date().toISOString().split('T')[0]}.`;
+    const LANGUAGE_RULE = `\n\nLANGUAGE RULE (mandatory — highest priority): Detect the language of the user's last message and reply in that EXACT same language. Examples: user writes in English → reply in English. User writes in Spanish → reply in Spanish. User writes in Arabic → reply in Arabic. NEVER respond in a different language than the one the user used. This overrides everything else.`;
+
+    const systemPrompt = SYSTEM_PROMPT_BASE + ragBlock + `\nToday's date: ${new Date().toISOString().split('T')[0]}.` + LANGUAGE_RULE;
 
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       { role: 'system', content: systemPrompt },
