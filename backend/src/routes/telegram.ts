@@ -390,6 +390,7 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       { role: 'system', content: systemWithRag },
       ...history,
+      { role: 'system', content: `LANGUAGE OVERRIDE: The user's current message is written in a specific language. Detect it from the next message and respond ONLY in that exact language. Ignore any previous language patterns in this conversation.` },
       { role: 'user', content: text },
     ];
 
