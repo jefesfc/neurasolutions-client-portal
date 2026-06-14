@@ -24,6 +24,7 @@ const categoryColors: Record<string, string> = {
   "security":            "bg-red-50 text-red-700 border-red-200",
   "email-automation":    "bg-sky-50 text-sky-700 border-sky-200",
   "calendar":            "bg-teal-50 text-teal-700 border-teal-200",
+  "knowledge-retrieval": "bg-cyan-50 text-cyan-700 border-cyan-200",
 };
 
 const categoryLabels: Record<string, string> = {
@@ -38,6 +39,7 @@ const categoryLabels: Record<string, string> = {
   "security":            "Security",
   "email-automation":    "Email",
   "calendar":            "Calendar",
+  "knowledge-retrieval": "Knowledge RAG",
 };
 
 interface SystemCardProps {

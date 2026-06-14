@@ -273,6 +273,30 @@ export const mockAISystems: AISystem[] = [
       uptime: 99.6,
     },
   },
+  {
+    id: "sys_rag",
+    name: "RAG Knowledge Base",
+    description: "Retrieval-Augmented Generation engine powered by Pinecone vector database and OpenAI text-embedding-3-small. Indexes company documents into 800-token semantic chunks with 100-token overlap, then retrieves the top-5 most relevant passages on every AI query — injecting grounded, source-cited context into the system prompt before GPT-4o responds. Eliminates hallucinations on company-specific questions.",
+    shortDescription: "Pinecone semantic search — grounded AI answers from your docs",
+    status: "active",
+    health: "healthy",
+    category: "knowledge-retrieval",
+    icon: "Brain",
+    installedDate: "2026-06-14",
+    lastActive: new Date().toISOString(),
+    version: "Pinecone v5 + text-embedding-3-small",
+    automations: 2,
+    successRate: 98.8,
+    metrics: {
+      totalInteractions: 1536,
+      interactionsThisMonth: 1536,
+      avgResponseTime: 0.6,
+      tasksAutomated: 1536,
+      leadsGenerated: 0,
+      hoursSaved: 34,
+      uptime: 99.9,
+    },
+  },
 ];
 
 // ── KPIs ──
@@ -308,12 +332,12 @@ export const mockNotifications: Notification[] = [
 ];
 
 export const mockSystemActivities: SystemActivity[] = [
-  { id: "sa_1", systemId: "sys_webchat", systemName: "AIOS Web Chat", action: "Conversation batch processing completed", timestamp: "2026-05-09T10:30:00Z", status: "success", details: "47 multi-turn conversations handled with live data tools" },
-  { id: "sa_2", systemId: "sys_telegram", systemName: "AIOS Telegram Bot", action: "Response time optimization", timestamp: "2026-05-09T09:45:00Z", status: "success", details: "Avg response time: 0.8s" },
-  { id: "sa_3", systemId: "sys_voice", systemName: "AIOS Voice Transcription", action: "Voice batch transcription completed", timestamp: "2026-05-09T09:00:00Z", status: "success", details: "410 voice messages transcribed, accuracy: 99.2%" },
-  { id: "sa_4", systemId: "sys_webchat", systemName: "AIOS Web Chat", action: "Daily conversation batch processing", timestamp: "2026-05-09T08:30:00Z", status: "warning", details: "18/20 conversation threads completed — 2 delayed" },
-  { id: "sa_5", systemId: "sys_telegram", systemName: "AIOS Telegram Bot", action: "Message campaign processed", timestamp: "2026-05-09T08:00:00Z", status: "success", details: "1,240 messages sent to 12,400 users across channels" },
-  { id: "sa_6", systemId: "sys_voice", systemName: "AIOS Voice Transcription", action: "Weekly transcription analytics refresh", timestamp: "2026-05-09T03:00:00Z", status: "success", details: "Voice accuracy metrics updated with 99.2% confidence" },
+  { id: "sa_1", systemId: "sys_rag", systemName: "RAG Knowledge Base", action: "Document indexed successfully", timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(), status: "success", details: "Payment Policy & Accepted Currencies — 12 chunks indexed in Pinecone (aios-knowledge)" },
+  { id: "sa_2", systemId: "sys_rag", systemName: "RAG Knowledge Base", action: "Semantic retrieval — context injected", timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(), status: "success", details: "Top-5 chunks retrieved in 0.4s for query: 'cancellation policy' — score 0.475" },
+  { id: "sa_3", systemId: "sys_webchat", systemName: "AIOS Web Chat", action: "Conversation batch processing completed", timestamp: "2026-06-14T10:30:00Z", status: "success", details: "47 multi-turn conversations handled with live data tools" },
+  { id: "sa_4", systemId: "sys_telegram", systemName: "AIOS Telegram Bot", action: "Response time optimization", timestamp: "2026-06-14T09:45:00Z", status: "success", details: "Avg response time: 0.8s" },
+  { id: "sa_5", systemId: "sys_rag", systemName: "RAG Knowledge Base", action: "Knowledge base initialised", timestamp: "2026-06-14T08:00:00Z", status: "success", details: "7 documents indexed — 147 semantic chunks across clinic policies, treatments, memberships, FAQ, staff protocols, payments" },
+  { id: "sa_6", systemId: "sys_voice", systemName: "AIOS Voice Transcription", action: "Voice batch transcription completed", timestamp: "2026-06-14T07:00:00Z", status: "success", details: "410 voice messages transcribed, accuracy: 99.2%" },
 ];
 
 // ── Reports ──

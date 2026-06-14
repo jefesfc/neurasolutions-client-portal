@@ -11,7 +11,8 @@ export type SystemCategory =
   | "voice-processing"
   | "security"
   | "email-automation"
-  | "calendar";
+  | "calendar"
+  | "knowledge-retrieval";
 
 export const SYSTEM_STATUS = {
   Active: "active",
