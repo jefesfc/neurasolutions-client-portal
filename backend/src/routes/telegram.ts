@@ -76,7 +76,7 @@ async function sendDocumentTelegram(
 }
 
 const BACKEND_URL =
-  process.env.BACKEND_URL ?? 'https://xneurasolutions-aios-backend.9lagn8.easypanel.host';
+  process.env.BACKEND_URL ?? 'https://api.neurasolutions.cloud';
 const COST_PER_INPUT_TOKEN = 0.0000025;
 const COST_PER_OUTPUT_TOKEN = 0.00001;
 
