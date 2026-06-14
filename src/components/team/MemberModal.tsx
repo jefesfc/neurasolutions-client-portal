@@ -42,6 +42,7 @@ const MODULE_OPTIONS: { key: string; label: string }[] = [
   { key: "support",       label: "Support"       },
   { key: "team",          label: "Team"          },
   { key: "notifications", label: "Notifications" },
+  { key: "knowledge",     label: "Knowledge Base" },
 ];
 
 export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Props) {
