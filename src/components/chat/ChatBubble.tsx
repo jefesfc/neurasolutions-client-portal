@@ -5,6 +5,57 @@ import { useChat } from "../../hooks/useChat";
 import { cn } from "../../lib/cn";
 import { ReportMessage } from "./ReportMessage";
 
+function renderInline(text: string): React.ReactNode[] {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+    part.startsWith("**") && part.endsWith("**")
+      ? <strong key={i} className="font-semibold text-slate-900">{part.slice(2, -2)}</strong>
+      : <span key={i}>{part}</span>
+  );
+}
+
+function MarkdownMessage({ content }: { content: string }) {
+  const lines = content.split("\n");
+  const nodes: React.ReactNode[] = [];
+  let key = 0;
+  const listItems: React.ReactNode[] = [];
+
+  const flushList = () => {
+    if (listItems.length > 0) {
+      nodes.push(
+        <ul key={key++} className="space-y-1.5 my-1">
+          {listItems.splice(0)}
+        </ul>
+      );
+    }
+  };
+
+  for (const line of lines) {
+    const isBullet = /^[-•]\s/.test(line);
+    if (isBullet) {
+      listItems.push(
+        <li key={key++} className="flex items-start gap-2">
+          <span className="mt-[5px] h-1.5 w-1.5 rounded-full bg-brand-400 flex-shrink-0" />
+          <span className="leading-relaxed">{renderInline(line.replace(/^[-•]\s/, ""))}</span>
+        </li>
+      );
+    } else {
+      flushList();
+      if (line.trim() === "") {
+        nodes.push(<div key={key++} className="h-1.5" />);
+      } else {
+        nodes.push(
+          <p key={key++} className="leading-relaxed">
+            {renderInline(line)}
+          </p>
+        );
+      }
+    }
+  }
+  flushList();
+
+  return <div className="space-y-0.5 text-[12.5px]">{nodes}</div>;
+}
+
 const SUGGESTIONS = [
   "How many leads do we have this month?",
   "Show me upcoming calendar events",
@@ -167,14 +218,13 @@ export function ChatBubble() {
                             <div className="max-w-[95%]">
                               <ReportMessage report={msg.report_data!} />
                             </div>
-                          ) : (
-                            <div className={cn(
-                              "max-w-[80%] px-3 py-2.5 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap shadow-sm",
-                              msg.role === "user"
-                                ? "bg-brand-500 text-white rounded-br-sm"
-                                : "bg-white border border-slate-200 text-slate-800 rounded-bl-sm"
-                            )}>
+                          ) : msg.role === "user" ? (
+                            <div className="max-w-[80%] px-3.5 py-2.5 rounded-2xl rounded-br-sm text-xs leading-relaxed whitespace-pre-wrap shadow-sm bg-brand-500 text-white">
                               {msg.content}
+                            </div>
+                          ) : (
+                            <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm bg-white border border-slate-100 text-slate-700">
+                              <MarkdownMessage content={msg.content} />
                             </div>
                           )}
                         </div>
