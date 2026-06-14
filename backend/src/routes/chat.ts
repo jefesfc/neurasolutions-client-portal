@@ -6,6 +6,7 @@ import { toolDefinitions, executeTool } from '../lib/agentTools';
 import { db } from '../db';
 import type OpenAI from 'openai';
 import { emitSecurityEvent } from '../lib/securityEvents';
+import { queryKnowledge } from '../lib/pinecone';
 
 const router = Router();
 
@@ -90,7 +91,17 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
       content: r.content as string,
     }));
 
-    const systemPrompt = SYSTEM_PROMPT_BASE + `\nToday's date: ${new Date().toISOString().split('T')[0]}.`;
+    // RAG: retrieve relevant knowledge base context
+    let ragBlock = '';
+    try {
+      const ragResults = await queryKnowledge(tenantId, message);
+      if (ragResults.length > 0) {
+        ragBlock = '\n\n## COMPANY KNOWLEDGE BASE\nThe following is from official company documents. Use this information to answer accurately and specifically:\n\n' +
+          ragResults.map(r => `[Source: ${r.docName}]\n${r.text}`).join('\n\n---\n\n');
+      }
+    } catch { /* silent — RAG failure should not block chat */ }
+
+    const systemPrompt = SYSTEM_PROMPT_BASE + ragBlock + `\nToday's date: ${new Date().toISOString().split('T')[0]}.`;
 
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       { role: 'system', content: systemPrompt },

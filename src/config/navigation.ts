@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Receipt,
   Bell,
+  Brain,
   type LucideIcon,
 } from "lucide-react";
 import { ROUTES } from "./routes";
@@ -42,6 +43,7 @@ export const mainNavItems: NavItem[] = [
   { label: "Emails",        labelKey: "nav.emails",        path: ROUTES.Emails,    icon: Mail,       permission: "emails"     },
   { label: "Usage",         labelKey: "nav.usage",         path: ROUTES.Usage,     icon: Zap,        permission: "usage"      },
   { label: "AI Systems",    labelKey: "nav.aiSystems",     path: ROUTES.AISystems, icon: Cpu,        permission: "ai_systems" },
+  { label: "Knowledge Base", labelKey: "nav.knowledge",    path: ROUTES.Knowledge, icon: Brain,      permission: "knowledge"  },
   { label: "Analytics",     labelKey: "nav.analytics",     path: ROUTES.Analytics, icon: BarChart3,  permission: "analytics"  },
   { label: "Reports",       labelKey: "nav.reports",       path: ROUTES.Reports,   icon: FileText,   permission: "reports"    },
   { label: "Support",       labelKey: "nav.support",       path: ROUTES.Support,   icon: LifeBuoy,   permission: "support"    },

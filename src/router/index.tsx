@@ -24,6 +24,7 @@ import SettingsPage from "../pages/SettingsPage";
 import SecurityPage from "../pages/SecurityPage";
 import NotificationsPage from "../pages/NotificationsPage";
 import InvoicingPage from "../pages/InvoicingPage";
+import KnowledgePage from "../pages/KnowledgePage";
 import NotFoundPage from "../pages/NotFoundPage";
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -199,6 +200,16 @@ export const router = createBrowserRouter([
       <Protected>
         <ModulePermissionsGuard permission="notifications">
           <NotificationsPage />
+        </ModulePermissionsGuard>
+      </Protected>
+    ),
+  },
+  {
+    path: ROUTES.Knowledge,
+    element: (
+      <Protected>
+        <ModulePermissionsGuard permission="knowledge">
+          <KnowledgePage />
         </ModulePermissionsGuard>
       </Protected>
     ),

@@ -1,4 +1,5 @@
 import { db } from '../db';
+import { queryKnowledge } from './pinecone';
 import type OpenAI from 'openai';
 
 export const toolDefinitions: OpenAI.Chat.Completions.ChatCompletionTool[] = [
@@ -156,6 +157,23 @@ export const toolDefinitions: OpenAI.Chat.Completions.ChatCompletionTool[] = [
           contract_value: { type: 'number', description: 'Contract value in GBP (optional).' },
         },
         required: ['name', 'email'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'search_knowledge_base',
+      description: 'Search the company knowledge base for information from internal documents: treatment protocols, pricing, policies, SOPs, procedures. Use this whenever the question might be answered by company documentation.',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: {
+            type: 'string',
+            description: 'The search query — be specific, e.g. "Botox post-care instructions" or "cancellation policy deposit"',
+          },
+        },
+        required: ['query'],
       },
     },
   },
@@ -399,6 +417,22 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
         [tenantId, createdBy, title, description, category, start_at, end_at]
       );
       return { success: true, event: res.rows[0] };
+    }
+
+    case 'search_knowledge_base': {
+      const { query } = args as { query: string };
+      const results = await queryKnowledge(tenantId, query);
+      if (results.length === 0) {
+        return JSON.stringify({ found: false, message: 'No relevant documents found in knowledge base' });
+      }
+      return JSON.stringify({
+        found: true,
+        results: results.map(r => ({
+          source:    r.docName,
+          content:   r.text,
+          relevance: r.score.toFixed(2),
+        })),
+      });
     }
 
     default:

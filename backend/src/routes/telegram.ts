@@ -5,6 +5,7 @@ import { toFile } from 'openai';
 const TELEGRAM_NS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
 import { requireAuth } from '../middleware/requireAuth';
 import { openai } from '../lib/openai';
+import { queryKnowledge } from '../lib/pinecone';
 import { toolDefinitions, executeTool } from '../lib/agentTools';
 import { db } from '../db';
 import type OpenAI from 'openai';
@@ -373,8 +374,20 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
       content: r.content as string,
     }));
 
+    // RAG: retrieve relevant knowledge base context
+    let ragBlock = '';
+    try {
+      const ragResults = await queryKnowledge(tenantId, text);
+      if (ragResults.length > 0) {
+        ragBlock = '\n\n## COMPANY KNOWLEDGE BASE\nThe following is from official company documents. Use this information to answer accurately and specifically:\n\n' +
+          ragResults.map(r => `[Source: ${r.docName}]\n${r.text}`).join('\n\n---\n\n');
+      }
+    } catch { /* silent */ }
+
+    const systemWithRag = SYSTEM_PROMPT.replace(/Today's date: \d{4}-\d{2}-\d{2}/, `Today's date: ${new Date().toISOString().split('T')[0]}`) + ragBlock;
+
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-      { role: 'system', content: SYSTEM_PROMPT.replace(/Today's date: \d{4}-\d{2}-\d{2}/, `Today's date: ${new Date().toISOString().split('T')[0]}`) },
+      { role: 'system', content: systemWithRag },
       ...history,
       { role: 'user', content: text },
     ];
