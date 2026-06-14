@@ -220,14 +220,18 @@ function LeadsStatusChart({ leads, statusCounts }: LeadsStatusProps) {
 
 const AI_MONTHLY_BUDGET = 40;
 
-function PlatformHealthPanel({ totalCost }: { totalCost: number }) {
+function PlatformHealthPanel({ totalCost, openCount, highCount }: { totalCost: number; openCount: number; highCount: number }) {
   const budgetPct = Math.min((totalCost / AI_MONTHLY_BUDGET) * 100, 100);
   const budgetColor = budgetPct > 80 ? "#ef4444" : budgetPct > 50 ? "#f59e0b" : "#6366f1";
+  const ticketPct   = Math.min((openCount / 10) * 100, 100);
+  const ticketColor = openCount === 0 ? "#10b981" : "#f59e0b";
+  const ticketVal   = openCount === 0 ? "#34d399" : "#fbbf24";
+  const ticketSub   = highCount > 0 ? `${highCount} high priority` : openCount > 0 ? "Under review" : "All clear";
   const healthBars = [
     { label: "Active Systems", value: "6 / 6",    pct: 100,      color: "#10b981", sub: "All operational",   valColor: "#34d399" },
     { label: "Uptime SLA",     value: "99.98%",   pct: 99.98,    color: "#10b981", sub: "This month",        valColor: "#34d399" },
     { label: "Plan Usage",     value: "78.4%",    pct: 78.4,     color: "#6366f1", sub: "Interactions used", valColor: "#a5b4fc" },
-    { label: "Open Tickets",   value: "4",        pct: 33,       color: "#f59e0b", sub: "2 high priority",   valColor: "#fbbf24" },
+    { label: "Open Tickets",   value: String(openCount), pct: ticketPct, color: ticketColor, sub: ticketSub, valColor: ticketVal },
     { label: "AI Cost Budget", value: `£${totalCost.toFixed(2)} / £${AI_MONTHLY_BUDGET}`, pct: budgetPct, color: budgetColor, sub: "Monthly limit", valColor: "#fff" },
   ];
   return (
@@ -404,6 +408,10 @@ export function HeroBanner() {
   const { data: leads,      loading: l1 } = useQuery<Lead>("leads",       { pollInterval: 30_000 });
   const { data: clients,    loading: l2 } = useQuery<Client>("clients",    { pollInterval: 30_000 });
   const { data: tokenUsage, loading: l3 } = useQuery<TokenUsage>("token_usage", { pollInterval: 30_000 });
+  const { data: openTickets, loading: l4 } = useQuery<{ priority: string }>("support_tickets", {
+    filters: { status: 'eq.open' },
+    pollInterval: 30_000,
+  });
 
   const [secSummary, setSecSummary] = useState<SecuritySummary | null>(null);
 
@@ -429,7 +437,7 @@ export function HeroBanner() {
     return () => document.removeEventListener('visibilitychange', onVisible);
   }, [fetchSecurity]);
 
-  if (l1 || l2 || l3) {
+  if (l1 || l2 || l3 || l4) {
     return (
       <div className="mb-6">
         <Skeleton className="h-[520px] rounded-2xl" />
@@ -438,6 +446,9 @@ export function HeroBanner() {
   }
 
   // Computed values
+  const openCount  = openTickets.length;
+  const highCount  = openTickets.filter(t => t.priority === 'high' || t.priority === 'critical').length;
+
   const wonLeads       = leads.filter(l => l.status === "won").length;
   const qualifiedLeads = leads.filter(l => l.status === "qualified").length;
   const activeClients  = clients.filter(c => c.status === "active").length;
@@ -475,7 +486,7 @@ export function HeroBanner() {
     { icon: "⭐", iconBg: "rgba(99,102,241,0.2)",  label: "Qualified Leads",   value: String(qualifiedLeads),         sub: "% of pipeline",         glow: "rgba(99,102,241,0.75)"  },
     { icon: "🏆", iconBg: "rgba(16,185,129,0.2)",  label: "Deals Won",         value: String(wonLeads),               sub: "↑ 0.0% vs last month",  glow: "rgba(16,185,129,0.75)"  },
     { icon: "🤖", iconBg: "rgba(245,158,11,0.2)",  label: "Total Tokens Used", value: totalTokens.toLocaleString(),   sub: "GPT-4o + TTS + Whisper", glow: "rgba(245,158,11,0.75)"  },
-    { icon: "🎫", iconBg: "rgba(239,68,68,0.2)",   label: "Open Tickets",      value: "4",                            sub: "⚠ 2 high priority",     glow: "rgba(239,68,68,0.75)"   },
+    { icon: "🎫", iconBg: openCount > 0 ? "rgba(239,68,68,0.2)" : "rgba(16,185,129,0.2)", label: "Open Tickets", value: String(openCount), sub: highCount > 0 ? `⚠ ${highCount} high priority` : "All clear", glow: openCount > 0 ? "rgba(239,68,68,0.75)" : "rgba(16,185,129,0.75)" },
   ];
 
   return (
@@ -548,7 +559,7 @@ export function HeroBanner() {
           <LeadsStatusChart leads={leads} statusCounts={statusCounts} />
         </div>
         <div className="hover-neon" style={glowPanel("emerald")}>
-          <PlatformHealthPanel totalCost={totalCost} />
+          <PlatformHealthPanel totalCost={totalCost} openCount={openCount} highCount={highCount} />
         </div>
         <div className="hover-neon" style={glowPanel("amber")}>
           <AICostPanel totalCost={totalCost} agentList={agentList} maxAgentCost={maxAgentCost} />
