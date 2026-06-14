@@ -275,13 +275,14 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
   const chatId = message.chat.id;
   const conversationId = uuidv5(String(chatId), TELEGRAM_NS);
 
+  let botToken: string | undefined;
   try {
     const tenantRes = await db.query(
       `SELECT settings FROM aios.tenants WHERE id = $1`,
       [tenantId]
     );
     const settings = tenantRes.rows[0]?.settings as TenantSettings | undefined;
-    const botToken = settings?.telegram?.bot_token;
+    botToken = settings?.telegram?.bot_token;
     if (!botToken || !settings?.telegram?.enabled) return;
 
     // Resolve text: transcribe voice if needed
@@ -501,6 +502,31 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
     }
   } catch (err) {
     console.error('[telegram/webhook]', err);
+    if (botToken) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      await callTelegram(botToken, 'sendMessage', {
+        chat_id: chatId,
+        text: `❌ AIOS error: ${errMsg.slice(0, 200)}`,
+      }).catch(() => {});
+    }
+  }
+});
+
+// GET /telegram/webhook-info — platform admin: check Telegram webhook status for a tenant
+router.get('/webhook-info/:tenantId', requireAuth, async (req: Request, res: Response) => {
+  if (!req.user!.is_platform_admin) {
+    res.status(403).json({ error: 'Platform admin required' });
+    return;
+  }
+  try {
+    const { rows } = await db.query(`SELECT settings FROM aios.tenants WHERE id = $1`, [req.params.tenantId]);
+    const token = (rows[0]?.settings as TenantSettings | undefined)?.telegram?.bot_token;
+    if (!token) { res.json({ error: 'No bot token configured' }); return; }
+    const info = await fetch(`https://api.telegram.org/bot${token}/getWebhookInfo`);
+    const data = await info.json();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
   }
 });
 
