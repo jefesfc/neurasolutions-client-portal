@@ -120,107 +120,111 @@ export function ChatBubble() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {isEmpty ? (
-                <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
-                  <div className="h-12 w-12 rounded-xl bg-brand-50 flex items-center justify-center">
-                    <Bot className="h-6 w-6 text-brand-500" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-800 mb-1">How can I help you?</h3>
-                    <p className="text-xs text-slate-400">
-                      Ask about leads, clients, calendar, or metrics.
-                    </p>
-                  </div>
-                  <div className="flex flex-col gap-1.5 w-full">
-                    {SUGGESTIONS.map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => { setInput(s); inputRef.current?.focus(); }}
-                        className="text-xs px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 hover:bg-brand-50 hover:border-brand-200 hover:text-brand-700 transition-colors text-left"
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {messages.map((msg) => {
-                    const isReport = msg.role === 'assistant' && msg.response_type === 'report' && !!msg.report_data;
-                    return (
-                      <div
-                        key={msg.id}
-                        className={cn("flex items-end gap-2", msg.role === "user" && "flex-row-reverse")}
-                      >
-                        <div className={cn(
-                          "h-7 w-7 rounded-full flex items-center justify-center flex-shrink-0",
-                          msg.role === "user" ? "bg-brand-500" : "bg-brand-100"
-                        )}>
-                          {msg.role === "user"
-                            ? <User className="h-3.5 w-3.5 text-white" />
-                            : <Bot className="h-3.5 w-3.5 text-brand-600" />
-                          }
-                        </div>
-                        {isReport ? (
-                          <div className="max-w-[95%]">
-                            <ReportMessage report={msg.report_data!} />
-                          </div>
-                        ) : (
-                          <div className={cn(
-                            "max-w-[80%] px-3 py-2.5 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap shadow-sm",
-                            msg.role === "user"
-                              ? "bg-brand-500 text-white rounded-br-sm"
-                              : "bg-white border border-slate-200 text-slate-800 rounded-bl-sm"
-                          )}>
-                            {msg.content}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                  {loading && <TypingIndicator />}
-                  {error && (
-                    <div className="flex justify-center">
-                      <span className="text-xs text-danger bg-red-50 border border-red-100 rounded-lg px-3 py-1.5">
-                        {error}
-                      </span>
+            <div className={cn("flex-1 overflow-y-auto", fullscreen && "flex flex-col items-center")}>
+              <div className={cn("p-4 space-y-4 w-full", fullscreen && "max-w-3xl")}>
+                {isEmpty ? (
+                  <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
+                    <div className="h-12 w-12 rounded-xl bg-brand-50 flex items-center justify-center">
+                      <Bot className="h-6 w-6 text-brand-500" />
                     </div>
-                  )}
-                </>
-              )}
-              <div ref={bottomRef} />
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-800 mb-1">How can I help you?</h3>
+                      <p className="text-xs text-slate-400">
+                        Ask about leads, clients, calendar, or metrics.
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-1.5 w-full">
+                      {SUGGESTIONS.map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => { setInput(s); inputRef.current?.focus(); }}
+                          className="text-xs px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 hover:bg-brand-50 hover:border-brand-200 hover:text-brand-700 transition-colors text-left"
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {messages.map((msg) => {
+                      const isReport = msg.role === 'assistant' && msg.response_type === 'report' && !!msg.report_data;
+                      return (
+                        <div
+                          key={msg.id}
+                          className={cn("flex items-end gap-2", msg.role === "user" && "flex-row-reverse")}
+                        >
+                          <div className={cn(
+                            "h-7 w-7 rounded-full flex items-center justify-center flex-shrink-0",
+                            msg.role === "user" ? "bg-brand-500" : "bg-brand-100"
+                          )}>
+                            {msg.role === "user"
+                              ? <User className="h-3.5 w-3.5 text-white" />
+                              : <Bot className="h-3.5 w-3.5 text-brand-600" />
+                            }
+                          </div>
+                          {isReport ? (
+                            <div className="max-w-[95%]">
+                              <ReportMessage report={msg.report_data!} />
+                            </div>
+                          ) : (
+                            <div className={cn(
+                              "max-w-[80%] px-3 py-2.5 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap shadow-sm",
+                              msg.role === "user"
+                                ? "bg-brand-500 text-white rounded-br-sm"
+                                : "bg-white border border-slate-200 text-slate-800 rounded-bl-sm"
+                            )}>
+                              {msg.content}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {loading && <TypingIndicator />}
+                    {error && (
+                      <div className="flex justify-center">
+                        <span className="text-xs text-danger bg-red-50 border border-red-100 rounded-lg px-3 py-1.5">
+                          {error}
+                        </span>
+                      </div>
+                    )}
+                  </>
+                )}
+                <div ref={bottomRef} />
+              </div>
             </div>
 
             {/* Input */}
-            <div className="border-t border-slate-100 p-3 flex-shrink-0">
-              <div className="flex items-end gap-2">
-                <textarea
-                  ref={inputRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Ask anything..."
-                  rows={1}
-                  className="flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors max-h-24 overflow-y-auto"
-                  style={{ fieldSizing: "content" } as React.CSSProperties}
-                />
-                <button
-                  onClick={() => void handleSend()}
-                  disabled={!input.trim() || loading}
-                  className={cn(
-                    "h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors",
-                    input.trim() && !loading
-                      ? "bg-brand-500 hover:bg-brand-600 text-white"
-                      : "bg-slate-100 text-slate-400 cursor-not-allowed"
-                  )}
-                >
-                  <Send className="h-3.5 w-3.5" />
-                </button>
+            <div className={cn("border-t border-slate-100 flex-shrink-0", fullscreen && "flex justify-center")}>
+              <div className={cn("p-3 w-full", fullscreen && "max-w-3xl")}>
+                <div className="flex items-end gap-2">
+                  <textarea
+                    ref={inputRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Ask anything..."
+                    rows={1}
+                    className="flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors max-h-24 overflow-y-auto"
+                    style={{ fieldSizing: "content" } as React.CSSProperties}
+                  />
+                  <button
+                    onClick={() => void handleSend()}
+                    disabled={!input.trim() || loading}
+                    className={cn(
+                      "h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors",
+                      input.trim() && !loading
+                        ? "bg-brand-500 hover:bg-brand-600 text-white"
+                        : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                    )}
+                  >
+                    <Send className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <p className="text-[10px] text-slate-400 mt-1.5 pl-0.5">
+                  Shift+Enter for new line · real-time data
+                </p>
               </div>
-              <p className="text-[10px] text-slate-400 mt-1.5 pl-0.5">
-                Shift+Enter for new line · real-time data
-              </p>
             </div>
           </motion.div>
         )}
