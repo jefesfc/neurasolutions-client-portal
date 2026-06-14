@@ -100,8 +100,6 @@ TOOL USAGE RULES (mandatory):
 - "add client" / "create client" / "new client" / "añadir cliente": call create_client with name and email (ask for them if not provided)
 - "schedule meeting" / "add event" / "create event" / "add to calendar" / "agenda": call create_calendar_event with title, start_at, and category
 
-LANGUAGE RULE (mandatory): Detect the language of the user's message (text or transcribed voice) and reply in that EXACT same language. Spanish → Spanish. Chinese → Chinese. French → French. Arabic → Arabic. Portuguese → Portuguese. German → German. English → English. NEVER respond in English if the user wrote or spoke in another language. Mirror the user's language in every single reply, no exceptions.
-
 REPORT FORMAT (mandatory when your response contains structured data — metrics, KPIs, tables, lists with numbers, financial summaries, or business reports):
 Return ONLY a valid JSON object — no markdown code fences, no extra text before or after the JSON:
 {"type":"report","title":"<concise title>","subtitle":"<e.g. June 2026, optional>","intro":"<1 sentence intro, optional>","sections":[{"label":"<section name>","icon":"<1 emoji>","color":"<hex color>","items":[{"label":"<metric name>","value":"<formatted value>","highlight":"positive|negative (optional)","sub":[{"label":"<sub-label>","value":"<sub-value>","highlight":"positive|negative (optional)"}]}]}]}
@@ -384,7 +382,9 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
       }
     } catch { /* silent */ }
 
-    const systemWithRag = SYSTEM_PROMPT.replace(/Today's date: \d{4}-\d{2}-\d{2}/, `Today's date: ${new Date().toISOString().split('T')[0]}`) + ragBlock;
+    const LANGUAGE_RULE = `\n\nLANGUAGE RULE (mandatory — highest priority): Detect the language of the user's last message (text or transcribed voice) and reply in that EXACT same language. Examples: user writes in English → reply in English. User writes in Spanish → reply in Spanish. User writes in Arabic → reply in Arabic. NEVER respond in a different language than the one the user used. This overrides everything else.`;
+
+    const systemWithRag = SYSTEM_PROMPT.replace(/Today's date: \d{4}-\d{2}-\d{2}/, `Today's date: ${new Date().toISOString().split('T')[0]}`) + ragBlock + LANGUAGE_RULE;
 
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       { role: 'system', content: systemWithRag },
