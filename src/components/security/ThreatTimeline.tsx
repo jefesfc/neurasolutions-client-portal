@@ -43,7 +43,7 @@ export function ThreatTimeline({ events, loading, onSelect }: Props) {
                 <p className="text-xs font-semibold text-slate-800 truncate">
                   {EVENT_TYPE_LABELS[event.event_type] ?? event.event_type}
                 </p>
-                <p className="text-[11px] text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-500 mt-0.5">
                   {time} · {event.actor_ip ?? 'unknown IP'}
                 </p>
               </div>

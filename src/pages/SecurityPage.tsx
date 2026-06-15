@@ -223,11 +223,11 @@ export default function SecurityPage() {
                     <item.icon size={15} color={item.color} style={{ transform: isHovered ? 'scale(1.1)' : 'scale(1)', transition: 'transform 0.18s' }} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ color: '#e2e8f0', fontWeight: 600, fontSize: 12, margin: '0 0 3px' }}>{item.title}</p>
-                    <p style={{ color: '#64748b', fontSize: 11, margin: '0 0 8px', lineHeight: 1.5 }}>{item.desc}</p>
+                    <p style={{ color: '#f1f5f9', fontWeight: 600, fontSize: 13, margin: '0 0 4px' }}>{item.title}</p>
+                    <p style={{ color: '#94a3b8', fontSize: 12, margin: '0 0 8px', lineHeight: 1.55 }}>{item.desc}</p>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      {item.actionKey === 'audit' ? <Download size={10} color={item.color} /> : null}
-                      <span style={{ color: item.color, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', opacity: isHovered ? 1 : 0.6, transition: 'opacity 0.18s' }}>
+                      {item.actionKey === 'audit' ? <Download size={11} color={item.color} /> : null}
+                      <span style={{ color: item.color, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', opacity: isHovered ? 1 : 0.8, transition: 'opacity 0.18s' }}>
                         {item.actionLabel} →
                       </span>
                     </div>
@@ -247,8 +247,8 @@ export default function SecurityPage() {
               <Lock size={14} color="#34d399" />
               <div>
                 <span style={{ color: '#34d399', fontSize: 12, fontWeight: 700 }}>RLS Active</span>
-                <span style={{ color: '#64748b', fontSize: 11, marginLeft: 8 }}>
-                  PostgreSQL Row-Level Security enforced · All queries automatically filtered by <code style={{ color: '#94a3b8', fontSize: 10 }}>tenant_id</code> at the database layer · No cross-tenant data leakage possible
+                <span style={{ color: '#94a3b8', fontSize: 12, marginLeft: 8 }}>
+                  PostgreSQL Row-Level Security enforced · All queries automatically filtered by <code style={{ color: '#cbd5e1', fontSize: 11 }}>tenant_id</code> at the database layer · No cross-tenant data leakage possible
                 </span>
               </div>
             </div>
