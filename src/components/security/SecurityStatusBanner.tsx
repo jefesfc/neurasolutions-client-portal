@@ -111,23 +111,29 @@ function SevPill({ label, count, color }: { label: string; count: number; color:
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      background: active ? `${color}18` : 'rgba(255,255,255,0.05)',
-      border: `1px solid ${active ? `${color}40` : 'rgba(255,255,255,0.1)'}`,
-      borderRadius: 10, padding: '8px 16px', minWidth: 66,
+      background: active ? `${color}12` : 'rgba(255,255,255,0.03)',
+      borderTop: `2px solid ${active ? color : 'rgba(255,255,255,0.1)'}`,
+      borderLeft:   `1px solid ${active ? color + '35' : 'rgba(255,255,255,0.07)'}`,
+      borderRight:  `1px solid ${active ? color + '35' : 'rgba(255,255,255,0.07)'}`,
+      borderBottom: `1px solid ${active ? color + '35' : 'rgba(255,255,255,0.07)'}`,
+      borderRadius: '0 0 10px 10px',
+      padding: '10px 18px', minWidth: 72,
       transition: 'all 0.35s ease',
+      boxShadow: active ? `0 4px 14px ${color}18` : 'none',
     }}>
       <span style={{
-        fontSize: 24, fontWeight: 800, lineHeight: 1,
-        color: active ? color : '#475569',
+        fontSize: 26, fontWeight: 800, lineHeight: 1,
+        color: active ? color : '#334155',
         fontVariantNumeric: 'tabular-nums',
         transition: 'color 0.35s ease',
+        letterSpacing: '-0.5px',
       }}>
         {count}
       </span>
       <span style={{
-        fontSize: 9, fontWeight: 700, marginTop: 4,
-        textTransform: 'uppercase', letterSpacing: '0.6px',
-        color: active ? `${color}cc` : '#64748b',
+        fontSize: 9, fontWeight: 700, marginTop: 5,
+        textTransform: 'uppercase', letterSpacing: '0.7px',
+        color: active ? `${color}bb` : '#475569',
         transition: 'color 0.35s ease',
       }}>
         {label}

@@ -188,14 +188,24 @@ export default function SecurityPage() {
 
         {/* Operational Security Model */}
         <div style={{
-          background: 'linear-gradient(135deg, #0f172a 0%, #1a2235 100%)',
-          border: '1px solid rgba(99,102,241,0.2)',
-          borderRadius: 14, padding: 20,
+          background: 'linear-gradient(135deg, #080e1c 0%, #0f1828 100%)',
+          border: '1px solid rgba(129,140,248,0.15)',
+          borderRadius: 16, padding: '20px 20px 16px',
         }}>
-          <p style={{ color: '#e2e8f0', fontWeight: 700, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Shield size={15} color="#818cf8" /> Operational Security Model
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
+          {/* Section header */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(129,140,248,0.15)', border: '1px solid rgba(129,140,248,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Shield size={15} color="#818cf8" />
+            </div>
+            <div>
+              <p style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.6px', margin: 0 }}>
+                Operational Security Model
+              </p>
+              <p style={{ color: '#475569', fontSize: 11, margin: '2px 0 0' }}>6 active security layers</p>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: 10 }}>
             {OPERATIONAL_MODEL.map(item => {
               const isHovered = tileHover === item.actionKey;
               return (
@@ -205,32 +215,47 @@ export default function SecurityPage() {
                   onMouseEnter={() => setTileHover(item.actionKey)}
                   onMouseLeave={() => setTileHover(null)}
                   style={{
-                    background: isHovered ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.04)',
-                    border: isHovered ? `1px solid ${item.color}55` : '1px solid rgba(255,255,255,0.07)',
-                    borderRadius: 10, padding: '12px 14px',
-                    display: 'flex', alignItems: 'flex-start', gap: 12,
-                    cursor: 'pointer', transition: 'all 0.18s ease',
-                    transform: isHovered ? 'translateY(-1px)' : 'translateY(0)',
-                    boxShadow: isHovered ? `0 4px 16px ${item.color}18` : 'none',
+                    background: isHovered ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.025)',
+                    borderTop: `2px solid ${isHovered ? item.color : item.color + '50'}`,
+                    borderLeft:   `1px solid ${isHovered ? item.color + '40' : 'rgba(255,255,255,0.06)'}`,
+                    borderRight:  `1px solid ${isHovered ? item.color + '40' : 'rgba(255,255,255,0.06)'}`,
+                    borderBottom: `1px solid ${isHovered ? item.color + '40' : 'rgba(255,255,255,0.06)'}`,
+                    borderRadius: '0 0 12px 12px',
+                    padding: '14px 16px 12px',
+                    cursor: 'pointer',
+                    transition: 'all 0.18s ease',
+                    transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
+                    boxShadow: isHovered ? `0 6px 20px ${item.color}20` : 'none',
+                    display: 'flex', flexDirection: 'column', gap: 10,
                   }}
                 >
-                  <div style={{
-                    width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-                    background: isHovered ? `${item.color}28` : `${item.color}18`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'background 0.18s',
-                  }}>
-                    <item.icon size={15} color={item.color} style={{ transform: isHovered ? 'scale(1.1)' : 'scale(1)', transition: 'transform 0.18s' }} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ color: '#f1f5f9', fontWeight: 600, fontSize: 13, margin: '0 0 4px' }}>{item.title}</p>
-                    <p style={{ color: '#94a3b8', fontSize: 12, margin: '0 0 8px', lineHeight: 1.55 }}>{item.desc}</p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      {item.actionKey === 'audit' ? <Download size={11} color={item.color} /> : null}
-                      <span style={{ color: item.color, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px', opacity: isHovered ? 1 : 0.8, transition: 'opacity 0.18s' }}>
-                        {item.actionLabel} →
-                      </span>
+                  {/* Icon + title row */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{
+                      width: 36, height: 36, borderRadius: 9, flexShrink: 0,
+                      background: isHovered ? `${item.color}22` : `${item.color}14`,
+                      border: `1px solid ${item.color}30`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      transition: 'all 0.18s',
+                    }}>
+                      <item.icon size={16} color={item.color} style={{ transform: isHovered ? 'scale(1.12)' : 'scale(1)', transition: 'transform 0.18s' }} />
                     </div>
+                    <p style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 13, margin: 0 }}>{item.title}</p>
+                  </div>
+
+                  {/* Description */}
+                  <p style={{ color: '#94a3b8', fontSize: 12, margin: 0, lineHeight: 1.6, paddingLeft: 2 }}>{item.desc}</p>
+
+                  {/* Footer */}
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 4,
+                    paddingTop: 8, borderTop: `1px solid ${isHovered ? item.color + '20' : 'rgba(255,255,255,0.05)'}`,
+                    transition: 'border-color 0.18s',
+                  }}>
+                    {item.actionKey === 'audit' ? <Download size={10} color={item.color} /> : null}
+                    <span style={{ color: item.color, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      {item.actionLabel} →
+                    </span>
                   </div>
                 </div>
               );
@@ -240,14 +265,16 @@ export default function SecurityPage() {
           {/* RLS status toast */}
           {rlsToast && (
             <div style={{
-              marginTop: 14, background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.35)',
-              borderRadius: 8, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10,
+              marginTop: 14, background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.3)',
+              borderRadius: 10, padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 12,
               animation: 'fadeIn 0.25s ease',
             }}>
-              <Lock size={14} color="#34d399" />
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(52,211,153,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Lock size={14} color="#34d399" />
+              </div>
               <div>
-                <span style={{ color: '#34d399', fontSize: 12, fontWeight: 700 }}>RLS Active</span>
-                <span style={{ color: '#94a3b8', fontSize: 12, marginLeft: 8 }}>
+                <p style={{ color: '#34d399', fontSize: 12, fontWeight: 700, margin: '0 0 2px' }}>RLS Active — System Protected</p>
+                <span style={{ color: '#94a3b8', fontSize: 12 }}>
                   PostgreSQL Row-Level Security enforced · All queries automatically filtered by <code style={{ color: '#cbd5e1', fontSize: 11 }}>tenant_id</code> at the database layer · No cross-tenant data leakage possible
                 </span>
               </div>
