@@ -134,6 +134,29 @@ function CompanyTab({ tenantId }: { tenantId: string }) {
       <div className="pt-2">
         <Button type="submit" disabled={!isDirty} loading={saving}>Save Changes</Button>
       </div>
+
+      {/* Demo tour reset */}
+      <div className="mt-8 pt-6 border-t border-slate-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-slate-800">Product Tour</p>
+            <p className="text-xs text-slate-500 mt-0.5">Restart the onboarding walkthrough — useful before a demo</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              Object.keys(localStorage)
+                .filter((k) => k.startsWith('aios_onboarded_'))
+                .forEach((k) => localStorage.removeItem(k));
+              window.dispatchEvent(new CustomEvent('aios:restart-tour'));
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium transition-colors"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Restart Tour
+          </button>
+        </div>
+      </div>
     </form>
   );
 }

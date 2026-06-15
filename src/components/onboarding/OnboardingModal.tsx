@@ -189,6 +189,15 @@ export function OnboardingModal() {
     if (!done) setVisible(true);
   }, [user]);
 
+  useEffect(() => {
+    function onRestart() {
+      setStep('welcome');
+      setVisible(true);
+    }
+    window.addEventListener('aios:restart-tour', onRestart);
+    return () => window.removeEventListener('aios:restart-tour', onRestart);
+  }, []);
+
   function finish() {
     if (user) localStorage.setItem(STORAGE_KEY(user.id), '1');
     setVisible(false);
