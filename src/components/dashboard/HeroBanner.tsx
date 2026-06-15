@@ -287,7 +287,7 @@ function PlatformHealthCard({ openCount, highCount }: { openCount: number; highC
   ];
 
   return (
-    <div onClick={() => void navigate('/ai-systems')} {...hover} style={style}>
+    <div onClick={() => void navigate('/systems')} {...hover} style={style}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, paddingBottom: 12, borderBottom: '1px solid #f1f5f9' }}>
         <div style={{ width: 30, height: 30, borderRadius: 8, background: '#ecfeff', border: '1px solid #a5f3fc', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#06b6d4' }}>
           <Activity size={14} />
@@ -391,12 +391,12 @@ function ActiveSystemsStrip({ secSummary }: { secSummary: SecuritySummary | null
   const secStatus  = secSummary === null ? 'connecting' : highAlerts > 0 ? 'alert' : 'online';
 
   const SYSTEMS = [
-    { emoji: '🤖', name: 'Chief of Staff', type: 'AI Agent',       status: 'online'      as const, route: '/ai-systems' },
-    { emoji: '📡', name: 'Telegram Bot',   type: 'Messenger',      status: 'online'      as const, route: '/ai-systems' },
-    { emoji: '📚', name: 'RAG Knowledge',  type: 'Pinecone · 147', status: 'online'      as const, route: '/ai-systems' },
-    { emoji: '📧', name: 'Gmail OAuth',    type: 'Email',          status: 'warning'     as const, route: '/ai-systems' },
-    { emoji: '🛡️', name: 'Security Agent', type: 'GPT-4o · RLS',   status: secStatus,             route: '/security'   },
-    { emoji: '🗄️', name: 'Supabase DB',    type: 'PostgreSQL',     status: 'online'      as const, route: '/ai-systems' },
+    { emoji: '🤖', name: 'Chief of Staff', type: 'AI Agent',       status: 'online'      as const, route: '/systems'   },
+    { emoji: '📡', name: 'Telegram Bot',   type: 'Messenger',      status: 'online'      as const, route: '/systems'   },
+    { emoji: '📚', name: 'RAG Knowledge',  type: 'Pinecone · 147', status: 'online'      as const, route: '/knowledge' },
+    { emoji: '📧', name: 'Gmail OAuth',    type: 'Email',          status: 'warning'     as const, route: '/systems'   },
+    { emoji: '🛡️', name: 'Security Agent', type: 'GPT-4o · RLS',   status: secStatus,             route: '/security'  },
+    { emoji: '🗄️', name: 'Supabase DB',    type: 'PostgreSQL',     status: 'online'      as const, route: '/systems'   },
   ] as const;
 
   const DOT: Record<string, string> = { online: '#10b981', warning: '#f59e0b', alert: '#ef4444', connecting: '#94a3b8' };
@@ -561,10 +561,10 @@ export function HeroBanner() {
             View Reports
           </button>
           <button
-            onClick={() => void navigate('/chat')}
+            onClick={() => void navigate('/systems')}
             style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', background: 'white', color: '#4f46e5', border: 'none' }}
           >
-            AI Briefing
+            AI Systems
           </button>
         </div>
       </div>
