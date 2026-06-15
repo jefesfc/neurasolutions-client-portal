@@ -396,7 +396,7 @@ function ActiveSystemsStrip({ secSummary }: { secSummary: SecuritySummary | null
     { emoji: '📚', name: 'RAG Knowledge',  type: 'Pinecone · 147', status: 'online'      as const, route: '/knowledge' },
     { emoji: '📧', name: 'Gmail OAuth',    type: 'Email',          status: 'warning'     as const, route: '/systems'   },
     { emoji: '🛡️', name: 'Security Agent', type: 'GPT-4o · RLS',   status: secStatus,             route: '/security'  },
-    { emoji: '🗄️', name: 'Supabase DB',    type: 'PostgreSQL',     status: 'online'      as const, route: '/systems'   },
+    { emoji: '⚙️', name: 'n8n Workflows',  type: '3 running',      status: 'online'      as const, route: '/systems'   },
   ] as const;
 
   const DOT: Record<string, string> = { online: '#10b981', warning: '#f59e0b', alert: '#ef4444', connecting: '#94a3b8' };
