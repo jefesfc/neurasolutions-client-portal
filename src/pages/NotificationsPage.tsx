@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
-import { useT } from "../i18n/useT";
+import { useT, useTranslations } from "../i18n/useT";
 import { Card } from "../components/ui/Card";
 import { useNotificationStore } from "../store/notification-store";
 import { cn } from "../lib/cn";
@@ -45,42 +45,14 @@ const CATEGORY_LINK: Record<string, string> = {
   general: ROUTES.Dashboard,
 };
 
-const CATEGORY_LABEL: Record<string, string> = {
-  system:  "AI Systems",
-  billing: "Billing",
-  report:  "Reports",
-  ticket:  "Support",
-  general: "General",
-};
+// CATEGORY_LABEL is now computed inside the component using T.notif.*
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatDate(iso: string) {
-  const d = new Date(iso);
-  const now = new Date();
-  const isToday = d.toDateString() === now.toDateString();
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  const isYesterday = d.toDateString() === yesterday.toDateString();
-  if (isToday) return "Today";
-  if (isYesterday) return "Yesterday";
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-}
-
-function timeAgo(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1)  return "Just now";
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
 
 function groupByDate(notifications: Notification[]): [string, Notification[]][] {
   const groups = new Map<string, Notification[]>();
   for (const n of notifications) {
-    const key = formatDate(n.timestamp);
+    const key = new Date(n.timestamp).toDateString();
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push(n);
   }
@@ -91,21 +63,23 @@ function groupByDate(notifications: Notification[]): [string, Notification[]][] 
 
 type FilterTab = "all" | "unread" | "security" | "billing" | "system";
 
-const TABS: { id: FilterTab; label: string; icon: React.ElementType }[] = [
-  { id: "all",      label: "All",      icon: Bell         },
-  { id: "unread",   label: "Unread",   icon: Info         },
-  { id: "security", label: "Security", icon: ShieldCheck  },
-  { id: "billing",  label: "Billing",  icon: CreditCard   },
-  { id: "system",   label: "Systems",  icon: Cpu          },
-];
-
 // ── NotificationRow ──────────────────────────────────────────────────────────
 
-function NotificationRow({ n, onClick }: { n: Notification; onClick: () => void }) {
+function NotificationRow({ n, onClick, catLabel }: { n: Notification; onClick: () => void; catLabel: string }) {
+  const T          = useTranslations();
   const Icon       = TYPE_ICON[n.type];
   const CatIcon    = CATEGORY_ICON[n.category] ?? Bell;
   const catLink    = n.link ?? CATEGORY_LINK[n.category] ?? "/";
-  const catLabel   = CATEGORY_LABEL[n.category] ?? n.category;
+
+  function timeAgo(iso: string) {
+    const diff = Date.now() - new Date(iso).getTime();
+    const m = Math.floor(diff / 60000);
+    if (m < 1)  return T.time.justNow;
+    if (m < 60) return T.time.mAgo(m);
+    const h = Math.floor(m / 60);
+    if (h < 24) return T.time.hAgo(h);
+    return T.time.dAgo(Math.floor(h / 24));
+  }
 
   return (
     <div
@@ -152,9 +126,38 @@ function NotificationRow({ n, onClick }: { n: Notification; onClick: () => void 
 
 export default function NotificationsPage() {
   const t = useT();
+  const T = useTranslations();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationStore();
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const navigate = useNavigate();
+
+  const CATEGORY_LABEL: Record<string, string> = {
+    system:  T.notif.catSystem,
+    billing: T.notif.catBilling,
+    report:  T.notif.catReport,
+    ticket:  T.notif.catTicket,
+    general: T.notif.catGeneral,
+  };
+
+  const TABS: { id: FilterTab; label: string; icon: React.ElementType }[] = [
+    { id: "all",      label: T.notif.tabAll,      icon: Bell        },
+    { id: "unread",   label: T.notif.tabUnread,   icon: Info        },
+    { id: "security", label: T.notif.tabSecurity, icon: ShieldCheck },
+    { id: "billing",  label: T.notif.tabBilling,  icon: CreditCard  },
+    { id: "system",   label: T.notif.tabSystems,  icon: Cpu         },
+  ];
+
+  function formatDate(iso: string) {
+    const d = new Date(iso);
+    const now = new Date();
+    const isToday = d.toDateString() === now.toDateString();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const isYesterday = d.toDateString() === yesterday.toDateString();
+    if (isToday)     return T.notif.dateToday;
+    if (isYesterday) return T.notif.dateYesterday;
+    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  }
 
   function handleClick(n: Notification) {
     if (!n.read) markAsRead(n.id);
@@ -225,7 +228,7 @@ export default function NotificationsPage() {
             className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
           >
             <CheckCheck className="h-4 w-4" />
-            Mark all read
+            {T.notif.markAllRead}
           </button>
         )}
       </div>
@@ -234,19 +237,19 @@ export default function NotificationsPage() {
       {filtered.length === 0 ? (
         <Card className="flex flex-col items-center py-16 text-slate-400 gap-3">
           <Bell className="h-10 w-10 opacity-30" />
-          <p className="text-sm font-medium">No notifications here</p>
-          <p className="text-xs text-slate-400">Check back later or switch filters</p>
+          <p className="text-sm font-medium">{T.notif.noTitle}</p>
+          <p className="text-xs text-slate-400">{T.notif.noDesc}</p>
         </Card>
       ) : (
         <div className="space-y-6">
           {grouped.map(([date, items]) => (
             <div key={date}>
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-1">
-                {date}
+                {formatDate(items[0].timestamp)}
               </p>
               <Card padding="none" className="overflow-hidden">
                 {items.map(n => (
-                  <NotificationRow key={n.id} n={n} onClick={() => handleClick(n)} />
+                  <NotificationRow key={n.id} n={n} onClick={() => handleClick(n)} catLabel={CATEGORY_LABEL[n.category] ?? n.category} />
                 ))}
               </Card>
             </div>

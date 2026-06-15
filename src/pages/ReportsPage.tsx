@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
-import { useT } from "../i18n/useT";
+import { useT, useTranslations } from "../i18n/useT";
 import { ReportCard } from "../components/reports/ReportCard";
 import { ReportViewer } from "../components/reports/ReportViewer";
 import { Tabs } from "../components/ui/Tabs";
@@ -13,16 +13,17 @@ const API_URL =
   import.meta.env.VITE_API_URL ??
   "http://localhost:3001";
 
-const ALL_TABS = [
-  { id: "all",       label: "All" },
-  { id: "monthly",   label: "Monthly" },
-  { id: "quarterly", label: "Quarterly" },
-  { id: "roi",       label: "ROI" },
-  { id: "financial", label: "Financial" },
-];
-
 export default function ReportsPage() {
   const t = useT();
+  const T = useTranslations();
+
+  const ALL_TABS = [
+    { id: "all",       label: T.reports.tabAll       },
+    { id: "monthly",   label: T.reports.tabMonthly   },
+    { id: "quarterly", label: T.reports.tabQuarterly },
+    { id: "roi",       label: T.reports.tabROI       },
+    { id: "financial", label: T.reports.tabFinancial },
+  ];
   const token = useAuthStore((s) => s.token);
   const [activeTab, setActiveTab] = useState("all");
   const [reports, setReports] = useState<Report[]>([]);
@@ -84,7 +85,7 @@ export default function ReportsPage() {
         <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
       </div>
       {loading ? (
-        <p className="text-sm text-slate-400">Generating reports...</p>
+        <p className="text-sm text-slate-400">{T.reports.generating}</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map((report) => (

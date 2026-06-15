@@ -4,7 +4,7 @@ import { postgrest } from "../lib/postgrest";
 import { useAuthStore } from "../store/auth-store";
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
-import { useT } from "../i18n/useT";
+import { useT, useTranslations } from "../i18n/useT";
 import { Tabs } from "../components/ui/Tabs";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
@@ -30,6 +30,7 @@ const labelCls  = "block text-sm font-medium text-slate-700 mb-1";
 const selectCls = "rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500";
 
 function CompanyTab({ tenantId }: { tenantId: string }) {
+  const T = useTranslations();
   const { data, loading, error } = useQuery<Tenant>("tenants", {
     filters: { id: `eq.${tenantId}` },
   });
@@ -100,48 +101,48 @@ function CompanyTab({ tenantId }: { tenantId: string }) {
   return (
     <form onSubmit={(e) => void handleSave(e)} className="space-y-5 max-w-lg">
       <div>
-        <label className={labelCls}>Company Name</label>
+        <label className={labelCls}>{T.settings.companyName}</label>
         <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Acme Corp" required />
       </div>
       <div>
-        <label className={labelCls}>Industry</label>
+        <label className={labelCls}>{T.settings.industry}</label>
         <Input value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="e.g. SaaS, Real Estate, Finance" />
       </div>
       <div>
-        <label className={labelCls}>Company Size</label>
+        <label className={labelCls}>{T.settings.companySize}</label>
         <Input value={size} onChange={(e) => setSize(e.target.value)} placeholder="e.g. 1-10, 11-50, 51-200" />
       </div>
       <div>
-        <label className={labelCls}>Website</label>
+        <label className={labelCls}>{T.settings.website}</label>
         <Input type="url" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://example.com" />
       </div>
       <div>
-        <label className={labelCls}>Logo URL</label>
+        <label className={labelCls}>{T.settings.logoUrl}</label>
         <Input value={logo} onChange={(e) => setLogo(e.target.value)} placeholder="https://example.com/logo.png" />
         {logo && (
           <div className="mt-2 flex items-center gap-3">
             <img
               src={logo}
-              alt="Logo preview"
+              alt={T.settings.logoPreview}
               className="h-10 object-contain rounded border border-slate-200 bg-white p-1"
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
-            <span className="text-xs text-slate-500">Preview</span>
+            <span className="text-xs text-slate-500">{T.settings.logoPreview}</span>
           </div>
         )}
       </div>
       {saveError && <p className="text-sm text-danger">{saveError}</p>}
-      {saved && <p className="text-sm text-positive">Changes saved successfully.</p>}
+      {saved && <p className="text-sm text-positive">{T.settings.changesSaved}</p>}
       <div className="pt-2">
-        <Button type="submit" disabled={!isDirty} loading={saving}>Save Changes</Button>
+        <Button type="submit" disabled={!isDirty} loading={saving}>{T.settings.saveChanges}</Button>
       </div>
 
       {/* Demo tour reset */}
       <div className="mt-8 pt-6 border-t border-slate-200">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold text-slate-800">Product Tour</p>
-            <p className="text-xs text-slate-500 mt-0.5">Restart the onboarding walkthrough — useful before a demo</p>
+            <p className="text-sm font-semibold text-slate-800">{T.settings.productTour}</p>
+            <p className="text-xs text-slate-500 mt-0.5">{T.settings.productTourDesc}</p>
           </div>
           <button
             type="button"
@@ -154,7 +155,7 @@ function CompanyTab({ tenantId }: { tenantId: string }) {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium transition-colors"
           >
             <RotateCcw className="w-4 h-4" />
-            Restart Tour
+            {T.settings.restartTour}
           </button>
         </div>
       </div>
@@ -163,6 +164,7 @@ function CompanyTab({ tenantId }: { tenantId: string }) {
 }
 
 function SecurityTab() {
+  const T = useTranslations();
   const { token } = useAuthStore();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
@@ -203,27 +205,28 @@ function SecurityTab() {
   return (
     <form onSubmit={(e) => void handleSubmit(e)} className="space-y-5 max-w-lg">
       <div>
-        <label className={labelCls}>Current Password</label>
+        <label className={labelCls}>{T.settings.currentPw}</label>
         <Input type="password" value={current} onChange={(e) => setCurrent(e.target.value)} required autoComplete="current-password" />
       </div>
       <div>
-        <label className={labelCls}>New Password</label>
+        <label className={labelCls}>{T.settings.newPw}</label>
         <Input type="password" value={next} onChange={(e) => setNext(e.target.value)} required autoComplete="new-password" />
       </div>
       <div>
-        <label className={labelCls}>Confirm New Password</label>
+        <label className={labelCls}>{T.settings.confirmPw}</label>
         <Input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required autoComplete="new-password" />
       </div>
       {error && <p className="text-sm text-danger">{error}</p>}
-      {success && <p className="text-sm text-positive">Password updated successfully.</p>}
+      {success && <p className="text-sm text-positive">{T.settings.pwUpdated}</p>}
       <div className="pt-2">
-        <Button type="submit" loading={loading}>Update Password</Button>
+        <Button type="submit" loading={loading}>{T.settings.updatePw}</Button>
       </div>
     </form>
   );
 }
 
 function TelegramTab() {
+  const T = useTranslations();
   const { token } = useAuthStore();
   const [status, setStatus] = useState<{ linked: boolean; chat_id: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -251,12 +254,12 @@ function TelegramTab() {
         <div className="flex items-center gap-3 p-4 rounded-lg border border-positive/25 bg-positive/8">
           <span className="text-positive text-lg">✓</span>
           <div>
-            <p className="font-medium text-slate-800">Telegram connected</p>
-            <p className="text-xs text-slate-500">Chat ID: {status.chat_id}</p>
+            <p className="font-medium text-slate-800">{T.settings.telegramConnected}</p>
+            <p className="text-xs text-slate-500">{T.settings.chatId(status.chat_id ?? '')}</p>
           </div>
         </div>
         <Button variant="secondary" loading={disconnecting} onClick={() => void handleDisconnect()}>
-          Disconnect
+          {T.settings.disconnect}
         </Button>
       </div>
     );
@@ -265,13 +268,13 @@ function TelegramTab() {
   return (
     <div className="max-w-lg space-y-5">
       <p className="text-sm text-slate-500">
-        Connect your Telegram account to chat with AIOS directly from your phone.
+        {T.settings.telegramDesc}
       </p>
       <ol className="space-y-4">
         {[
-          "Open Telegram and find your company's AIOS bot",
+          T.settings.telegramStep1,
           <span key="2">Send the message <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs font-mono text-slate-700">/start</code></span>,
-          "The bot will confirm your connection automatically",
+          T.settings.telegramStep3,
         ].map((step, i) => (
           <li key={i} className="flex gap-3 text-sm text-slate-600">
             <span className="flex-shrink-0 w-6 h-6 rounded-full bg-brand-500/15 text-brand-400 flex items-center justify-center text-xs font-semibold">
@@ -286,6 +289,7 @@ function TelegramTab() {
 }
 
 function EmailTab() {
+  const T = useTranslations();
   const { token } = useAuthStore();
   const [labelFilter, setLabelFilter] = useState('');
   const [saving, setSaving] = useState(false);
@@ -317,13 +321,11 @@ function EmailTab() {
 
   return (
     <div className="max-w-lg space-y-5">
-      <p className="text-sm text-slate-500">
-        Configure which Gmail labels are synced to AIOS. Leave blank to receive all incoming emails.
-      </p>
+      <p className="text-sm text-slate-500">{T.settings.gmailDesc}</p>
       <form onSubmit={(e) => void handleSave(e)} className="space-y-4">
         <div>
-          <label className={labelCls}>Gmail Label Filter</label>
-          <Input value={labelFilter} onChange={(e) => setLabelFilter(e.target.value)} placeholder="INBOX (leave blank for all emails)" />
+          <label className={labelCls}>{T.settings.gmailLabelFilter}</label>
+          <Input value={labelFilter} onChange={(e) => setLabelFilter(e.target.value)} placeholder={T.settings.gmailPh} />
           <p className="text-xs text-slate-500 mt-1">
             Examples:{' '}
             <code className="bg-slate-100 px-1 rounded text-slate-700">INBOX</code>,{' '}
@@ -331,15 +333,13 @@ function EmailTab() {
           </p>
         </div>
         {saveError && <p className="text-sm text-danger">{saveError}</p>}
-        {saved && <p className="text-sm text-positive">Saved successfully.</p>}
+        {saved && <p className="text-sm text-positive">{T.settings.changesSaved}</p>}
         <div className="pt-1">
-          <Button type="submit" loading={saving}>Save</Button>
+          <Button type="submit" loading={saving}>{T.common.save}</Button>
         </div>
       </form>
       <div className="border-t border-slate-200 pt-4">
-        <p className="text-xs text-slate-500">
-          To connect Gmail, contact NeuraSolutions — we configure the n8n workflow for your account.
-        </p>
+        <p className="text-xs text-slate-500">{T.settings.gmailNote}</p>
       </div>
     </div>
   );
@@ -442,6 +442,7 @@ function MiniPreview({ p }: { p: ColorPalette }) {
 }
 
 function AppearanceTab() {
+  const T = useTranslations();
   const { palette, setPalette, savePalette, resetPalette } = useTheme();
   const [saved, setSaved] = useState(false);
 
@@ -456,36 +457,34 @@ function AppearanceTab() {
   return (
     <div className="flex gap-8">
       <div className="flex-1 min-w-0 space-y-5">
-        <p className="text-sm text-slate-500">
-          Customize every color in your AIOS workspace. Changes preview live — click Save to persist.
-        </p>
+        <p className="text-sm text-slate-500">{T.settings.appearanceDesc}</p>
 
-        <Section icon={<Layers className="h-4 w-4" />} title="Backgrounds">
-          <ColorRow label="App Background" description="Main bg, topbar, sidebar" value={palette.appBg} onChange={set("appBg")} />
-          <ColorRow label="Cards & Surfaces" description="Cards, inputs, dropdowns" value={palette.cardBg} onChange={set("cardBg")} />
-          <ColorRow label="Borders & Hover" description="Borders, dividers, hover states" value={palette.borderHover} onChange={set("borderHover")} />
+        <Section icon={<Layers className="h-4 w-4" />} title={T.settings.bgTitle}>
+          <ColorRow label={T.settings.appBg} description={T.settings.appBgDesc} value={palette.appBg} onChange={set("appBg")} />
+          <ColorRow label={T.settings.cardsBg} description={T.settings.cardsBgDesc} value={palette.cardBg} onChange={set("cardBg")} />
+          <ColorRow label={T.settings.borderHover} description={T.settings.borderHoverDesc} value={palette.borderHover} onChange={set("borderHover")} />
         </Section>
 
-        <Section icon={<Type className="h-4 w-4" />} title="Typography">
-          <ColorRow label="Primary Text" description="Headings, strong text" value={palette.textPrimary} onChange={set("textPrimary")} />
-          <ColorRow label="Labels" description="Form labels, nav items" value={palette.textLabel} onChange={set("textLabel")} />
-          <ColorRow label="Secondary Text" description="Descriptions, icons" value={palette.textSecondary} onChange={set("textSecondary")} />
-          <ColorRow label="Muted Text" description="Placeholders, timestamps" value={palette.textMuted} onChange={set("textMuted")} />
+        <Section icon={<Type className="h-4 w-4" />} title={T.settings.typoTitle}>
+          <ColorRow label={T.settings.primaryText} description={T.settings.primaryTextDesc} value={palette.textPrimary} onChange={set("textPrimary")} />
+          <ColorRow label={T.settings.labelsText} description={T.settings.labelsTextDesc} value={palette.textLabel} onChange={set("textLabel")} />
+          <ColorRow label={T.settings.secondaryText} description={T.settings.secondaryTextDesc} value={palette.textSecondary} onChange={set("textSecondary")} />
+          <ColorRow label={T.settings.mutedText} description={T.settings.mutedTextDesc} value={palette.textMuted} onChange={set("textMuted")} />
         </Section>
 
-        <Section icon={<Sparkles className="h-4 w-4" />} title="Brand Accent">
-          <ColorRow label="Primary Accent" description="Buttons, links, active nav, focus rings" value={palette.brandAccent} onChange={set("brandAccent")} />
+        <Section icon={<Sparkles className="h-4 w-4" />} title={T.settings.brandTitle}>
+          <ColorRow label={T.settings.primaryAccent} description={T.settings.primaryAccentDesc} value={palette.brandAccent} onChange={set("brandAccent")} />
         </Section>
 
-        <Section icon={<Activity className="h-4 w-4" />} title="Status Colors">
-          <ColorRow label="Success" description="Positive states, online indicators" value={palette.colorSuccess} onChange={set("colorSuccess")} />
-          <ColorRow label="Warning" description="Caution alerts, pending states" value={palette.colorWarning} onChange={set("colorWarning")} />
-          <ColorRow label="Danger" description="Errors, destructive actions" value={palette.colorDanger} onChange={set("colorDanger")} />
+        <Section icon={<Activity className="h-4 w-4" />} title={T.settings.statusTitle}>
+          <ColorRow label={T.settings.successColor} description={T.settings.successColorDesc} value={palette.colorSuccess} onChange={set("colorSuccess")} />
+          <ColorRow label={T.settings.warningColor} description={T.settings.warningColorDesc} value={palette.colorWarning} onChange={set("colorWarning")} />
+          <ColorRow label={T.settings.dangerColor} description={T.settings.dangerColorDesc} value={palette.colorDanger} onChange={set("colorDanger")} />
         </Section>
 
-        <Section icon={<BarChart2 className="h-4 w-4" />} title="Chart Colors">
+        <Section icon={<BarChart2 className="h-4 w-4" />} title={T.settings.chartTitle}>
           {([1, 2, 3, 4, 5, 6] as const).map((n) => (
-            <ColorRow key={n} label={`Chart Color ${n}`}
+            <ColorRow key={n} label={T.settings.chartColor(n)}
               value={palette[`chart${n}` as keyof ColorPalette] as string}
               onChange={set(`chart${n}` as keyof ColorPalette)} />
           ))}
@@ -494,17 +493,17 @@ function AppearanceTab() {
         <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
           <Button onClick={handleSave} className="flex items-center gap-2">
             <Save className="h-4 w-4" />
-            {saved ? "Saved!" : "Save Changes"}
+            {saved ? T.settings.savedOk : T.settings.saveChanges}
           </Button>
           <Button variant="secondary" onClick={resetPalette} className="flex items-center gap-2">
             <RotateCcw className="h-4 w-4" />
-            Reset to Defaults
+            {T.settings.resetDefaults}
           </Button>
         </div>
       </div>
 
       <div className="hidden lg:block">
-        <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">Live Preview</p>
+        <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">{T.settings.livePreview}</p>
         <MiniPreview p={palette} />
       </div>
     </div>
@@ -512,6 +511,7 @@ function AppearanceTab() {
 }
 
 function CalendarTab() {
+  const T = useTranslations();
   const { token } = useAuthStore();
   const [telegramNotify, setTelegramNotify] = useState(false);
   const [emailNotify, setEmailNotify]       = useState(false);
@@ -560,37 +560,35 @@ function CalendarTab() {
 
   return (
     <div className="max-w-lg space-y-5">
-      <p className="text-sm text-slate-500">
-        Configure how AIOS notifies your team about upcoming calendar events.
-      </p>
+      <p className="text-sm text-slate-500">{T.settings.calDesc}</p>
       <form onSubmit={(e) => void handleSave(e)} className="space-y-4">
         <label className="flex items-center gap-3 cursor-pointer">
           <input type="checkbox" checked={telegramNotify} onChange={e => setTelegramNotify(e.target.checked)} className="rounded accent-brand-500" />
-          <span className="text-sm text-slate-600">Send Telegram reminders</span>
+          <span className="text-sm text-slate-600">{T.settings.telegramReminders}</span>
         </label>
         <label className="flex items-center gap-3 cursor-pointer">
           <input type="checkbox" checked={emailNotify} onChange={e => setEmailNotify(e.target.checked)} className="rounded accent-brand-500" />
-          <span className="text-sm text-slate-600">Send Email reminders</span>
+          <span className="text-sm text-slate-600">{T.settings.emailReminders}</span>
         </label>
         <div>
-          <label className={labelCls}>Advance notice</label>
+          <label className={labelCls}>{T.settings.advanceNotice}</label>
           <select
             value={advanceDays}
             onChange={e => setAdvanceDays(parseInt(e.target.value))}
             className={selectCls}
           >
-            <option value={1}>1 day before</option>
-            <option value={3}>3 days before</option>
-            <option value={7}>1 week before</option>
-            <option value={30}>1 month before</option>
-            <option value={90}>3 months before</option>
-            <option value={180}>6 months before</option>
+            <option value={1}>{T.settings.day1}</option>
+            <option value={3}>{T.settings.day3}</option>
+            <option value={7}>{T.settings.week1}</option>
+            <option value={30}>{T.settings.month1}</option>
+            <option value={90}>{T.settings.months3}</option>
+            <option value={180}>{T.settings.months6}</option>
           </select>
         </div>
         {saveError && <p className="text-sm text-danger">{saveError}</p>}
-        {saved && <p className="text-sm text-positive">Saved successfully.</p>}
+        {saved && <p className="text-sm text-positive">{T.settings.changesSaved}</p>}
         <div className="pt-1">
-          <Button type="submit" loading={saving}>Save</Button>
+          <Button type="submit" loading={saving}>{T.common.save}</Button>
         </div>
       </form>
     </div>
@@ -599,18 +597,19 @@ function CalendarTab() {
 
 export default function SettingsPage() {
   const t = useT();
+  const T = useTranslations();
   const [activeTab, setActiveTab] = useState("company");
   const { user } = useAuthStore();
 
   const tabs = [
-    { id: "appearance", label: "Appearance" },
-    { id: "company",    label: "Company" },
-    { id: "security",   label: "Security" },
+    { id: "appearance", label: T.settings.tabAppearance },
+    { id: "company",    label: T.settings.tabCompany    },
+    { id: "security",   label: T.settings.tabSecurity   },
     ...(user?.role === "admin"
       ? [
-          { id: "telegram", label: "Telegram" },
-          { id: "email",    label: "Email" },
-          { id: "calendar", label: "Calendar" },
+          { id: "telegram", label: T.settings.tabTelegram },
+          { id: "email",    label: T.settings.tabEmail    },
+          { id: "calendar", label: T.settings.tabCalendar },
         ]
       : []),
   ];

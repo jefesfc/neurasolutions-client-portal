@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslations } from "../../i18n/useT";
 import { MessageSquare, Clock, ChevronRight } from "lucide-react";
 import type { SupportTicket } from "../../types";
 import { Badge } from "../ui/Badge";
@@ -24,6 +25,7 @@ interface TicketCardProps {
 }
 
 export function TicketCard({ ticket }: TicketCardProps) {
+  const T = useTranslations();
   return (
     <div className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 p-5">
       <div className="flex items-center justify-between mb-2">
@@ -49,7 +51,7 @@ export function TicketCard({ ticket }: TicketCardProps) {
           </span>
         </div>
         <Link to={`/support/${ticket.id}`} className="text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1">
-          View <ChevronRight className="h-4 w-4" />
+          {T.support.viewLink} <ChevronRight className="h-4 w-4" />
         </Link>
       </div>
     </div>

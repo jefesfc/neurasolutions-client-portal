@@ -5,7 +5,7 @@ import { postgrest } from "../lib/postgrest";
 import { useAuthStore } from "../store/auth-store";
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
-import { useT } from "../i18n/useT";
+import { useT, useTranslations } from "../i18n/useT";
 import { Button } from "../components/ui/Button";
 import { Skeleton } from "../components/ui/Skeleton";
 import { MemberTable } from "../components/team/MemberTable";
@@ -19,6 +19,7 @@ const API_URL =
 
 export default function TeamPage() {
   const t = useT();
+  const T = useTranslations();
   const { data: members, loading, error, refetch } = useQuery<User>("users", {
     order: "name.asc",
   });
@@ -93,7 +94,7 @@ export default function TeamPage() {
           isAdmin ? (
             <Button size="sm" onClick={openAdd}>
               <UserPlus className="h-3.5 w-3.5" />
-              Add Member
+              {T.team.addMember}
             </Button>
           ) : undefined
         }

@@ -4,7 +4,7 @@ import { useQuery } from '../hooks/useQuery';
 import { useAuthStore } from '../store/auth-store';
 import { PageTransition } from '../components/shared/PageTransition';
 import { PageHeader } from '../components/layout/PageHeader';
-import { useT } from '../i18n/useT';
+import { useT, useTranslations } from '../i18n/useT';
 import { Button } from '../components/ui/Button';
 import { Skeleton } from '../components/ui/Skeleton';
 import { CalendarGrid } from '../components/calendar/CalendarGrid';
@@ -14,6 +14,7 @@ import type { CalendarEvent } from '../types/calendar';
 
 export default function CalendarPage() {
   const t = useT();
+  const T = useTranslations();
   const { user } = useAuthStore();
   const canEdit = user?.role === 'admin' || user?.role === 'manager';
 
@@ -49,7 +50,7 @@ export default function CalendarPage() {
           canEdit ? (
             <Button onClick={openCreate}>
               <Plus className="w-4 h-4 mr-1" />
-              New Event
+              {T.calendar.newEvent}
             </Button>
           ) : undefined
         }

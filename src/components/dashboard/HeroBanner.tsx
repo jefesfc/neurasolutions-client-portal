@@ -23,14 +23,6 @@ const AGENT_COLORS: Record<string, string> = {
   'aios-reports':      '#10b981',
 };
 
-const LEAD_SEG_BASE = [
-  { key: 'new'       as const, color: '#6366f1' },
-  { key: 'qualified' as const, color: '#34d399' },
-  { key: 'won'       as const, color: '#06b6d4' },
-  { key: 'contacted' as const, color: '#818cf8' },
-  { key: 'lost'      as const, color: '#e2e8f0' },
-];
-
 interface StatusCounts { new: number; qualified: number; won: number; lost: number; contacted: number }
 
 // ─── SHARED STYLES ────────────────────────────────────────────────────────────

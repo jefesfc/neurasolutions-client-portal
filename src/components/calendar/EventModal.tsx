@@ -9,6 +9,7 @@ import type { CalendarEvent, CalendarEventInput, EventCategory, EventStatus, Rec
 import type { Lead, Contact } from '../../types/aios';
 import { CATEGORY_CONFIG } from '../../types/calendar';
 import { EventBadge } from './EventBadge';
+import { useTranslations } from '../../i18n/useT';
 
 const API_URL =
   (window as Window & { __env__?: { API_URL?: string } }).__env__?.API_URL ??
@@ -17,13 +18,6 @@ const API_URL =
 
 const CATEGORIES: EventCategory[] = ['meeting', 'invoice', 'contract', 'reminder', 'other'];
 const STATUSES: EventStatus[]     = ['pending', 'done', 'cancelled'];
-const RECURRENCE_OPTS: { value: RecurrenceFreq | ''; label: string }[] = [
-  { value: '', label: 'None' },
-  { value: 'daily',   label: 'Daily' },
-  { value: 'weekly',  label: 'Weekly' },
-  { value: 'monthly', label: 'Monthly' },
-  { value: 'yearly',  label: 'Yearly' },
-];
 
 const selectCls = "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500";
 const labelCls  = "block text-sm font-medium text-slate-700 mb-1";
@@ -43,7 +37,16 @@ function toDatetimeLocal(iso: string): string {
 
 export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSaved }: Props) {
   const { token } = useAuthStore();
+  const T = useTranslations();
   const isEdit = Boolean(event);
+
+  const RECURRENCE_OPTS: { value: RecurrenceFreq | ''; label: string }[] = [
+    { value: '',        label: T.calendar.recNone    },
+    { value: 'daily',   label: T.calendar.recDaily   },
+    { value: 'weekly',  label: T.calendar.recWeekly  },
+    { value: 'monthly', label: T.calendar.recMonthly },
+    { value: 'yearly',  label: T.calendar.recYearly  },
+  ];
 
   const [title, setTitle]             = useState('');
   const [description, setDescription] = useState('');
@@ -162,7 +165,7 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
   const showAmountField = category === 'invoice' || category === 'contract';
 
   return (
-    <Modal open={isOpen} onClose={onClose} title={isEdit ? 'Edit Event' : 'New Event'} size="lg">
+    <Modal open={isOpen} onClose={onClose} title={isEdit ? T.calendar.editEvent : T.calendar.newEvent} size="lg">
       {!canEdit && event ? (
         <div className="space-y-3">
           <div><EventBadge category={event.category} size="md" /></div>
@@ -172,17 +175,17 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
           {event.amount != null && (
             <p className="text-sm font-medium text-slate-700">{event.currency} {event.amount.toLocaleString()}</p>
           )}
-          <div className="pt-2"><Button variant="secondary" onClick={onClose}>Close</Button></div>
+          <div className="pt-2"><Button variant="secondary" onClick={onClose}>{T.common.close}</Button></div>
         </div>
       ) : (
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
           <div>
-            <label className={labelCls}>Title *</label>
-            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Event title" required />
+            <label className={labelCls}>{T.calendar.titleLabel} *</label>
+            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder={T.calendar.titleLabel} required />
           </div>
 
           <div>
-            <label className={labelCls}>Category *</label>
+            <label className={labelCls}>{T.calendar.category} *</label>
             <select value={category} onChange={e => setCategory(e.target.value as EventCategory)} className={selectCls}>
               {CATEGORIES.map(c => (
                 <option key={c} value={c}>{CATEGORY_CONFIG[c].label}</option>
@@ -192,11 +195,11 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
 
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={allDay} onChange={e => setAllDay(e.target.checked)} className="rounded accent-brand-500" />
-            <span className="text-sm text-slate-600">All day</span>
+            <span className="text-sm text-slate-600">{T.calendar.allDay}</span>
           </label>
 
           <div>
-            <label className={labelCls}>Start *</label>
+            <label className={labelCls}>{T.calendar.start} *</label>
             <Input
               type={allDay ? 'date' : 'datetime-local'}
               value={allDay ? startAt.split('T')[0] : startAt}
@@ -206,7 +209,7 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
           </div>
 
           <div>
-            <label className={labelCls}>End (optional)</label>
+            <label className={labelCls}>{T.calendar.end}</label>
             <Input
               type={allDay ? 'date' : 'datetime-local'}
               value={allDay ? (endAt.split('T')[0] ?? '') : endAt}
@@ -215,7 +218,7 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
           </div>
 
           <div>
-            <label className={labelCls}>Recurrence</label>
+            <label className={labelCls}>{T.calendar.recurrence}</label>
             <div className="flex gap-2">
               <select
                 value={recurrFreq}
@@ -235,33 +238,33 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
             </div>
             {recurrFreq && (
               <div className="mt-2">
-                <label className="block text-xs text-slate-500 mb-1">Until (optional)</label>
+                <label className="block text-xs text-slate-500 mb-1">{T.calendar.until}</label>
                 <Input type="date" value={recurrUntil} onChange={e => setRecurrUntil(e.target.value)} />
               </div>
             )}
           </div>
 
           <div>
-            <label className={labelCls}>Link to (optional)</label>
+            <label className={labelCls}>{T.calendar.linkTo}</label>
             <div className="flex gap-2">
               <select
                 value={linkedType}
                 onChange={e => { setLinkedType(e.target.value as 'lead' | 'contact' | ''); setLinkedId(''); }}
                 className={`w-32 ${selectCls}`}
               >
-                <option value="">None</option>
-                <option value="lead">Lead</option>
-                <option value="contact">Contact</option>
+                <option value="">{T.calendar.linkNone}</option>
+                <option value="lead">{T.calendar.linkLead}</option>
+                <option value="contact">{T.calendar.linkContact}</option>
               </select>
               {linkedType === 'lead' && (
                 <select value={linkedId} onChange={e => setLinkedId(e.target.value)} className={`flex-1 ${selectCls}`}>
-                  <option value="">Select lead…</option>
+                  <option value="">{T.calendar.selectLead}</option>
                   {leads.map(l => <option key={l.id} value={l.id}>{l.name} — {l.email}</option>)}
                 </select>
               )}
               {linkedType === 'contact' && (
                 <select value={linkedId} onChange={e => setLinkedId(e.target.value)} className={`flex-1 ${selectCls}`}>
-                  <option value="">Select contact…</option>
+                  <option value="">{T.calendar.selectContact}</option>
                   {contacts.map(c => <option key={c.id} value={c.id}>{c.name} — {c.company ?? c.email}</option>)}
                 </select>
               )}
@@ -271,11 +274,11 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
           {showAmountField && (
             <div className="flex gap-2">
               <div className="flex-1">
-                <label className={labelCls}>Amount</label>
+                <label className={labelCls}>{T.calendar.amount}</label>
                 <Input type="number" min={0} step="0.01" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" />
               </div>
               <div className="w-24">
-                <label className={labelCls}>Currency</label>
+                <label className={labelCls}>{T.calendar.currency}</label>
                 <select value={currency} onChange={e => setCurrency(e.target.value)} className={selectCls}>
                   <option>GBP</option><option>EUR</option><option>USD</option>
                 </select>
@@ -285,7 +288,7 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
 
           {isEdit && (
             <div>
-              <label className={labelCls}>Status</label>
+              <label className={labelCls}>{T.calendar.statusLabel}</label>
               <select value={status} onChange={e => setStatus(e.target.value as EventStatus)} className={selectCls}>
                 {STATUSES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
               </select>
@@ -293,7 +296,7 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
           )}
 
           <div>
-            <label className={labelCls}>Description (optional)</label>
+            <label className={labelCls}>{T.calendar.description}</label>
             <Textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="Notes…" />
           </div>
 
@@ -306,8 +309,8 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
               </Button>
             )}
             <div className={`flex gap-2 ${isEdit ? '' : 'ml-auto'}`}>
-              <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
-              <Button type="submit" loading={saving}>{isEdit ? 'Save' : 'Create'}</Button>
+              <Button type="button" variant="secondary" onClick={onClose}>{T.common.cancel}</Button>
+              <Button type="submit" loading={saving}>{isEdit ? T.common.save : T.common.new}</Button>
             </div>
           </div>
         </form>

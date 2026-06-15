@@ -3,6 +3,7 @@ import { CheckCircle } from 'lucide-react';
 import type { SecurityEvent } from '../../types/security';
 import { SEVERITY_CONFIG, EVENT_TYPE_LABELS } from '../../types/security';
 import { useAuthStore } from '../../store/auth-store';
+import { useTranslations } from '../../i18n/useT';
 
 type FilterSeverity = 'all' | SecurityEvent['severity'];
 
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export function EventsTable({ events, loading, onSelect, onResolve, filterPreset }: Props) {
+  const T = useTranslations();
   const [filter, setFilter] = useState<FilterSeverity>(filterPreset ?? 'all');
   const [showResolved, setShowResolved] = useState(false);
 
@@ -41,18 +43,18 @@ export function EventsTable({ events, loading, onSelect, onResolve, filterPreset
   }
 
   const FILTERS: { value: FilterSeverity; label: string }[] = [
-    { value: 'all',      label: 'All' },
-    { value: 'critical', label: 'Critical' },
-    { value: 'high',     label: 'High' },
-    { value: 'medium',   label: 'Medium' },
-    { value: 'low',      label: 'Low' },
+    { value: 'all',      label: T.security.filterAll      },
+    { value: 'critical', label: T.security.filterCritical },
+    { value: 'high',     label: T.security.filterHigh     },
+    { value: 'medium',   label: T.security.filterMedium   },
+    { value: 'low',      label: T.security.filterLow      },
   ];
 
   return (
     <div id="events-table" className="bg-white border border-slate-200 rounded-xl p-4">
       {/* Filters */}
       <div className="flex gap-2 mb-4 flex-wrap items-center">
-        <p className="text-xs font-bold uppercase tracking-wide text-slate-700 mr-2">Events</p>
+        <p className="text-xs font-bold uppercase tracking-wide text-slate-700 mr-2">{T.security.eventsTitle}</p>
         {FILTERS.map(({ value, label }) => (
           <button
             key={value}
@@ -73,13 +75,13 @@ export function EventsTable({ events, loading, onSelect, onResolve, filterPreset
             onChange={(e) => setShowResolved(e.target.checked)}
             className="accent-indigo-500"
           />
-          Show resolved
+          {T.security.showResolved}
         </label>
       </div>
 
-      {loading && <p className="text-sm text-slate-400">Loading...</p>}
+      {loading && <p className="text-sm text-slate-400">{T.security.loadingEvents}</p>}
       {!loading && filtered.length === 0 && (
-        <p className="text-sm text-slate-400">No events match the current filter.</p>
+        <p className="text-sm text-slate-400">{T.security.noEventsMatch}</p>
       )}
 
       <div className="flex flex-col gap-0.5">

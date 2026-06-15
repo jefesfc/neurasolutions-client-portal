@@ -4,12 +4,13 @@ import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
 import { cn } from "../../lib/cn";
 import type { ChatMessage } from "../../types";
-
-const initialMessages: ChatMessage[] = [
-  { id: "1", sender: "support", content: "Hi! I'm your NeuraSolutions support assistant. How can I help you today?", timestamp: new Date().toISOString() },
-];
+import { useTranslations } from "../../i18n/useT";
 
 export function ChatSupport() {
+  const T = useTranslations();
+  const initialMessages: ChatMessage[] = [
+    { id: "1", sender: "support", content: T.support.chatWelcome, timestamp: new Date().toISOString() },
+  ];
   const [messages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
 
@@ -25,10 +26,10 @@ export function ChatSupport() {
           <Sparkles className="h-4 w-4 text-brand-600" />
         </div>
         <div>
-          <p className="text-sm font-medium text-slate-800">NeuraSolutions Support</p>
+          <p className="text-sm font-medium text-slate-800">{T.support.chatTitle}</p>
           <p className="text-xs text-positive flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-positive" />
-            Online
+            {T.support.chatOnline}
           </p>
         </div>
       </div>
@@ -50,7 +51,7 @@ export function ChatSupport() {
               <p>{msg.content}</p>
               <span className={cn("text-[10px] mt-1 block", msg.sender === "client" ? "text-white/70" : "text-slate-400")}>
                 <Clock className="h-3 w-3 inline mr-1" />
-                Just now
+                {T.support.chatJustNow}
               </span>
             </div>
           </div>
@@ -63,7 +64,7 @@ export function ChatSupport() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder="Type your message..."
+            placeholder={T.support.chatPh}
             className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
           />
           <Button size="md" onClick={handleSend} className="rounded-xl">

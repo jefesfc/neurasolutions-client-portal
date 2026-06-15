@@ -1,6 +1,6 @@
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
-import { useT } from "../i18n/useT";
+import { useT, useTranslations } from "../i18n/useT";
 import { BarChart } from "../components/analytics/BarChart";
 import { Heatmap } from "../components/analytics/Heatmap";
 import { LeadsTrendChart } from "../components/analytics/LeadsTrendChart";
@@ -29,6 +29,7 @@ const systemPerformanceData = mockKPIs.slice(0, 5).map((kpi) => ({
 
 export default function AnalyticsPage() {
   const t = useT();
+  const T = useTranslations();
   return (
     <PageTransition>
       <PageHeader
@@ -46,11 +47,11 @@ export default function AnalyticsPage() {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2">
-            <BarChart title="System Performance Overview" data={systemPerformanceData} />
+            <BarChart title={T.analytics.systemPerformance} data={systemPerformanceData} />
           </div>
           <KPIComparison />
         </div>
-        <Heatmap title="Activity Heatmap" data={heatmapData} maxValue={maxHeatmap} />
+        <Heatmap title={T.analytics.activityHeatmap} data={heatmapData} maxValue={maxHeatmap} />
       </div>
     </PageTransition>
   );

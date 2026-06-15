@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth-store';
 import { PageTransition } from '../components/shared/PageTransition';
 import { PageHeader } from '../components/layout/PageHeader';
-import { useT } from '../i18n/useT';
+import { useT, useTranslations } from '../i18n/useT';
 import { SecurityKPIRow } from '../components/security/SecurityKPIRow';
 import { ThreatTimeline } from '../components/security/ThreatTimeline';
 import { EventsTable } from '../components/security/EventsTable';
@@ -19,42 +19,28 @@ const API_URL = (window as unknown as Record<string, Record<string, string> | un
 
 type FilterSeverity = 'all' | SecurityEvent['severity'];
 
-const OPERATIONAL_MODEL = [
-  {
-    icon: Eye, color: '#818cf8', title: 'Real-time Monitoring',
-    desc: 'All user actions, API calls, and login attempts are logged and analyzed continuously.',
-    actionLabel: 'View All Events', actionKey: 'monitoring',
-  },
-  {
-    icon: AlertTriangle, color: '#fbbf24', title: 'Threat Detection',
-    desc: 'GPT-4o analyzes patterns: brute force, IP anomalies, prompt injection, permission escalation.',
-    actionLabel: 'View High/Critical', actionKey: 'threats',
-  },
-  {
-    icon: Lock, color: '#34d399', title: 'RLS Isolation',
-    desc: 'PostgreSQL Row-Level Security ensures strict tenant data isolation at the database layer.',
-    actionLabel: 'Check Status', actionKey: 'rls',
-  },
-  {
-    icon: Activity, color: '#f87171', title: 'Incident Response',
-    desc: 'Critical events trigger instant alerts. Each event can be reviewed and resolved manually.',
-    actionLabel: 'View Critical', actionKey: 'incidents',
-  },
-  {
-    icon: Shield, color: '#60a5fa', title: 'AI Security Agent',
-    desc: 'On-demand AI analysis via GPT-4o provides risk scoring and remediation recommendations.',
-    actionLabel: 'Run Analysis', actionKey: 'ai',
-  },
-  {
-    icon: CheckCircle2, color: '#a78bfa', title: 'Audit Trail',
-    desc: 'All security events are persisted with full metadata for compliance and forensic review.',
-    actionLabel: 'Export CSV', actionKey: 'audit',
-  },
+const OPERATIONAL_MODEL_BASE = [
+  { icon: Eye,          color: '#818cf8', actionKey: 'monitoring' },
+  { icon: AlertTriangle,color: '#fbbf24', actionKey: 'threats'    },
+  { icon: Lock,         color: '#34d399', actionKey: 'rls'        },
+  { icon: Activity,     color: '#f87171', actionKey: 'incidents'  },
+  { icon: Shield,       color: '#60a5fa', actionKey: 'ai'         },
+  { icon: CheckCircle2, color: '#a78bfa', actionKey: 'audit'      },
 ];
 
 export default function SecurityPage() {
   const t = useT();
+  const T = useTranslations();
   const { user, token } = useAuthStore();
+
+  const OPERATIONAL_MODEL = [
+    { ...OPERATIONAL_MODEL_BASE[0], title: T.security.monitoringTitle, desc: T.security.monitoringDesc, actionLabel: T.security.monitoringAction },
+    { ...OPERATIONAL_MODEL_BASE[1], title: T.security.threatTitle,     desc: T.security.threatDesc,     actionLabel: T.security.threatAction     },
+    { ...OPERATIONAL_MODEL_BASE[2], title: T.security.rlsTitle,        desc: T.security.rlsDesc,        actionLabel: T.security.rlsAction        },
+    { ...OPERATIONAL_MODEL_BASE[3], title: T.security.incidentTitle,   desc: T.security.incidentDesc,   actionLabel: T.security.incidentAction   },
+    { ...OPERATIONAL_MODEL_BASE[4], title: T.security.aiTitle,         desc: T.security.aiDesc,         actionLabel: T.security.aiAction         },
+    { ...OPERATIONAL_MODEL_BASE[5], title: T.security.auditTitle,      desc: T.security.auditDesc,      actionLabel: T.security.auditAction      },
+  ];
 
   const [range, setRange]               = useState<SecurityTimeRange>('1m');
   const [events, setEvents]             = useState<SecurityEvent[]>([]);
@@ -202,9 +188,9 @@ export default function SecurityPage() {
             </div>
             <div>
               <p style={{ color: '#0f172a', fontWeight: 700, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.6px', margin: 0 }}>
-                Operational Security Model
+                {T.security.opModel}
               </p>
-              <p style={{ color: '#94a3b8', fontSize: 11, margin: '2px 0 0' }}>6 active security layers</p>
+              <p style={{ color: '#94a3b8', fontSize: 11, margin: '2px 0 0' }}>{T.security.opActiveLayers}</p>
             </div>
           </div>
 
@@ -280,9 +266,9 @@ export default function SecurityPage() {
                 <Lock size={13} color="#10b981" />
               </div>
               <div>
-                <p style={{ color: '#166534', fontSize: 12, fontWeight: 700, margin: '0 0 2px' }}>RLS Active — System Protected</p>
+                <p style={{ color: '#166534', fontSize: 12, fontWeight: 700, margin: '0 0 2px' }}>{T.security.rlsToastTitle}</p>
                 <span style={{ color: '#475569', fontSize: 12 }}>
-                  PostgreSQL Row-Level Security enforced · All queries automatically filtered by <code style={{ color: '#0f172a', fontSize: 11, background: '#f1f5f9', padding: '1px 4px', borderRadius: 4 }}>tenant_id</code> at the database layer
+                  {T.security.rlsToastDesc}
                 </span>
               </div>
             </div>

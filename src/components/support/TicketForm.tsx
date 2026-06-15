@@ -6,6 +6,7 @@ import { Textarea } from "../ui/Textarea";
 import { Button } from "../ui/Button";
 import { Send } from "lucide-react";
 import { useAuthStore } from "../../store/auth-store";
+import { useTranslations } from "../../i18n/useT";
 
 const API_URL =
   (window as Window & { __env__?: { API_URL?: string } }).__env__?.API_URL ??
@@ -18,6 +19,7 @@ interface Props {
 
 export function TicketForm({ onCreated }: Props) {
   const token = useAuthStore((s) => s.token);
+  const T = useTranslations();
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,13 +61,13 @@ export function TicketForm({ onCreated }: Props) {
       <Card>
         <div className="text-center py-8">
           <div className="text-4xl mb-3">✅</div>
-          <h3 className="text-lg font-semibold text-slate-800 mb-1">Ticket submitted</h3>
-          <p className="text-sm text-slate-500">Our team will respond within 2 hours.</p>
+          <h3 className="text-lg font-semibold text-slate-800 mb-1">{T.support.successTitle}</h3>
+          <p className="text-sm text-slate-500">{T.support.successDesc}</p>
           <button
             className="mt-4 text-sm text-brand-600 hover:underline"
             onClick={() => setSuccess(false)}
           >
-            Submit another ticket
+            {T.support.submitAnother}
           </button>
         </div>
       </Card>
@@ -74,10 +76,8 @@ export function TicketForm({ onCreated }: Props) {
 
   return (
     <Card>
-      <h3 className="text-lg font-semibold text-slate-800 mb-1">Create a Ticket</h3>
-      <p className="text-sm text-slate-500 mb-5">
-        Our support team typically responds within 2 hours.
-      </p>
+      <h3 className="text-lg font-semibold text-slate-800 mb-1">{T.support.formTitle}</h3>
+      <p className="text-sm text-slate-500 mb-5">{T.support.formDesc}</p>
       {error && (
         <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2 mb-4">
           {error}
@@ -87,45 +87,45 @@ export function TicketForm({ onCreated }: Props) {
         <Input
           id="subject"
           name="subject"
-          label="Subject"
-          placeholder="Brief description of your issue"
+          label={T.support.subjectLabel}
+          placeholder={T.support.subjectPh}
           required
         />
         <Select
           id="category"
           name="category"
-          label="Category"
+          label={T.support.categoryLabel}
           options={[
-            { value: "general", label: "General Inquiry" },
-            { value: "technical", label: "Technical Issue" },
-            { value: "billing", label: "Billing Question" },
-            { value: "feature-request", label: "Feature Request" },
+            { value: "general",         label: T.support.catGeneral   },
+            { value: "technical",       label: T.support.catTechnical },
+            { value: "billing",         label: T.support.catBilling   },
+            { value: "feature-request", label: T.support.catFeature   },
           ]}
           required
         />
         <Select
           id="priority"
           name="priority"
-          label="Priority"
+          label={T.support.priorityLabel}
           options={[
-            { value: "low", label: "Low — General question" },
-            { value: "medium", label: "Medium — Needs attention" },
-            { value: "high", label: "High — Business impact" },
-            { value: "critical", label: "Critical — Service down" },
+            { value: "low",      label: T.support.priLow      },
+            { value: "medium",   label: T.support.priMedium   },
+            { value: "high",     label: T.support.priHigh     },
+            { value: "critical", label: T.support.priCritical },
           ]}
           required
         />
         <Textarea
           id="description"
           name="description"
-          label="Description"
-          placeholder="Provide details about your issue..."
+          label={T.support.descLabel}
+          placeholder={T.support.descPh}
           rows={5}
           required
         />
         <Button type="submit" loading={submitting} className="w-full">
           <Send className="h-4 w-4" />
-          Submit Ticket
+          {T.support.submitBtn}
         </Button>
       </form>
     </Card>

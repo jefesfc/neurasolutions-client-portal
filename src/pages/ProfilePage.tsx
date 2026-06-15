@@ -1,6 +1,6 @@
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
-import { useT } from "../i18n/useT";
+import { useT, useTranslations } from "../i18n/useT";
 import { Card, CardHeader, CardTitle, CardDescription } from "../components/ui/Card";
 import { Avatar } from "../components/ui/Avatar";
 import { Badge } from "../components/ui/Badge";
@@ -10,15 +10,16 @@ import { Mail, Shield, Settings, LogOut } from "lucide-react";
 
 export default function ProfilePage() {
   const t = useT();
+  const T = useTranslations();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
 
   if (!user) return null;
 
   const roleLabel: Record<string, string> = {
-    admin: 'Admin',
-    manager: 'Manager',
-    user: 'User',
+    admin:   T.profile.roleAdmin,
+    manager: T.profile.roleManager,
+    user:    T.profile.roleUser,
   };
 
   return (
@@ -31,8 +32,8 @@ export default function ProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Account Information</CardTitle>
-            <CardDescription>Your personal details</CardDescription>
+            <CardTitle>{T.profile.accountInfo}</CardTitle>
+            <CardDescription>{T.profile.personalDetails}</CardDescription>
           </CardHeader>
           <div className="space-y-6">
             <div className="flex items-center gap-4">
@@ -47,14 +48,14 @@ export default function ProfilePage() {
               <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
                 <Mail className="h-5 w-5 text-slate-400" />
                 <div>
-                  <p className="text-xs text-slate-400">Email</p>
+                  <p className="text-xs text-slate-400">{T.profile.emailLabel}</p>
                   <p className="text-sm font-medium text-slate-700">{user.email}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
                 <Shield className="h-5 w-5 text-slate-400" />
                 <div>
-                  <p className="text-xs text-slate-400">Role</p>
+                  <p className="text-xs text-slate-400">{T.profile.roleLabel}</p>
                   <p className="text-sm font-medium text-slate-700">{roleLabel[user.role] ?? user.role}</p>
                 </div>
               </div>
@@ -64,17 +65,17 @@ export default function ProfilePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Actions</CardTitle>
-            <CardDescription>Account management</CardDescription>
+            <CardTitle>{T.profile.actionsTitle}</CardTitle>
+            <CardDescription>{T.profile.accountMgmt}</CardDescription>
           </CardHeader>
           <div className="space-y-3">
             <Button variant="outline" className="w-full justify-start gap-2">
               <Settings className="h-4 w-4" />
-              Account Settings
+              {T.profile.accountSettings}
             </Button>
             <Button variant="danger" className="w-full justify-start gap-2" onClick={logout}>
               <LogOut className="h-4 w-4" />
-              Sign out
+              {T.profile.signOut}
             </Button>
           </div>
         </Card>

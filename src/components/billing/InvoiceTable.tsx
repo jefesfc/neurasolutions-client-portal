@@ -7,6 +7,7 @@ import { formatCurrency, formatDate } from "../../lib/formatters";
 import { downloadInvoicePDF } from "../../lib/pdf";
 import { Download } from "lucide-react";
 import type { ReactNode } from "react";
+import { useTranslations } from "../../i18n/useT";
 
 interface InvoiceTableProps {
   invoices: Invoice[];
@@ -19,22 +20,23 @@ const statusBadgeVariant: Record<string, "success" | "warning" | "danger"> = {
 };
 
 export function InvoiceTable({ invoices }: InvoiceTableProps) {
+  const T = useTranslations();
   const columns = [
     {
       key: "number",
-      header: "Invoice",
+      header: T.billing.colInvoice,
       accessor: (inv: Invoice): ReactNode => (
         <span className="font-medium text-slate-800 font-mono text-xs">{inv.number}</span>
       ),
     },
     {
       key: "date",
-      header: "Date",
+      header: T.billing.colDate,
       accessor: (inv: Invoice): ReactNode => formatDate(inv.date),
     },
     {
       key: "amount",
-      header: "Amount",
+      header: T.billing.colAmount,
       accessor: (inv: Invoice): ReactNode => (
         <span className="font-medium">{formatCurrency(inv.amount, inv.currency || "GBP")}</span>
       ),
@@ -42,7 +44,7 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
     },
     {
       key: "status",
-      header: "Status",
+      header: T.billing.colStatus,
       accessor: (inv: Invoice): ReactNode => (
         <Badge variant={statusBadgeVariant[inv.status]} dot>{inv.status}</Badge>
       ),

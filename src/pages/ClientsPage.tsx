@@ -4,7 +4,7 @@ import { useQuery } from '../hooks/useQuery';
 import { useAuthStore } from '../store/auth-store';
 import { PageTransition } from '../components/shared/PageTransition';
 import { PageHeader } from '../components/layout/PageHeader';
-import { useT } from '../i18n/useT';
+import { useT, useTranslations } from '../i18n/useT';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Skeleton } from '../components/ui/Skeleton';
@@ -22,39 +22,55 @@ const API_URL =
 type ClientStatus = Client['status'] | 'all';
 type StageFilter  = ClientStage | 'all';
 
-const STATUS_TABS: { key: ClientStatus; label: string }[] = [
-  { key: 'all',      label: 'All'      },
-  { key: 'active',   label: 'Active'   },
-  { key: 'inactive', label: 'Inactive' },
-  { key: 'churned',  label: 'Churned'  },
-];
-
-const STAGE_TABS: { key: StageFilter; label: string; color: string }[] = [
-  { key: 'all',           label: 'All Stages',    color: '#64748b' },
-  { key: 'admission',     label: 'Admission',     color: '#6366f1' },
-  { key: 'investigation', label: 'Investigation', color: '#f59e0b' },
-  { key: 'follow_up',     label: 'Follow Up',     color: '#10b981' },
-  { key: 'discharge',     label: 'Discharge',     color: '#94a3b8' },
-  { key: 'active',        label: 'Active',        color: '#06b6d4' },
-];
-
-const STATUS_BADGE: Record<Client['status'], { variant: 'success' | 'warning' | 'danger'; label: string }> = {
-  active:   { variant: 'success', label: 'Active'   },
-  inactive: { variant: 'warning', label: 'Inactive' },
-  churned:  { variant: 'danger',  label: 'Churned'  },
+const STAGE_COLORS: Record<StageFilter, string> = {
+  all:           '#64748b',
+  admission:     '#6366f1',
+  investigation: '#f59e0b',
+  follow_up:     '#10b981',
+  discharge:     '#94a3b8',
+  active:        '#06b6d4',
 };
 
-const STAGE_LABEL: Record<ClientStage, string> = {
-  admission:     'Admission',
-  investigation: 'Investigation',
-  follow_up:     'Follow Up',
-  discharge:     'Discharge',
-  active:        'Active',
+const STATUS_BADGE_VARIANT: Record<Client['status'], 'success' | 'warning' | 'danger'> = {
+  active:   'success',
+  inactive: 'warning',
+  churned:  'danger',
 };
 
 export default function ClientsPage() {
   const t = useT();
+  const T = useTranslations();
   const { data: clients, loading, error, refetch } = useQuery<Client>('clients', { order: 'created_at.desc' });
+
+  const STATUS_TABS: { key: ClientStatus; label: string }[] = [
+    { key: 'all',      label: T.clients.statusAll      },
+    { key: 'active',   label: T.clients.statusActive   },
+    { key: 'inactive', label: T.clients.statusInactive },
+    { key: 'churned',  label: T.clients.statusChurned  },
+  ];
+
+  const STAGE_TABS: { key: StageFilter; label: string; color: string }[] = [
+    { key: 'all',           label: T.clients.stageAll,           color: STAGE_COLORS.all           },
+    { key: 'admission',     label: T.clients.stageAdmission,     color: STAGE_COLORS.admission     },
+    { key: 'investigation', label: T.clients.stageInvestigation, color: STAGE_COLORS.investigation },
+    { key: 'follow_up',     label: T.clients.stageFollowUp,      color: STAGE_COLORS.follow_up     },
+    { key: 'discharge',     label: T.clients.stageDischarge,     color: STAGE_COLORS.discharge     },
+    { key: 'active',        label: T.clients.stageActive,        color: STAGE_COLORS.active        },
+  ];
+
+  const STATUS_BADGE_LABEL: Record<Client['status'], string> = {
+    active:   T.clients.statusActive,
+    inactive: T.clients.statusInactive,
+    churned:  T.clients.statusChurned,
+  };
+
+  const STAGE_LABEL: Record<ClientStage, string> = {
+    admission:     T.clients.stageAdmission,
+    investigation: T.clients.stageInvestigation,
+    follow_up:     T.clients.stageFollowUp,
+    discharge:     T.clients.stageDischarge,
+    active:        T.clients.stageActive,
+  };
   const { user, token } = useAuthStore();
   const [activeStatus, setActiveStatus]         = useState<ClientStatus>('all');
   const [activeStage, setActiveStage]           = useState<StageFilter>('all');
@@ -89,7 +105,7 @@ export default function ClientsPage() {
 
   async function handleDelete() {
     if (!selectedClient) return;
-    if (!window.confirm(`Delete "${selectedClient.company}"? This cannot be undone.`)) return;
+    if (!window.confirm(T.clients.deleteConfirm(selectedClient.company))) return;
     try {
       const res = await fetch(`${API_URL}/clients/${selectedClient.id}`, {
         method: 'DELETE',
@@ -124,12 +140,12 @@ export default function ClientsPage() {
               disabled={filtered.length === 0}
             >
               <Download className="h-3.5 w-3.5" />
-              Export PDF
+              {T.clients.exportPdf}
             </Button>
             {canEdit && (
               <Button size="sm" onClick={openCreate}>
                 <Plus className="h-3.5 w-3.5" />
-                Add Client
+                {T.clients.addClient}
               </Button>
             )}
           </div>
@@ -189,7 +205,7 @@ export default function ClientsPage() {
 
       {/* Search */}
       <div className="mb-4 max-w-sm">
-        <SearchInput value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search clients..." />
+        <SearchInput value={search} onChange={(e) => setSearch(e.target.value)} placeholder={T.clients.search} />
       </div>
 
       {/* Split-view grid */}
@@ -203,23 +219,22 @@ export default function ClientsPage() {
           ) : error ? (
             <div className="p-8 text-center text-red-500">{error}</div>
           ) : filtered.length === 0 ? (
-            <div className="p-12 text-center text-slate-400">No clients found</div>
+            <div className="p-12 text-center text-slate-400">{T.clients.notFound}</div>
           ) : (
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="text-left px-4 py-3 font-medium text-slate-500">Company</th>
-                  {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">Name</th>}
-                  {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">Email</th>}
-                  <th className="text-left px-4 py-3 font-medium text-slate-500">Value</th>
-                  <th className="text-left px-4 py-3 font-medium text-slate-500">Stage</th>
-                  {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">Status</th>}
-                  {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">Renewal</th>}
+                  <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colCompany}</th>
+                  {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colName}</th>}
+                  {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colEmail}</th>}
+                  <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colValue}</th>
+                  <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colStage}</th>
+                  {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colStatus}</th>}
+                  {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colRenewal}</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filtered.map((client) => {
-                  const badge      = STATUS_BADGE[client.status];
                   const clientStage = (client.stage ?? 'admission') as ClientStage;
                   const stageCfg   = STAGE_TABS.find(s => s.key === clientStage);
                   const isSelected = selectedClient?.id === client.id;
@@ -250,7 +265,7 @@ export default function ClientsPage() {
                       </td>
                       {!selectedClient && (
                         <td className="px-4 py-3">
-                          <Badge variant={badge.variant} dot>{badge.label}</Badge>
+                          <Badge variant={STATUS_BADGE_VARIANT[client.status]} dot>{STATUS_BADGE_LABEL[client.status]}</Badge>
                         </td>
                       )}
                       {!selectedClient && (

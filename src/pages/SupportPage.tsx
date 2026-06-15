@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
-import { useT } from "../i18n/useT";
+import { useT, useTranslations } from "../i18n/useT";
 import { TicketCard } from "../components/support/TicketCard";
 import { TicketForm } from "../components/support/TicketForm";
 import { FAQAccordion } from "../components/support/FAQAccordion";
@@ -44,6 +44,7 @@ function mapTicket(row: DbTicket): SupportTicket {
 
 export default function SupportPage() {
   const t = useT();
+  const T = useTranslations();
   const token = useAuthStore((s) => s.token);
   const [activeTab, setActiveTab] = useState("tickets");
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
@@ -74,10 +75,10 @@ export default function SupportPage() {
   }
 
   const tabs = [
-    { id: "tickets", label: "Tickets", count: tickets.length },
-    { id: "new", label: "New Ticket" },
-    { id: "chat", label: "Live Chat" },
-    { id: "faq", label: "FAQ" },
+    { id: "tickets", label: T.support.tabTickets, count: tickets.length },
+    { id: "new",     label: T.support.tabNew      },
+    { id: "chat",    label: T.support.tabChat     },
+    { id: "faq",     label: T.support.tabFaq      },
   ];
 
   return (
@@ -92,9 +93,9 @@ export default function SupportPage() {
 
       {activeTab === "tickets" && (
         <div className="space-y-3">
-          {loading && <p className="text-sm text-slate-400">Loading tickets...</p>}
+          {loading && <p className="text-sm text-slate-400">{T.support.loading}</p>}
           {!loading && tickets.length === 0 && (
-            <p className="text-sm text-slate-400">No tickets yet. Create one to get started.</p>
+            <p className="text-sm text-slate-400">{T.support.empty}</p>
           )}
           {tickets.map((ticket) => (
             <TicketCard key={ticket.id} ticket={ticket} />

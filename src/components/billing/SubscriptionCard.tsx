@@ -6,6 +6,7 @@ import { Button } from "../ui/Button";
 import type { SubscriptionPlan, UsageStats } from "../../types";
 import { formatDate } from "../../lib/formatters";
 import { Check, Calendar, Zap, Database, Users, Cpu, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { useTranslations } from "../../i18n/useT";
 
 interface SubscriptionCardProps {
   subscription: SubscriptionPlan;
@@ -46,6 +47,7 @@ function generatePaymentSchedule(price: number, currency: string): { label: stri
 }
 
 export function SubscriptionCard({ subscription, usage }: SubscriptionCardProps) {
+  const T = useTranslations();
   const [showSchedule, setShowSchedule] = useState(false);
   const currency = subscription.currency ?? "GBP";
   const schedule = generatePaymentSchedule(subscription.price, currency);
@@ -58,14 +60,14 @@ export function SubscriptionCard({ subscription, usage }: SubscriptionCardProps)
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Sparkles className="h-4 w-4 text-brand-500" />
-              <h3 className="text-lg font-semibold text-slate-800">{subscription.name} Plan</h3>
+              <h3 className="text-lg font-semibold text-slate-800">{T.billing.planLabel(subscription.name)}</h3>
               <Badge variant="success" dot>{subscription.status}</Badge>
             </div>
-            <p className="text-slate-500 text-sm">Next invoice {formatDate(subscription.renewalDate)}</p>
+            <p className="text-slate-500 text-sm">{T.billing.nextInvoice(formatDate(subscription.renewalDate))}</p>
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold text-slate-800">{fmt(subscription.price, currency)}</p>
-            <p className="text-sm text-slate-400">per month</p>
+            <p className="text-sm text-slate-400">{T.billing.perMonth}</p>
           </div>
         </div>
 
@@ -73,8 +75,8 @@ export function SubscriptionCard({ subscription, usage }: SubscriptionCardProps)
         {subscription.setupFee && (
           <div className="flex items-center gap-3 bg-brand-50 border border-brand-200 rounded-lg px-4 py-3 mb-5">
             <div className="flex-1">
-              <p className="text-sm font-medium text-brand-800">One-time Setup & Development</p>
-              <p className="text-xs text-brand-600">Full AIOS platform build, configuration and deployment</p>
+              <p className="text-sm font-medium text-brand-800">{T.billing.setupTitle}</p>
+              <p className="text-xs text-brand-600">{T.billing.setupDesc}</p>
             </div>
             <p className="text-lg font-bold text-brand-700">{fmt(subscription.setupFee, currency)}</p>
           </div>
@@ -83,10 +85,10 @@ export function SubscriptionCard({ subscription, usage }: SubscriptionCardProps)
         {/* Usage bars */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
           {[
-            { icon: Zap,      label: "AI Interactions",  value: usage.aiInteractions.used,  max: usage.aiInteractions.limit,  variant: "brand"   as const },
-            { icon: Database, label: "Storage",          value: usage.storageUsed.used,     max: usage.storageUsed.limit,     variant: "success" as const, unit: "GB" },
-            { icon: Cpu,      label: "Active Systems",   value: usage.activeSystems.used,   max: usage.activeSystems.limit,   variant: "brand"   as const },
-            { icon: Users,    label: "Users",            value: 3,                          max: subscription.limits.users,   variant: "warning" as const },
+            { icon: Zap,      label: T.billing.aiInteractions,  value: usage.aiInteractions.used,  max: usage.aiInteractions.limit,  variant: "brand"   as const },
+            { icon: Database, label: T.billing.storageLabel,    value: usage.storageUsed.used,     max: usage.storageUsed.limit,     variant: "success" as const, unit: "GB" },
+            { icon: Cpu,      label: T.billing.activeSystems,   value: usage.activeSystems.used,   max: usage.activeSystems.limit,   variant: "brand"   as const },
+            { icon: Users,    label: T.billing.usersLabel,      value: 3,                          max: subscription.limits.users,   variant: "warning" as const },
           ].map(({ icon: Icon, label, value, max, variant, unit }) => (
             <div key={label} className="space-y-1.5">
               <div className="flex items-center justify-between">
@@ -105,7 +107,7 @@ export function SubscriptionCard({ subscription, usage }: SubscriptionCardProps)
 
         {/* Connected Systems */}
         <div className="mb-5 pt-4 border-t border-slate-100">
-          <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-2.5">Connected Systems</p>
+          <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-2.5">{T.billing.connectedSystems}</p>
           <div className="flex flex-wrap gap-1.5">
             {CONNECTED_SYSTEMS.map((s) => (
               <span
@@ -140,16 +142,16 @@ export function SubscriptionCard({ subscription, usage }: SubscriptionCardProps)
             onClick={() => setShowSchedule((v) => !v)}
           >
             <Calendar className="h-4 w-4" />
-            {showSchedule ? "Hide Schedule" : "View Schedule"}
+            {showSchedule ? T.billing.hideSchedule : T.billing.viewSchedule}
             {showSchedule ? <ChevronUp className="h-3.5 w-3.5 ml-1" /> : <ChevronDown className="h-3.5 w-3.5 ml-1" />}
           </Button>
-          <Button size="sm" className="flex-1">Contact NeuraSolutions</Button>
+          <Button size="sm" className="flex-1">{T.billing.contactUs}</Button>
         </div>
 
         {/* Payment schedule (toggle) */}
         {showSchedule && (
           <div className="mt-4 pt-4 border-t border-slate-100">
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-3">Payment Schedule — Next 12 months</p>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-3">{T.billing.paymentSchedule}</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
               {schedule.map((row) => (
                 <div
@@ -171,25 +173,25 @@ export function SubscriptionCard({ subscription, usage }: SubscriptionCardProps)
 
       {/* Cost summary card */}
       <Card>
-        <h3 className="text-sm font-semibold text-slate-800 mb-4">Cost Summary</h3>
+        <h3 className="text-sm font-semibold text-slate-800 mb-4">{T.billing.costSummary}</h3>
         <div className="space-y-3">
           <div className="flex justify-between text-sm">
-            <span className="text-slate-500">Monthly maintenance</span>
+            <span className="text-slate-500">{T.billing.monthlyMaint}</span>
             <span className="font-semibold text-slate-800">{fmt(subscription.price, currency)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-slate-500">Contract term / Annual (×12 month)</span>
+            <span className="text-slate-500">{T.billing.annualTerm}</span>
             <span className="font-medium text-slate-700">{fmt(subscription.price * 12, currency)}</span>
           </div>
           {subscription.setupFee && (
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500">Setup fee (one-time)</span>
+              <span className="text-slate-500">{T.billing.setupFeeLabel}</span>
               <span className="font-medium text-slate-700">{fmt(subscription.setupFee, currency)}</span>
             </div>
           )}
           <div className="border-t border-slate-100 pt-3">
             <div className="flex justify-between text-sm font-semibold">
-              <span className="text-slate-700">First-year total</span>
+              <span className="text-slate-700">{T.billing.firstYearTotal}</span>
               <span className="text-slate-800">
                 {fmt((subscription.price * 12) + (subscription.setupFee ?? 0), currency)}
               </span>
@@ -198,26 +200,26 @@ export function SubscriptionCard({ subscription, usage }: SubscriptionCardProps)
         </div>
 
         <div className="mt-5 pt-4 border-t border-slate-100 space-y-2">
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Plan includes</p>
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{T.billing.planIncludes}</p>
           <div className="flex justify-between text-xs text-slate-600">
-            <span>AI interactions / mo</span>
+            <span>{T.billing.aiPerMonth}</span>
             <span className="font-medium">{(subscription.limits.monthlyInteractions / 1000).toFixed(0)}K</span>
           </div>
           <div className="flex justify-between text-xs text-slate-600">
-            <span>Users</span>
-            <span className="font-medium">Up to {subscription.limits.users}</span>
+            <span>{T.billing.usersLabel}</span>
+            <span className="font-medium">{T.billing.upTo} {subscription.limits.users}</span>
           </div>
           <div className="flex justify-between text-xs text-slate-600">
-            <span>Storage</span>
+            <span>{T.billing.storageLabel}</span>
             <span className="font-medium">{subscription.limits.storageGb} GB</span>
           </div>
           <div className="flex justify-between text-xs text-slate-600">
-            <span>Priority support</span>
-            <span className="font-medium text-positive">✓ Included</span>
+            <span>{T.billing.prioritySupport}</span>
+            <span className="font-medium text-positive">{T.billing.included}</span>
           </div>
           <div className="flex justify-between text-xs text-slate-600">
-            <span>Custom reports</span>
-            <span className="font-medium text-positive">✓ Included</span>
+            <span>{T.billing.customReports}</span>
+            <span className="font-medium text-positive">{T.billing.included}</span>
           </div>
         </div>
       </Card>

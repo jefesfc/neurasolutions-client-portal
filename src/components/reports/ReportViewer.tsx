@@ -4,6 +4,7 @@ import { X, Download, Sparkles, CheckCircle2, Calendar, Tag, FileText } from "lu
 import { Button } from "../ui/Button";
 import type { Report } from "../../types";
 import { downloadReportPDF } from "../../lib/pdf";
+import { useTranslations } from "../../i18n/useT";
 
 interface ReportViewerProps {
   report: Report | null;
@@ -17,14 +18,6 @@ const TYPE_STYLES: Record<string, { bg: string; text: string; border: string }> 
   executive: { bg: "bg-purple-50",  text: "text-purple-700",  border: "border-purple-200" },
 };
 
-const CATEGORY_LABELS: Record<string, string> = {
-  performance: "Performance",
-  financial:   "Financial",
-  automation:  "Automation",
-  roi:         "ROI Analysis",
-  executive:   "Executive",
-};
-
 function extractMetric(highlight: string): { value: string; label: string } | null {
   const m = highlight.match(/^(\$?[\d,]+(?:\.\d+)?[KkMmBb%]?)\s+(.+)$/);
   if (!m) return null;
@@ -32,6 +25,14 @@ function extractMetric(highlight: string): { value: string; label: string } | nu
 }
 
 export function ReportViewer({ report, onClose }: ReportViewerProps) {
+  const T = useTranslations();
+  const CATEGORY_LABELS: Record<string, string> = {
+    performance: T.reports.catPerformance,
+    financial:   T.reports.catFinancial,
+    automation:  T.reports.catAutomation,
+    roi:         T.reports.catRoi,
+    executive:   T.reports.catExecutive,
+  };
   const [downloading, setDownloading] = useState(false);
 
   const handleKeyDown = useCallback(
@@ -103,7 +104,7 @@ export function ReportViewer({ report, onClose }: ReportViewerProps) {
                 <span className="text-sm font-semibold text-slate-700">NeuraSolutions AIOS</span>
                 <span className="text-slate-300">·</span>
                 <span className="text-xs text-slate-400 uppercase tracking-wide font-medium">
-                  {report.type} Report
+                  {T.reports.reportLabel(report.type)}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -114,7 +115,7 @@ export function ReportViewer({ report, onClose }: ReportViewerProps) {
                   className="gap-1.5"
                 >
                   <Download className="h-3.5 w-3.5" />
-                  Download PDF
+                  {T.reports.downloadPdf}
                 </Button>
                 <button
                   onClick={onClose}
@@ -145,7 +146,7 @@ export function ReportViewer({ report, onClose }: ReportViewerProps) {
                   </span>
                   <span className="flex items-center gap-1.5">
                     <Tag className="h-4 w-4" />
-                    Generated {genDate}
+                    {T.reports.generatedOn(genDate)}
                   </span>
                   <span className="text-indigo-300">{report.size}</span>
                 </div>
@@ -157,7 +158,7 @@ export function ReportViewer({ report, onClose }: ReportViewerProps) {
                 {/* Executive Summary */}
                 <section>
                   <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
-                    Executive Summary
+                    {T.reports.execSummary}
                   </h2>
                   <p className="text-sm text-slate-600 leading-relaxed">{report.summary}</p>
                 </section>
@@ -166,7 +167,7 @@ export function ReportViewer({ report, onClose }: ReportViewerProps) {
                 {metrics.length > 0 && (
                   <section>
                     <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
-                      Key Metrics
+                      {T.reports.keyMetrics}
                     </h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {metrics.map((m, i) => (
@@ -190,7 +191,7 @@ export function ReportViewer({ report, onClose }: ReportViewerProps) {
                 {bullets.length > 0 && (
                   <section>
                     <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
-                      Key Highlights
+                      {T.reports.keyHighlights}
                     </h2>
                     <ul className="space-y-2">
                       {bullets.map((h, i) => (
@@ -207,7 +208,7 @@ export function ReportViewer({ report, onClose }: ReportViewerProps) {
                 {metrics.length === 0 && bullets.length === 0 && report.highlights.length > 0 && (
                   <section>
                     <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
-                      Key Highlights
+                      {T.reports.keyHighlights}
                     </h2>
                     <ul className="space-y-2">
                       {report.highlights.map((h, i) => (
@@ -226,7 +227,7 @@ export function ReportViewer({ report, onClose }: ReportViewerProps) {
                     <div className="flex items-center gap-2 mb-3">
                       <Sparkles className="h-4 w-4 text-indigo-500" />
                       <span className="text-xs font-bold text-indigo-600 uppercase tracking-wide">
-                        AI Strategic Insight
+                        {T.reports.aiInsight}
                       </span>
                     </div>
                     <p className="text-sm text-indigo-700 leading-relaxed">
@@ -240,7 +241,7 @@ export function ReportViewer({ report, onClose }: ReportViewerProps) {
               {/* Footer */}
               <div className="px-8 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50">
                 <p className="text-xs text-slate-400">
-                  Generated by NeuraSolutions AIOS · {genDate}
+                  {T.reports.generatedBy(genDate)}
                 </p>
                 <Button
                   size="sm"
@@ -249,7 +250,7 @@ export function ReportViewer({ report, onClose }: ReportViewerProps) {
                   onClick={handleDownload}
                 >
                   <Download className="h-3.5 w-3.5" />
-                  Download PDF
+                  {T.reports.downloadPdf}
                 </Button>
               </div>
             </div>

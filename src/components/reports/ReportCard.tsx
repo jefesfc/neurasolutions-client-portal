@@ -5,6 +5,7 @@ import { Badge } from "../ui/Badge";
 import type { Report } from "../../types";
 import { formatDate } from "../../lib/formatters";
 import { downloadReportPDF } from "../../lib/pdf";
+import { useTranslations } from "../../i18n/useT";
 
 const typeBadges: Record<string, "default" | "success" | "info" | "warning"> = {
   monthly:   "info",
@@ -13,19 +14,19 @@ const typeBadges: Record<string, "default" | "success" | "info" | "warning"> = {
   executive: "default",
 };
 
-const categoryLabels: Record<string, string> = {
-  performance: "Performance",
-  financial:   "Financial",
-  automation:  "Automation",
-  roi:         "ROI Analysis",
-};
-
 interface ReportCardProps {
   report: Report;
   onOpen: (report: Report) => void;
 }
 
 export function ReportCard({ report, onOpen }: ReportCardProps) {
+  const T = useTranslations();
+  const categoryLabels: Record<string, string> = {
+    performance: T.reports.catPerformance,
+    financial:   T.reports.catFinancial,
+    automation:  T.reports.catAutomation,
+    roi:         T.reports.catRoi,
+  };
   const [downloading, setDownloading] = useState(false);
 
   const handleDownload = async (e: React.MouseEvent) => {
@@ -95,11 +96,11 @@ export function ReportCard({ report, onOpen }: ReportCardProps) {
             className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors disabled:opacity-50"
           >
             <Download className="h-3.5 w-3.5" />
-            {downloading ? "..." : "PDF"}
+            {downloading ? "..." : T.reports.pdfBtn}
           </button>
           <span className="flex items-center gap-1 text-xs font-medium text-brand-600 bg-brand-50 px-2.5 py-1 rounded-lg border border-brand-200 group-hover:bg-brand-100 transition-colors">
             <Eye className="h-3.5 w-3.5" />
-            View
+            {T.reports.viewBtn}
           </span>
         </div>
       </div>

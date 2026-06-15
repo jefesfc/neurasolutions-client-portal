@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { RefreshCw, ChevronDown, X, Plus, Clock, CheckCircle2, AlertCircle, TrendingUp, Users, Calendar, Maximize2, Minimize2 } from 'lucide-react';
 import { PageTransition } from '../components/shared/PageTransition';
 import { PageHeader } from '../components/layout/PageHeader';
-import { useT } from '../i18n/useT';
+import { useT, useTranslations } from '../i18n/useT';
 import { InvoicingSummaryCards } from '../components/invoicing/InvoicingSummaryCards';
 import { ClientInvoiceCard } from '../components/invoicing/ClientInvoiceCard';
 import { FinancialProjections } from '../components/invoicing/FinancialProjections';
@@ -15,24 +15,25 @@ const API_URL = (window as unknown as Record<string, Record<string, string> | un
 type PanelKey = 'pending' | 'paid' | 'overdue' | 'projections';
 type SortKey  = 'latest' | 'oldest' | 'amount';
 
-const PANELS: {
-  key: PanelKey; label: string; metricLabel: string;
-  Icon: React.ComponentType<{ size?: number; color?: string }>;
-  color: string; gradFrom: string; gradTo: string;
-}[] = [
-  { key: 'pending',     label: 'Pending',     metricLabel: 'OUTSTANDING BALANCE', Icon: Clock,        color: '#f59e0b', gradFrom: '#fef3c7', gradTo: '#fffbeb' },
-  { key: 'paid',        label: 'Paid',        metricLabel: 'TOTAL COLLECTED',     Icon: CheckCircle2, color: '#10b981', gradFrom: '#d1fae5', gradTo: '#f0fdf4' },
-  { key: 'overdue',     label: 'Overdue',     metricLabel: 'OVERDUE BALANCE',     Icon: AlertCircle,  color: '#ef4444', gradFrom: '#fee2e2', gradTo: '#fef2f2' },
-  { key: 'projections', label: 'Projections', metricLabel: 'FINANCIAL FORECAST',  Icon: TrendingUp,   color: '#6366f1', gradFrom: '#e0e7ff', gradTo: '#eef2ff' },
-];
-
 const CYAN = '#06b6d4';
 const fmtDate = (d: string | null) =>
   d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '—';
 
 export default function InvoicingPage() {
   const t = useT();
+  const T = useTranslations();
   const { token, user } = useAuthStore();
+
+  const PANELS: {
+    key: PanelKey; label: string; metricLabel: string;
+    Icon: React.ComponentType<{ size?: number; color?: string }>;
+    color: string; gradFrom: string; gradTo: string;
+  }[] = [
+    { key: 'pending',     label: T.invoicing.panelPending,     metricLabel: T.invoicing.metricOutstanding, Icon: Clock,        color: '#f59e0b', gradFrom: '#fef3c7', gradTo: '#fffbeb' },
+    { key: 'paid',        label: T.invoicing.panelPaid,        metricLabel: T.invoicing.metricCollected,   Icon: CheckCircle2, color: '#10b981', gradFrom: '#d1fae5', gradTo: '#f0fdf4' },
+    { key: 'overdue',     label: T.invoicing.panelOverdue,     metricLabel: T.invoicing.metricOverdue,     Icon: AlertCircle,  color: '#ef4444', gradFrom: '#fee2e2', gradTo: '#fef2f2' },
+    { key: 'projections', label: T.invoicing.panelProjections, metricLabel: T.invoicing.metricForecast,    Icon: TrendingUp,   color: '#6366f1', gradFrom: '#e0e7ff', gradTo: '#eef2ff' },
+  ];
   const [activePanel, setActivePanel]   = useState<PanelKey | null>(null);
   const [sort, setSort]                 = useState<SortKey>('latest');
   const [invoices, setInvoices]         = useState<ClientInvoice[]>([]);
@@ -141,7 +142,7 @@ export default function InvoicingPage() {
           </div>
           <div>
             <p style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', margin: 0 }}>
-              {activeMeta.label}{activePanel !== 'projections' ? ' Invoices' : ''}
+              {activeMeta.label}{activePanel !== 'projections' ? ' ' + T.invoicing.invoices : ''}
             </p>
             {activePanel !== 'projections' && (
               <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>
@@ -154,15 +155,19 @@ export default function InvoicingPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {activePanel !== 'projections' && (
             <div style={{ display: 'flex', gap: 2, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: 3 }}>
-              {(['latest', 'oldest', 'amount'] as SortKey[]).map(s => (
+              {([
+                { key: 'latest' as SortKey, label: T.invoicing.sortLatest },
+                { key: 'oldest' as SortKey, label: T.invoicing.sortOldest },
+                { key: 'amount' as SortKey, label: T.invoicing.sortAmount },
+              ]).map(({ key: s, label }) => (
                 <button key={s} onClick={e => { e.stopPropagation(); setSort(s); }} style={{
                   padding: '5px 13px', borderRadius: 7, border: 'none', cursor: 'pointer',
                   fontSize: 12, fontWeight: sort === s ? 600 : 400,
                   background: sort === s ? '#fff' : 'transparent',
                   color: sort === s ? activeMeta.color : '#94a3b8',
                   boxShadow: sort === s ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-                  transition: 'all 0.15s', textTransform: 'capitalize',
-                }}>{s}</button>
+                  transition: 'all 0.15s',
+                }}>{label}</button>
               ))}
             </div>
           )}
@@ -174,7 +179,7 @@ export default function InvoicingPage() {
               cursor: 'pointer', fontSize: 13, fontWeight: 600,
               boxShadow: `0 2px 8px ${activeMeta.color}40`,
             }}>
-              <Plus size={14} /> New
+              <Plus size={14} /> {T.invoicing.newBtn}
             </button>
           )}
           {/* Fullscreen toggle */}
@@ -219,7 +224,7 @@ export default function InvoicingPage() {
               ))
             ) : panelInvoices(activePanel).length === 0 ? (
               <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '48px 0', color: '#94a3b8', fontSize: 14 }}>
-                No {activeMeta.label.toLowerCase()} invoices found.
+                {T.invoicing.noInvoices(activeMeta.label.toLowerCase())}
               </div>
             ) : (
               panelInvoices(activePanel).map(inv => (
@@ -248,7 +253,7 @@ export default function InvoicingPage() {
             onClick={() => void fetchAll()}
             style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#475569', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', transition: 'box-shadow 0.15s' }}
           >
-            <RefreshCw size={14} /> Refresh
+            <RefreshCw size={14} /> {T.invoicing.refresh}
           </button>
         </div>
 
@@ -312,7 +317,7 @@ export default function InvoicingPage() {
                       <div>
                         <p style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', margin: 0, lineHeight: 1.2 }}>{panel.label}</p>
                         <p style={{ fontSize: 12, color: '#94a3b8', margin: '3px 0 0', lineHeight: 1 }}>
-                          {panel.key === 'projections' ? 'Financial forecast' : loading ? '—' : `${count} invoice${count !== 1 ? 's' : ''}`}
+                          {panel.key === 'projections' ? T.invoicing.financialForecast : loading ? '—' : `${count} ${T.invoicing.invoices.toLowerCase()}`}
                         </p>
                       </div>
                     </div>
@@ -383,7 +388,7 @@ export default function InvoicingPage() {
                               {inv.client_company ?? inv.client_name ?? '—'}
                             </p>
                             <p style={{ fontSize: 11, color: '#94a3b8', margin: '2px 0 0' }}>
-                              {inv.status === 'paid' ? `Paid ${fmtDate(inv.paid_at)}` : `Due ${fmtDate(inv.due_date)}`}
+                              {inv.status === 'paid' ? T.invoicing.paidOn(fmtDate(inv.paid_at)) : T.invoicing.dueOn(fmtDate(inv.due_date))}
                               {' · '}<span style={{ color: '#cbd5e1' }}>{inv.invoice_number}</span>
                             </p>
                           </div>
@@ -393,7 +398,7 @@ export default function InvoicingPage() {
                         </div>
                       )) : !loading ? (
                         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <p style={{ fontSize: 12, color: '#cbd5e1', margin: 0 }}>No {panel.label.toLowerCase()} invoices</p>
+                          <p style={{ fontSize: 12, color: '#cbd5e1', margin: 0 }}>{T.invoicing.noInvoices(panel.label.toLowerCase())}</p>
                         </div>
                       ) : Array.from({ length: 3 }).map((_, i) => (
                         <div key={i} style={{ height: 34, background: '#f8fafc', borderRadius: 6, margin: '4px 0', animation: 'pulse 1.5s infinite' }} />
@@ -401,8 +406,8 @@ export default function InvoicingPage() {
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                         {[
-                          { Icon: Users,    label: 'Active Clients', value: loading ? '—' : String(projData?.active_clients.length ?? '—') },
-                          { Icon: Calendar, label: 'Revenue forecast', value: '1 / 3 / 5 / 10 yr' },
+                          { Icon: Users,    label: T.invoicing.activeClients, value: loading ? '—' : String(projData?.active_clients.length ?? '—') },
+                          { Icon: Calendar, label: T.invoicing.revenueLabel,   value: '1 / 3 / 5 / 10 yr' },
                         ].map(({ Icon, label, value }) => (
                           <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <div style={{ width: 32, height: 32, borderRadius: 8, background: isCyan ? `${CYAN}10` : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' }}>
@@ -428,7 +433,7 @@ export default function InvoicingPage() {
                   transition: 'background 0.15s, border-color 0.15s',
                 }}>
                   <span style={{ fontSize: 11, color: isActive ? panel.color : isCyan ? CYAN : '#94a3b8', fontWeight: isActive || isCyan ? 600 : 400, transition: 'color 0.15s' }}>
-                    {isActive ? 'Panel open — scroll down' : isCyan ? 'Click to open' : 'Tap to open'}
+                    {isActive ? T.invoicing.panelOpen : isCyan ? T.invoicing.clickOpen : T.invoicing.tapOpen}
                   </span>
                   {panel.key !== 'projections' && count > 3 && (
                     <span style={{ fontSize: 11, color: '#94a3b8' }}>+{count - 3} more</span>

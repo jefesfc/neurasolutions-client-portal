@@ -12,38 +12,13 @@ import { formatRelative } from "../../lib/formatters";
 import { mockAISystems } from "../../lib/mock-data";
 import type { Lead, Client } from "../../types/aios";
 import { ROUTES } from "../../config/routes";
-
-// ── Activity config ──────────────────────────────────────────────────────────
-
-const LEAD_CFG: Record<Lead["status"], {
-  icon: typeof UserPlus;
-  iconCls: string;
-  bgCls: string;
-  title: (n: string) => string;
-  desc: (s: string) => string;
-}> = {
-  new:       { icon: UserPlus,  iconCls: "text-blue-600",    bgCls: "bg-blue-50",    title: n => `New lead: ${n}`,   desc: s => `Entered via ${s}`      },
-  contacted: { icon: PhoneCall, iconCls: "text-amber-600",   bgCls: "bg-amber-50",   title: n => `Contacted: ${n}`,  desc: () => "Follow-up in progress" },
-  qualified: { icon: Star,      iconCls: "text-indigo-600",  bgCls: "bg-indigo-50",  title: n => `Qualified: ${n}`,  desc: () => "Ready for proposal"    },
-  won:       { icon: Trophy,    iconCls: "text-emerald-600", bgCls: "bg-emerald-50", title: n => `Deal won: ${n}`,   desc: () => "Converted to client"   },
-  lost:      { icon: XCircle,   iconCls: "text-red-500",     bgCls: "bg-red-50",     title: n => `Lead lost: ${n}`,  desc: () => "Marked as lost"        },
-};
-
-// ── Clients config ───────────────────────────────────────────────────────────
-
-const CLIENT_STATUS: Record<Client["status"], { dot: string; badge: string; label: string }> = {
-  active:   { dot: "bg-emerald-500", badge: "bg-emerald-50 text-emerald-700", label: "Active"   },
-  inactive: { dot: "bg-amber-400",   badge: "bg-amber-50 text-amber-700",     label: "Inactive" },
-  churned:  { dot: "bg-red-400",     badge: "bg-red-50 text-red-600",         label: "Churned"  },
-};
+import { useTranslations } from "../../i18n/useT";
 
 const HEALTH_COLOR: Record<string, "green" | "yellow" | "red" | "gray"> = {
   healthy:  "green",
   degraded: "yellow",
   down:     "red",
 };
-
-// ── Section accent colours ───────────────────────────────────────────────────
 
 const SECTION_ACCENT = {
   activity: { dot: "bg-indigo-500",  label: "text-indigo-600",  bg: "bg-indigo-50/60"  },
@@ -54,6 +29,7 @@ const SECTION_ACCENT = {
 function SectionHeader({
   title, linkTo, dot,
 }: { title: string; dot: string; linkTo?: string }) {
+  const T = useTranslations();
   return (
     <div className="flex items-center justify-between px-5 py-3.5">
       <div className="flex items-center gap-2">
@@ -62,23 +38,42 @@ function SectionHeader({
       </div>
       {linkTo && (
         <Link to={linkTo} className="text-xs text-indigo-500 hover:text-indigo-700 font-semibold transition-colors">
-          View all →
+          {T.dashPanel.viewAll}
         </Link>
       )}
     </div>
   );
 }
 
-// ── DashboardPanel ───────────────────────────────────────────────────────────
-
 export function DashboardPanel() {
+  const T = useTranslations();
   const { data: leads,   loading: l1 } = useQuery<Lead>("leads",   { order: "created_at.desc", limit: 8, pollInterval: 30_000 });
   const { data: clients, loading: l2 } = useQuery<Client>("clients", { order: "created_at.desc",           pollInterval: 30_000 });
+
+  const LEAD_CFG: Record<Lead["status"], {
+    icon: typeof UserPlus;
+    iconCls: string;
+    bgCls: string;
+    title: (n: string) => string;
+    desc: (s: string) => string;
+  }> = {
+    new:       { icon: UserPlus,  iconCls: "text-blue-600",    bgCls: "bg-blue-50",    title: T.dashPanel.leadNew,       desc: T.dashPanel.leadDescNew      },
+    contacted: { icon: PhoneCall, iconCls: "text-amber-600",   bgCls: "bg-amber-50",   title: T.dashPanel.leadContacted, desc: T.dashPanel.leadDescContacted },
+    qualified: { icon: Star,      iconCls: "text-indigo-600",  bgCls: "bg-indigo-50",  title: T.dashPanel.leadQualified, desc: T.dashPanel.leadDescQualified },
+    won:       { icon: Trophy,    iconCls: "text-emerald-600", bgCls: "bg-emerald-50", title: T.dashPanel.leadWon,       desc: T.dashPanel.leadDescWon       },
+    lost:      { icon: XCircle,   iconCls: "text-red-500",     bgCls: "bg-red-50",     title: T.dashPanel.leadLost,      desc: T.dashPanel.leadDescLost      },
+  };
 
   const activeClients   = clients.filter(c => c.status === "active").length;
   const inactiveClients = clients.filter(c => c.status === "inactive").length;
   const churnedClients  = clients.filter(c => c.status === "churned").length;
   const recentClients   = clients.slice(0, 6);
+
+  const clientStatusLabel: Record<Client["status"], string> = {
+    active:   T.dashPanel.active,
+    inactive: T.dashPanel.inactive,
+    churned:  T.dashPanel.churned,
+  };
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
@@ -86,13 +81,13 @@ export function DashboardPanel() {
       {/* ── Header strip ── */}
       <div className="grid grid-cols-3 border-b border-slate-200" style={{ background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)" }}>
         <div className={cn("border-r border-slate-200", SECTION_ACCENT.activity.bg)}>
-          <SectionHeader title="Recent Activity" dot={SECTION_ACCENT.activity.dot} />
+          <SectionHeader title={T.dashPanel.recentActivity} dot={SECTION_ACCENT.activity.dot} />
         </div>
         <div className={cn("border-r border-slate-200", SECTION_ACCENT.systems.bg)}>
-          <SectionHeader title="AI Systems" dot={SECTION_ACCENT.systems.dot} linkTo={ROUTES.AISystems} />
+          <SectionHeader title={T.dashPanel.aiSystems} dot={SECTION_ACCENT.systems.dot} linkTo={ROUTES.AISystems} />
         </div>
         <div className={SECTION_ACCENT.clients.bg}>
-          <SectionHeader title="Clients" dot={SECTION_ACCENT.clients.dot} linkTo={ROUTES.Clients} />
+          <SectionHeader title={T.dashPanel.clients} dot={SECTION_ACCENT.clients.dot} linkTo={ROUTES.Clients} />
         </div>
       </div>
 
@@ -108,7 +103,7 @@ export function DashboardPanel() {
           ) : leads.length === 0 ? (
             <div className="flex flex-col items-center py-12 text-slate-400 gap-2">
               <UserPlus className="h-8 w-8 opacity-30" />
-              <p className="text-sm">No activity yet</p>
+              <p className="text-sm">{T.dashPanel.noActivity}</p>
             </div>
           ) : (
             leads.map(lead => {
@@ -174,9 +169,9 @@ export function DashboardPanel() {
           {/* KPI strip */}
           <div className="grid grid-cols-3 border-b border-slate-200" style={{ background: "linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)" }}>
             {[
-              { icon: TrendingUp, color: "text-emerald-600", val: activeClients,   label: "Active",   bg: "bg-emerald-100/60" },
-              { icon: AlertCircle, color: "text-amber-500",  val: inactiveClients, label: "Inactive", bg: "bg-amber-100/60"   },
-              { icon: UserMinus,  color: "text-red-500",     val: churnedClients,  label: "Churned",  bg: "bg-red-100/60"     },
+              { icon: TrendingUp,  color: "text-emerald-600", val: activeClients,   label: T.dashPanel.active,   bg: "bg-emerald-100/60" },
+              { icon: AlertCircle, color: "text-amber-500",   val: inactiveClients, label: T.dashPanel.inactive, bg: "bg-amber-100/60"   },
+              { icon: UserMinus,   color: "text-red-500",     val: churnedClients,  label: T.dashPanel.churned,  bg: "bg-red-100/60"     },
             ].map((s, i) => (
               <div key={s.label} className={cn("flex flex-col items-center py-3.5 gap-1", i < 2 && "border-r border-slate-200/70")}>
                 <div className={cn("p-1.5 rounded-lg mb-0.5", s.bg)}>
@@ -197,35 +192,32 @@ export function DashboardPanel() {
             ) : recentClients.length === 0 ? (
               <div className="flex flex-col items-center py-12 text-slate-300 gap-2">
                 <Building2 className="h-9 w-9 opacity-40" />
-                <p className="text-sm font-medium text-slate-400">No clients yet</p>
-                <Link to={ROUTES.Clients} className="text-xs text-indigo-500 hover:underline">Add first client →</Link>
+                <p className="text-sm font-medium text-slate-400">{T.dashPanel.noClients}</p>
+                <Link to={ROUTES.Clients} className="text-xs text-indigo-500 hover:underline">{T.dashPanel.addFirstClient}</Link>
               </div>
             ) : (
-              recentClients.map(c => {
-                const st = CLIENT_STATUS[c.status];
-                return (
-                  <Link
-                    key={c.id}
-                    to={ROUTES.Clients}
-                    className="flex items-center gap-3 px-5 py-3 hover:bg-violet-50/30 transition-colors"
-                  >
-                    <div className="h-8 w-8 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center flex-shrink-0">
-                      <Building2 className="h-4 w-4 text-violet-500" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-slate-800 truncate">{c.name}</p>
-                      <p className="text-xs text-slate-400 truncate">{c.company}</p>
-                    </div>
-                    <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 border",
-                      c.status === "active"   && "bg-emerald-50 text-emerald-700 border-emerald-200",
-                      c.status === "inactive" && "bg-amber-50 text-amber-700 border-amber-200",
-                      c.status === "churned"  && "bg-red-50 text-red-600 border-red-200",
-                    )}>
-                      {st.label}
-                    </span>
-                  </Link>
-                );
-              })
+              recentClients.map(c => (
+                <Link
+                  key={c.id}
+                  to={ROUTES.Clients}
+                  className="flex items-center gap-3 px-5 py-3 hover:bg-violet-50/30 transition-colors"
+                >
+                  <div className="h-8 w-8 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center flex-shrink-0">
+                    <Building2 className="h-4 w-4 text-violet-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-slate-800 truncate">{c.name}</p>
+                    <p className="text-xs text-slate-400 truncate">{c.company}</p>
+                  </div>
+                  <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 border",
+                    c.status === "active"   && "bg-emerald-50 text-emerald-700 border-emerald-200",
+                    c.status === "inactive" && "bg-amber-50 text-amber-700 border-amber-200",
+                    c.status === "churned"  && "bg-red-50 text-red-600 border-red-200",
+                  )}>
+                    {clientStatusLabel[c.status]}
+                  </span>
+                </Link>
+              ))
             )}
           </div>
         </div>

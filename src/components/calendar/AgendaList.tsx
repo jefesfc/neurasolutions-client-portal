@@ -3,6 +3,7 @@ import { format, isSameDay } from 'date-fns';
 import { expandEventsInWindow } from '../../lib/calendar-utils';
 import { CATEGORY_CONFIG, type CalendarEvent, type EventCategory } from '../../types/calendar';
 import { EventBadge } from './EventBadge';
+import { useTranslations } from '../../i18n/useT';
 
 interface Props {
   events: CalendarEvent[];
@@ -11,21 +12,6 @@ interface Props {
   onClearDate: () => void;
 }
 
-const STATUS_CONFIG = {
-  done:      { label: 'Done',      cls: 'bg-emerald-50 text-emerald-600 border border-emerald-200' },
-  cancelled: { label: 'Cancelled', cls: 'bg-red-50 text-red-500 border border-red-200'             },
-  pending:   { label: 'Pending',   cls: 'bg-amber-50 text-amber-600 border border-amber-200'       },
-} as const;
-
-const CATEGORY_FILTERS: { key: EventCategory | 'all'; label: string }[] = [
-  { key: 'all',      label: 'All'       },
-  { key: 'meeting',  label: 'Meetings'  },
-  { key: 'invoice',  label: 'Invoices'  },
-  { key: 'contract', label: 'Contracts' },
-  { key: 'reminder', label: 'Reminders' },
-  { key: 'other',    label: 'Other'     },
-];
-
 interface EventCardProps {
   event: CalendarEvent;
   occurrenceDate: Date;
@@ -33,12 +19,18 @@ interface EventCardProps {
 }
 
 function EventCard({ event, occurrenceDate, onClick }: EventCardProps) {
-  const cfg       = CATEGORY_CONFIG[event.category];
-  const statusCfg = STATUS_CONFIG[event.status];
+  const T   = useTranslations();
+  const cfg = CATEGORY_CONFIG[event.category];
+  const STATUS_CONFIG = {
+    done:      { label: T.calendar.statusDone,      cls: 'bg-emerald-50 text-emerald-600 border border-emerald-200' },
+    cancelled: { label: T.calendar.statusCancelled, cls: 'bg-red-50 text-red-500 border border-red-200'             },
+    pending:   { label: T.calendar.statusPending,   cls: 'bg-amber-50 text-amber-600 border border-amber-200'       },
+  } as const;
+  const statusCfg   = STATUS_CONFIG[event.status];
   const isDone      = event.status === 'done';
   const isCancelled = event.status === 'cancelled';
 
-  const timeStr = event.all_day ? 'All day' : format(occurrenceDate, 'HH:mm');
+  const timeStr = event.all_day ? T.calendar.allDay : format(occurrenceDate, 'HH:mm');
 
   return (
     <button
@@ -108,8 +100,18 @@ function EventCard({ event, occurrenceDate, onClick }: EventCardProps) {
 }
 
 export function AgendaList({ events, selectedDate, onSelectEvent, onClearDate }: Props) {
+  const T = useTranslations();
   const now = useMemo(() => new Date(), []);
   const [activeFilter, setActiveFilter] = useState<EventCategory | 'all'>('all');
+
+  const CATEGORY_FILTERS: { key: EventCategory | 'all'; label: string }[] = [
+    { key: 'all',      label: T.calendar.filterAll       },
+    { key: 'meeting',  label: T.calendar.filterMeetings  },
+    { key: 'invoice',  label: T.calendar.filterInvoices  },
+    { key: 'contract', label: T.calendar.filterContracts },
+    { key: 'reminder', label: T.calendar.filterReminders },
+    { key: 'other',    label: T.calendar.filterOther     },
+  ];
 
   const items = useMemo(() => {
     const windowStart = selectedDate
@@ -139,7 +141,7 @@ export function AgendaList({ events, selectedDate, onSelectEvent, onClearDate }:
 
   const heading = selectedDate
     ? format(selectedDate, 'EEEE, d MMMM yyyy')
-    : 'Upcoming — Next 90 Days';
+    : T.calendar.agendaUpcoming;
 
   return (
     <div className="flex flex-col h-full">
@@ -149,7 +151,7 @@ export function AgendaList({ events, selectedDate, onSelectEvent, onClearDate }:
         <div>
           <h3 className="text-sm font-bold text-slate-800">{heading}</h3>
           <p className="text-[11px] text-slate-400 mt-0.5">
-            {filtered.length} event{filtered.length !== 1 ? 's' : ''}
+            {T.calendar.agendaEvents(filtered.length)}
             {activeFilter !== 'all' && (
               <> · {CATEGORY_FILTERS.find(f => f.key === activeFilter)?.label}</>
             )}
@@ -160,7 +162,7 @@ export function AgendaList({ events, selectedDate, onSelectEvent, onClearDate }:
             onClick={onClearDate}
             className="text-[11px] text-indigo-500 hover:text-indigo-700 font-medium transition-colors px-2 py-1 rounded-lg hover:bg-indigo-50 flex-shrink-0"
           >
-            ← All upcoming
+            {T.calendar.agendaAllUpcoming}
           </button>
         )}
       </div>
@@ -208,19 +210,19 @@ export function AgendaList({ events, selectedDate, onSelectEvent, onClearDate }:
           <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-xl">📅</div>
           <div>
             <p className="text-sm font-medium text-slate-500">
-              No events {selectedDate ? 'on this day' : 'coming up'}
+              {selectedDate ? T.calendar.agendaNoEventsDay : T.calendar.agendaNoEventsComing}
             </p>
             {activeFilter !== 'all' && (
               <button
                 onClick={() => setActiveFilter('all')}
                 className="text-xs text-indigo-500 hover:underline mt-1"
               >
-                Show all categories
+                {T.calendar.agendaShowAllCats}
               </button>
             )}
             {selectedDate && (
               <button onClick={onClearDate} className="block text-xs text-indigo-500 hover:underline mt-1 mx-auto">
-                View all upcoming
+                {T.calendar.agendaViewAll}
               </button>
             )}
           </div>
@@ -241,7 +243,7 @@ export function AgendaList({ events, selectedDate, onSelectEvent, onClearDate }:
               const date       = new Date(dateKey + 'T12:00:00');
               const isToday    = isSameDay(date, now);
               const isTomorrow = isSameDay(date, new Date(now.getTime() + 86400000));
-              const label      = isToday ? 'Today' : isTomorrow ? 'Tomorrow' : format(date, 'EEE, d MMM');
+              const label      = isToday ? T.calendar.agendaToday : isTomorrow ? T.calendar.agendaTomorrow : format(date, 'EEE, d MMM');
 
               return (
                 <div key={dateKey} className="mb-1">
@@ -255,7 +257,7 @@ export function AgendaList({ events, selectedDate, onSelectEvent, onClearDate }:
                     </span>
                     {isToday && (
                       <span className="text-[9px] font-bold bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full">
-                        TODAY
+                        {T.calendar.agendaTodayBadge}
                       </span>
                     )}
                     <div className="flex-1 h-px bg-slate-100" />

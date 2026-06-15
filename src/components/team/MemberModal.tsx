@@ -4,48 +4,43 @@ import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Select } from "../ui/Select";
 import type { User } from "../../types/aios";
-
-type Mode = "add" | "edit";
+import { useTranslations } from "../../i18n/useT";
 
 interface Props {
   open: boolean;
-  mode: Mode;
-  member?: User;
+  mode: "add" | "edit";
+  member?: User | null;
   onClose: () => void;
-  onAdd: (data: {
-    name: string;
-    email: string;
-    role: User["role"];
-    password: string;
-    section_permissions: string[];
-  }) => Promise<void>;
-  onEdit: (id: string, role: User["role"], sectionPermissions: string[]) => Promise<void>;
+  onAdd: (data: { name: string; email: string; role: User["role"]; password: string; section_permissions: string[] }) => Promise<void>;
+  onEdit: (id: string, role: User["role"], modules: string[]) => Promise<void>;
 }
 
-const ROLE_OPTIONS = [
-  { value: "admin",   label: "Admin"   },
-  { value: "manager", label: "Manager" },
-  { value: "user",    label: "User"    },
-];
-
-const MODULE_OPTIONS: { key: string; label: string }[] = [
-  { key: "leads",         label: "Leads"         },
-  { key: "crm",           label: "Clients"       },
-  { key: "invoicing",     label: "Invoicing"     },
-  { key: "billing",       label: "Billing"       },
-  { key: "calendar",      label: "Calendar"      },
-  { key: "emails",        label: "Emails"        },
-  { key: "usage",         label: "Usage"         },
-  { key: "ai_systems",    label: "AI Systems"    },
-  { key: "analytics",     label: "Analytics"     },
-  { key: "reports",       label: "Reports"       },
-  { key: "support",       label: "Support"       },
-  { key: "team",          label: "Team"          },
-  { key: "notifications", label: "Notifications" },
-  { key: "knowledge",     label: "Knowledge Base" },
-];
-
 export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Props) {
+  const T = useTranslations();
+
+  const ROLE_OPTIONS = [
+    { value: "admin",   label: T.team.roleAdmin   },
+    { value: "manager", label: T.team.roleManager },
+    { value: "user",    label: T.team.roleUser    },
+  ];
+
+  const MODULE_OPTIONS: { key: string; label: string }[] = [
+    { key: "leads",         label: T.team.modLeads         },
+    { key: "crm",           label: T.team.modClients       },
+    { key: "invoicing",     label: T.team.modInvoicing     },
+    { key: "billing",       label: T.team.modBilling       },
+    { key: "calendar",      label: T.team.modCalendar      },
+    { key: "emails",        label: T.team.modEmails        },
+    { key: "usage",         label: T.team.modUsage         },
+    { key: "ai_systems",    label: T.team.modAiSystems     },
+    { key: "analytics",     label: T.team.modAnalytics     },
+    { key: "reports",       label: T.team.modReports       },
+    { key: "support",       label: T.team.modSupport       },
+    { key: "team",          label: T.team.modTeam          },
+    { key: "notifications", label: T.team.modNotifications },
+    { key: "knowledge",     label: T.team.modKnowledge     },
+  ];
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<User["role"]>("user");
@@ -86,7 +81,7 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
     try {
       if (mode === "add") {
         if (!name.trim() || !email.trim() || !password.trim()) {
-          setError("All fields are required");
+          setError(T.team.allRequired);
           return;
         }
         await onAdd({ name: name.trim(), email: email.trim(), role, password, section_permissions: selectedModules });
@@ -107,28 +102,24 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
     <Modal
       open={open}
       onClose={onClose}
-      title={mode === "add" ? "Add Team Member" : "Edit Member"}
-      description={
-        mode === "add"
-          ? "Create a new user in your workspace."
-          : "Update this member's role and module access."
-      }
+      title={mode === "add" ? T.team.modalTitleAdd : T.team.modalTitleEdit}
+      description={mode === "add" ? T.team.modalDescAdd : T.team.modalDescEdit}
       size="sm"
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         {mode === "add" && (
           <>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">{T.team.nameLabel}</label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Jane Smith"
+                placeholder={T.team.fullNamePh}
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">{T.team.emailLabel}</label>
               <Input
                 type="email"
                 value={email}
@@ -140,7 +131,7 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
           </>
         )}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">{T.team.roleLabel}</label>
           <Select
             value={role}
             onChange={(e) => {
@@ -154,13 +145,13 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
         {mode === "add" && (
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
-              Temporary Password
+              {T.team.passwordLabel}
             </label>
             <Input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Min 8 characters"
+              placeholder={T.team.passwordPh}
               required
               minLength={8}
             />
@@ -171,7 +162,7 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="block text-sm font-medium text-slate-700">
-              Module Access
+              {T.team.modulesLabel}
             </label>
             {!isAdminRole && (
               <div className="flex gap-2">
@@ -180,7 +171,7 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
                   onClick={selectAll}
                   className="text-xs text-brand-600 hover:text-brand-700"
                 >
-                  All
+                  {T.team.modAll}
                 </button>
                 <span className="text-slate-300">·</span>
                 <button
@@ -188,14 +179,14 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
                   onClick={clearAll}
                   className="text-xs text-slate-400 hover:text-slate-600"
                 >
-                  None
+                  {T.team.modNone}
                 </button>
               </div>
             )}
           </div>
           {isAdminRole ? (
             <p className="text-xs text-slate-400 bg-slate-50 rounded-lg px-3 py-2">
-              Admin users have access to all modules.
+              {T.team.adminAllModules}
             </p>
           ) : (
             <div className="grid grid-cols-2 gap-1.5 bg-slate-50 rounded-lg p-3">
@@ -222,10 +213,10 @@ export function MemberModal({ open, mode, member, onClose, onAdd, onEdit }: Prop
         {error && <p className="text-sm text-danger">{error}</p>}
         <div className="flex justify-end gap-3 pt-2">
           <Button type="button" variant="ghost" onClick={onClose}>
-            Cancel
+            {T.common.cancel}
           </Button>
           <Button type="submit" loading={loading}>
-            {mode === "add" ? "Add Member" : "Save Changes"}
+            {mode === "add" ? T.team.addBtn : T.team.saveBtn}
           </Button>
         </div>
       </form>
