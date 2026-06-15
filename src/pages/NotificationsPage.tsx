@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
+import { useT } from "../i18n/useT";
 import { Card } from "../components/ui/Card";
 import { useNotificationStore } from "../store/notification-store";
 import { cn } from "../lib/cn";
@@ -150,6 +151,7 @@ function NotificationRow({ n, onClick }: { n: Notification; onClick: () => void 
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function NotificationsPage() {
+  const t = useT();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationStore();
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const navigate = useNavigate();
@@ -174,8 +176,8 @@ export default function NotificationsPage() {
   return (
     <PageTransition>
       <PageHeader
-        title="Notifications"
-        description="All alerts, system events, and updates in one place"
+        title={t('pages.notifications.title')}
+        description={t('pages.notifications.desc')}
       />
 
       {/* Tabs + action */}

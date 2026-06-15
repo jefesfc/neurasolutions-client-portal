@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
+import { useT } from "../i18n/useT";
 import { ReportCard } from "../components/reports/ReportCard";
 import { ReportViewer } from "../components/reports/ReportViewer";
 import { Tabs } from "../components/ui/Tabs";
@@ -21,6 +22,7 @@ const ALL_TABS = [
 ];
 
 export default function ReportsPage() {
+  const t = useT();
   const token = useAuthStore((s) => s.token);
   const [activeTab, setActiveTab] = useState("all");
   const [reports, setReports] = useState<Report[]>([]);
@@ -75,8 +77,8 @@ export default function ReportsPage() {
   return (
     <PageTransition>
       <PageHeader
-        title="Reports"
-        description="AI-generated performance reports and executive summaries"
+        title={t('pages.reports.title')}
+        description={t('pages.reports.desc')}
       />
       <div className="mb-6">
         <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />

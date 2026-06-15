@@ -1,5 +1,6 @@
 import { cn } from '../../lib/cn';
 import { formatRelative } from '../../lib/formatters';
+import { useTranslations } from '../../i18n/useT';
 import type { Email } from '../../types/aios';
 
 interface EmailListProps {
@@ -26,6 +27,7 @@ function getAvatarColor(seed: string): string {
 }
 
 export function EmailList({ emails, selectedId, onSelect, search }: EmailListProps) {
+  const T = useTranslations();
   const filtered = emails.filter((e) => {
     if (!search) return true;
     const q = search.toLowerCase();
@@ -46,15 +48,15 @@ export function EmailList({ emails, selectedId, onSelect, search }: EmailListPro
           </svg>
         </div>
         <p className="text-sm font-medium text-slate-500">
-          {search ? 'No emails match your search' : 'No emails yet'}
+          {search ? T.email.noMatch : T.email.noEmails}
         </p>
-        {search && <p className="text-xs text-slate-400 mt-1">Try a different keyword</p>}
+        {search && <p className="text-xs text-slate-400 mt-1">{T.email.tryKeyword}</p>}
       </div>
     );
   }
 
   return (
-    <ul className="divide-y divide-slate-100">
+    <ul className="px-2 py-2 space-y-1.5">
       {filtered.map((email) => {
         const isSelected = selectedId === email.id;
         const initials = getInitials(email.from_name ?? null, email.from_email);
@@ -66,17 +68,23 @@ export function EmailList({ emails, selectedId, onSelect, search }: EmailListPro
             key={email.id}
             onClick={() => onSelect(email)}
             className={cn(
-              'group relative px-4 py-3.5 cursor-pointer transition-all duration-150',
+              'group relative px-3.5 py-3 rounded-xl cursor-pointer transition-all duration-150 border',
               isSelected
-                ? 'bg-indigo-50 border-l-[3px] border-indigo-500 shadow-[inset_0_0_0_1.5px_#6366f1]'
-                : 'border-l-[3px] border-transparent hover:bg-slate-50 hover:shadow-[inset_0_0_0_1.5px_#06b6d4]',
-              !email.is_read && !isSelected && 'bg-blue-50/40'
+                ? 'bg-gradient-to-r from-indigo-50 to-white border-indigo-300 shadow-[0_2px_12px_rgba(99,102,241,0.18)]'
+                : !email.is_read
+                ? 'bg-blue-50/40 border-slate-200/80 hover:border-indigo-200 hover:shadow-[0_2px_10px_rgba(99,102,241,0.10)] hover:bg-indigo-50/30'
+                : 'bg-white border-slate-200/80 hover:border-indigo-200 hover:shadow-[0_2px_10px_rgba(99,102,241,0.10)] hover:bg-indigo-50/20'
             )}
           >
+            {/* Selected accent bar */}
+            {isSelected && (
+              <div className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-indigo-500" />
+            )}
+
             <div className="flex items-start gap-3">
               {/* Avatar */}
               <div className={cn(
-                'flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold select-none',
+                'flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold select-none shadow-sm',
                 avatarColor
               )}>
                 {initials}
@@ -91,14 +99,14 @@ export function EmailList({ emails, selectedId, onSelect, search }: EmailListPro
                   )}>
                     {displayName}
                   </span>
-                  <span className="flex-shrink-0 text-[11px] text-slate-400 font-medium">
+                  <span className="flex-shrink-0 text-[11px] text-slate-400 font-medium tabular-nums">
                     {formatRelative(email.received_at)}
                   </span>
                 </div>
 
                 <p className={cn(
                   'text-[13px] truncate mb-0.5',
-                  !email.is_read ? 'font-semibold text-slate-800' : 'text-slate-600'
+                  !email.is_read ? 'font-semibold text-slate-800' : 'text-slate-500'
                 )}>
                   {email.subject ?? '(no subject)'}
                 </p>
@@ -112,8 +120,8 @@ export function EmailList({ emails, selectedId, onSelect, search }: EmailListPro
 
               {/* Unread dot */}
               {!email.is_read && (
-                <div className="flex-shrink-0 mt-1">
-                  <span className="block w-2 h-2 rounded-full bg-indigo-500" />
+                <div className="flex-shrink-0 mt-1.5">
+                  <span className="block w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_4px_rgba(99,102,241,0.6)]" />
                 </div>
               )}
             </div>

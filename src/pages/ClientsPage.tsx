@@ -4,6 +4,7 @@ import { useQuery } from '../hooks/useQuery';
 import { useAuthStore } from '../store/auth-store';
 import { PageTransition } from '../components/shared/PageTransition';
 import { PageHeader } from '../components/layout/PageHeader';
+import { useT } from '../i18n/useT';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Skeleton } from '../components/ui/Skeleton';
@@ -52,6 +53,7 @@ const STAGE_LABEL: Record<ClientStage, string> = {
 };
 
 export default function ClientsPage() {
+  const t = useT();
   const { data: clients, loading, error, refetch } = useQuery<Client>('clients', { order: 'created_at.desc' });
   const { user, token } = useAuthStore();
   const [activeStatus, setActiveStatus]         = useState<ClientStatus>('all');
@@ -111,8 +113,8 @@ export default function ClientsPage() {
   return (
     <PageTransition>
       <PageHeader
-        title="Clients"
-        description="Manage your patient accounts and clinical journey"
+        title={t('pages.clients.title')}
+        description={t('pages.clients.desc')}
         actions={
           <div className="flex gap-2">
             <Button

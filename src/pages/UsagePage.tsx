@@ -4,6 +4,7 @@ import { USD_GBP } from "../lib/rangeUtils";
 import { useQuery } from "../hooks/useQuery";
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
+import { useT } from "../i18n/useT";
 import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
 import { Skeleton } from "../components/ui/Skeleton";
@@ -36,6 +37,7 @@ function KPICard({
 }
 
 export default function UsagePage() {
+  const t = useT();
   const { data: rows, loading, error } = useQuery<TokenUsage>("token_usage", {
     order: "created_at.desc",
   });
@@ -67,8 +69,8 @@ export default function UsagePage() {
   return (
     <PageTransition>
       <PageHeader
-        title="Usage & Tokens"
-        description="Monitor your AI consumption and costs"
+        title={t('pages.usage.title')}
+        description={t('pages.usage.desc')}
         actions={
           <Button
             variant="outline"

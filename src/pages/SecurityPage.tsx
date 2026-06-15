@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth-store';
 import { PageTransition } from '../components/shared/PageTransition';
 import { PageHeader } from '../components/layout/PageHeader';
+import { useT } from '../i18n/useT';
 import { SecurityKPIRow } from '../components/security/SecurityKPIRow';
 import { ThreatTimeline } from '../components/security/ThreatTimeline';
 import { EventsTable } from '../components/security/EventsTable';
@@ -52,6 +53,7 @@ const OPERATIONAL_MODEL = [
 ];
 
 export default function SecurityPage() {
+  const t = useT();
   const { user, token } = useAuthStore();
 
   const [range, setRange]               = useState<SecurityTimeRange>('1m');
@@ -170,8 +172,8 @@ export default function SecurityPage() {
       <div className="p-6 space-y-6">
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <PageHeader
-            title="Security"
-            description="Monitor threats, anomalies, and system integrity events"
+            title={t('pages.security.title')}
+            description={t('pages.security.desc')}
           />
           <TimeRangeSelector value={range} onChange={setRange} />
         </div>

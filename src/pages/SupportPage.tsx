@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
+import { useT } from "../i18n/useT";
 import { TicketCard } from "../components/support/TicketCard";
 import { TicketForm } from "../components/support/TicketForm";
 import { FAQAccordion } from "../components/support/FAQAccordion";
@@ -42,6 +43,7 @@ function mapTicket(row: DbTicket): SupportTicket {
 }
 
 export default function SupportPage() {
+  const t = useT();
   const token = useAuthStore((s) => s.token);
   const [activeTab, setActiveTab] = useState("tickets");
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
@@ -81,8 +83,8 @@ export default function SupportPage() {
   return (
     <PageTransition>
       <PageHeader
-        title="Support Center"
-        description="Get help from our team or browse common questions"
+        title={t('pages.support.title')}
+        description={t('pages.support.desc')}
       />
       <div className="mb-6">
         <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />

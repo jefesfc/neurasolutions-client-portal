@@ -5,6 +5,7 @@ import { postgrest } from "../lib/postgrest";
 import { useAuthStore } from "../store/auth-store";
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
+import { useT } from "../i18n/useT";
 import { Button } from "../components/ui/Button";
 import { Skeleton } from "../components/ui/Skeleton";
 import { MemberTable } from "../components/team/MemberTable";
@@ -17,6 +18,7 @@ const API_URL =
   "http://localhost:3001";
 
 export default function TeamPage() {
+  const t = useT();
   const { data: members, loading, error, refetch } = useQuery<User>("users", {
     order: "name.asc",
   });
@@ -85,8 +87,8 @@ export default function TeamPage() {
   return (
     <PageTransition>
       <PageHeader
-        title="Team"
-        description="Manage your workspace members"
+        title={t('pages.team.title')}
+        description={t('pages.team.desc')}
         actions={
           isAdmin ? (
             <Button size="sm" onClick={openAdd}>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
+import { useT } from "../i18n/useT";
 import { SystemGrid } from "../components/ai-systems/SystemGrid";
 import { SearchInput } from "../components/shared/SearchInput";
 import { mockAISystems } from "../lib/mock-data";
@@ -20,6 +21,7 @@ const AGENT_TO_SYSTEM: Record<string, string> = {
 };
 
 export default function AISystemsPage() {
+  const t = useT();
   const token = useAuthStore((s) => s.token);
   const [search, setSearch] = useState("");
   const [systems, setSystems] = useState<AISystem[]>(mockAISystems);
@@ -59,8 +61,8 @@ export default function AISystemsPage() {
   return (
     <PageTransition>
       <PageHeader
-        title="AI Systems"
-        description="Monitor and manage your installed AI systems"
+        title={t('pages.aiSystems.title')}
+        description={t('pages.aiSystems.desc')}
       />
       <div className="mb-6">
         <SearchInput

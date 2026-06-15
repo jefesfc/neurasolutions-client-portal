@@ -3,6 +3,7 @@ import { Send, ChevronDown, X } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { useQuery } from '../../hooks/useQuery';
 import { useAuthStore } from '../../store/auth-store';
+import { useTranslations } from '../../i18n/useT';
 import type { Client } from '../../types/aios';
 
 declare const window: Window & { __env__?: { API_URL?: string } };
@@ -26,6 +27,7 @@ export function ComposeModal({
   initialBody = '',
   mode = 'compose',
 }: ComposeModalProps) {
+  const T = useTranslations();
   const token = useAuthStore((s) => s.token);
 
   const [to, setTo] = useState(initialTo);
@@ -71,7 +73,7 @@ export function ComposeModal({
 
   async function handleSend() {
     if (!to || !subject || !body) {
-      setError('Please fill in all fields.');
+      setError(T.email.errorFields);
       return;
     }
     setError('');
@@ -90,16 +92,16 @@ export function ComposeModal({
       setSuccess(true);
       setTimeout(() => { onClose(); setSuccess(false); }, 1500);
     } catch {
-      setError('Could not connect to server');
+      setError(T.email.errorServer);
     } finally {
       setSending(false);
     }
   }
 
   const title =
-    mode === 'reply' ? 'Reply to Email' :
-    mode === 'client' ? 'Email a Client' :
-    'New Email';
+    mode === 'reply' ? T.email.replyTitle :
+    mode === 'client' ? T.email.clientTitle :
+    T.email.composeTitle;
 
   return (
     <Modal open={open} onClose={onClose} title={title} size="lg">
@@ -110,14 +112,14 @@ export function ComposeModal({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <p className="text-sm font-semibold text-slate-800">Email sent successfully!</p>
+          <p className="text-sm font-semibold text-slate-800">{T.email.sentOk}</p>
         </div>
       ) : (
         <div className="space-y-4">
           {/* To field with client picker */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
-              To
+              {T.email.to}
             </label>
             <div className="relative">
               <input
@@ -130,7 +132,7 @@ export function ComposeModal({
                 }}
                 onFocus={() => setShowClientPicker(true)}
                 onBlur={() => setTimeout(() => setShowClientPicker(false), 150)}
-                placeholder="Email address or client name..."
+                placeholder={T.email.placeholder.to}
                 className="w-full px-3 py-2.5 pr-8 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
               />
               <button
@@ -176,13 +178,13 @@ export function ComposeModal({
           {/* Subject */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
-              Subject
+              {T.email.subject}
             </label>
             <input
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              placeholder="Email subject..."
+              placeholder={T.email.placeholder.subject}
               className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             />
           </div>
@@ -190,12 +192,12 @@ export function ComposeModal({
           {/* Body */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
-              Message
+              {T.email.message}
             </label>
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              placeholder="Write your message..."
+              placeholder={T.email.placeholder.body}
               rows={7}
               className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none leading-relaxed"
             />
@@ -212,7 +214,7 @@ export function ComposeModal({
               onClick={onClose}
               className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 transition-colors"
             >
-              Cancel
+              {T.common.cancel}
             </button>
             <button
               type="button"
@@ -221,7 +223,7 @@ export function ComposeModal({
               className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors shadow-sm"
             >
               <Send className="w-4 h-4" />
-              {sending ? 'Sending...' : 'Send Email'}
+              {sending ? T.email.sending : T.common.send}
             </button>
           </div>
         </div>

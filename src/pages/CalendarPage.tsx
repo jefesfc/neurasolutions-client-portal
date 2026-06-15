@@ -4,6 +4,7 @@ import { useQuery } from '../hooks/useQuery';
 import { useAuthStore } from '../store/auth-store';
 import { PageTransition } from '../components/shared/PageTransition';
 import { PageHeader } from '../components/layout/PageHeader';
+import { useT } from '../i18n/useT';
 import { Button } from '../components/ui/Button';
 import { Skeleton } from '../components/ui/Skeleton';
 import { CalendarGrid } from '../components/calendar/CalendarGrid';
@@ -12,6 +13,7 @@ import { EventModal } from '../components/calendar/EventModal';
 import type { CalendarEvent } from '../types/calendar';
 
 export default function CalendarPage() {
+  const t = useT();
   const { user } = useAuthStore();
   const canEdit = user?.role === 'admin' || user?.role === 'manager';
 
@@ -41,8 +43,8 @@ export default function CalendarPage() {
   return (
     <PageTransition>
       <PageHeader
-        title="Calendar"
-        description="Track meetings, invoices, contracts and reminders"
+        title={t('pages.calendar.title')}
+        description={t('pages.calendar.desc')}
         actions={
           canEdit ? (
             <Button onClick={openCreate}>

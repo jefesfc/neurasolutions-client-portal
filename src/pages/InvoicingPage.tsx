@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { RefreshCw, ChevronDown, X, Plus, Clock, CheckCircle2, AlertCircle, TrendingUp, Users, Calendar, Maximize2, Minimize2 } from 'lucide-react';
 import { PageTransition } from '../components/shared/PageTransition';
 import { PageHeader } from '../components/layout/PageHeader';
+import { useT } from '../i18n/useT';
 import { InvoicingSummaryCards } from '../components/invoicing/InvoicingSummaryCards';
 import { ClientInvoiceCard } from '../components/invoicing/ClientInvoiceCard';
 import { FinancialProjections } from '../components/invoicing/FinancialProjections';
@@ -30,6 +31,7 @@ const fmtDate = (d: string | null) =>
   d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '—';
 
 export default function InvoicingPage() {
+  const t = useT();
   const { token, user } = useAuthStore();
   const [activePanel, setActivePanel]   = useState<PanelKey | null>(null);
   const [sort, setSort]                 = useState<SortKey>('latest');
@@ -241,7 +243,7 @@ export default function InvoicingPage() {
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <PageHeader title="Invoicing" description="Client invoices, revenue tracking, and financial projections" />
+          <PageHeader title={t('pages.invoicing.title')} description={t('pages.invoicing.desc')} />
           <button
             onClick={() => void fetchAll()}
             style={{ padding: '8px 14px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#475569', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', transition: 'box-shadow 0.15s' }}

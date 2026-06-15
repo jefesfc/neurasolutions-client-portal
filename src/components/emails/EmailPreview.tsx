@@ -1,4 +1,5 @@
 import { Reply, Send, Tag } from 'lucide-react';
+import { useTranslations } from '../../i18n/useT';
 import type { Email } from '../../types/aios';
 
 interface EmailPreviewProps {
@@ -13,6 +14,8 @@ function getInitials(name: string | null, email: string): string {
 }
 
 export function EmailPreview({ email, onReply, onSendToClient }: EmailPreviewProps) {
+  const T = useTranslations();
+
   if (!email) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-slate-400 p-8 text-center">
@@ -22,8 +25,8 @@ export function EmailPreview({ email, onReply, onSendToClient }: EmailPreviewPro
               d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
           </svg>
         </div>
-        <p className="text-sm font-medium text-slate-500">Select an email to read</p>
-        <p className="text-xs text-slate-400 mt-1">Choose a message from the list</p>
+        <p className="text-sm font-medium text-slate-500">{T.email.selectEmail}</p>
+        <p className="text-xs text-slate-400 mt-1">{T.email.chooseMessage}</p>
       </div>
     );
   }
@@ -87,14 +90,14 @@ export function EmailPreview({ email, onReply, onSendToClient }: EmailPreviewPro
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-medium transition-colors"
           >
             <Reply className="w-3.5 h-3.5" />
-            Reply
+            {T.common.reply}
           </button>
           <button
             onClick={() => onSendToClient?.(email)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-cyan-700 text-xs font-medium transition-colors"
           >
             <Send className="w-3.5 h-3.5" />
-            Send to Client
+            {T.email.sendToClient}
           </button>
         </div>
       </div>

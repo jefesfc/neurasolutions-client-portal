@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
+import { useT } from "../i18n/useT";
 import { SubscriptionCard } from "../components/billing/SubscriptionCard";
 import { InvoiceTable } from "../components/billing/InvoiceTable";
 import { TokenSpendingChart } from "../components/billing/TokenSpendingChart";
@@ -31,6 +32,7 @@ interface BillingStats {
 }
 
 export default function BillingPage() {
+  const t = useT();
   const token = useAuthStore((s) => s.token);
   const [stats, setStats] = useState<BillingStats | null>(null);
 
@@ -62,8 +64,8 @@ export default function BillingPage() {
   return (
     <PageTransition>
       <PageHeader
-        title="Billing"
-        description="Subscription details, AI token spend, and invoice history"
+        title={t('pages.billing.title')}
+        description={t('pages.billing.desc')}
       />
       <div className="space-y-6">
         <SubscriptionCard subscription={mockSubscription} usage={usageStats} />

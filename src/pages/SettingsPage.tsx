@@ -4,6 +4,7 @@ import { postgrest } from "../lib/postgrest";
 import { useAuthStore } from "../store/auth-store";
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
+import { useT } from "../i18n/useT";
 import { Tabs } from "../components/ui/Tabs";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
@@ -597,6 +598,7 @@ function CalendarTab() {
 }
 
 export default function SettingsPage() {
+  const t = useT();
   const [activeTab, setActiveTab] = useState("company");
   const { user } = useAuthStore();
 
@@ -615,7 +617,7 @@ export default function SettingsPage() {
 
   return (
     <PageTransition>
-      <PageHeader title="Settings" description="Manage your account and company preferences" />
+      <PageHeader title={t('pages.settings.title')} description={t('pages.settings.desc')} />
       <div className="w-fit mb-6">
         <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
       </div>

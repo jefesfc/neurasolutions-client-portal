@@ -3,6 +3,7 @@ import { Download } from "lucide-react";
 import { useQuery } from "../hooks/useQuery";
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
+import { useT } from "../i18n/useT";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Skeleton } from "../components/ui/Skeleton";
@@ -12,6 +13,7 @@ import { downloadContactsPDF } from "../lib/pdf";
 import type { Contact } from "../types/aios";
 
 export default function ContactsPage() {
+  const t = useT();
   const { data: contacts, loading, error } = useQuery<Contact>("contacts", { order: "created_at.desc" });
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
@@ -26,8 +28,8 @@ export default function ContactsPage() {
   return (
     <PageTransition>
       <PageHeader
-        title="CRM"
-        description="Manage your customer relationships"
+        title={t('pages.crm.title')}
+        description={t('pages.crm.desc')}
         actions={
           <Button
             variant="outline"

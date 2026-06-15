@@ -3,6 +3,7 @@ import { Download } from "lucide-react";
 import { useQuery } from "../hooks/useQuery";
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
+import { useT } from "../i18n/useT";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Skeleton } from "../components/ui/Skeleton";
@@ -41,6 +42,7 @@ const SOURCE_LABEL: Record<string, string> = {
 };
 
 export default function LeadsPage() {
+  const t = useT();
   const { data: leads, loading, error } = useQuery<Lead>("leads", { order: "created_at.desc" });
   const [activeStatus, setActiveStatus] = useState<LeadStatus>("all");
   const [search, setSearch] = useState("");
@@ -61,8 +63,8 @@ export default function LeadsPage() {
   return (
     <PageTransition>
       <PageHeader
-        title="Leads"
-        description="Track and manage your sales pipeline"
+        title={t('pages.leads.title')}
+        description={t('pages.leads.desc')}
         actions={
           <Button
             variant="outline"

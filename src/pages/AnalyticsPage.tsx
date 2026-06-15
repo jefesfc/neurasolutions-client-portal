@@ -1,5 +1,6 @@
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
+import { useT } from "../i18n/useT";
 import { BarChart } from "../components/analytics/BarChart";
 import { Heatmap } from "../components/analytics/Heatmap";
 import { LeadsTrendChart } from "../components/analytics/LeadsTrendChart";
@@ -27,11 +28,12 @@ const systemPerformanceData = mockKPIs.slice(0, 5).map((kpi) => ({
 }));
 
 export default function AnalyticsPage() {
+  const t = useT();
   return (
     <PageTransition>
       <PageHeader
-        title="Analytics"
-        description="Performance trends, metrics, and insights across your AI platform"
+        title={t('pages.analytics.title')}
+        description={t('pages.analytics.desc')}
       />
       <div className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

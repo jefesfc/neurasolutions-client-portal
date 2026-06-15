@@ -16,3 +16,8 @@ export function useT() {
   const dict = translations[lang] as unknown as Record<string, unknown>;
   return (key: string) => resolve(dict, key);
 }
+
+export function useTranslations() {
+  const lang = useLanguageStore((s) => s.lang);
+  return translations[lang];
+}

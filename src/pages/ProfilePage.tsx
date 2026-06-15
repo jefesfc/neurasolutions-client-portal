@@ -1,5 +1,6 @@
 import { PageTransition } from "../components/shared/PageTransition";
 import { PageHeader } from "../components/layout/PageHeader";
+import { useT } from "../i18n/useT";
 import { Card, CardHeader, CardTitle, CardDescription } from "../components/ui/Card";
 import { Avatar } from "../components/ui/Avatar";
 import { Badge } from "../components/ui/Badge";
@@ -8,6 +9,7 @@ import { useAuthStore } from "../store/auth-store";
 import { Mail, Shield, Settings, LogOut } from "lucide-react";
 
 export default function ProfilePage() {
+  const t = useT();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
 
@@ -22,8 +24,8 @@ export default function ProfilePage() {
   return (
     <PageTransition>
       <PageHeader
-        title="Profile"
-        description="Your account and workspace settings"
+        title={t('pages.profile.title')}
+        description={t('pages.profile.desc')}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
