@@ -1,7 +1,12 @@
-import React, { useState, useRef, useMemo } from 'react';
-import { Brain, Upload, Trash2, FileText, FileType, CheckCircle2, Sparkles, Filter } from 'lucide-react';
+import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
+import {
+  Brain, Upload, Trash2, FileText, FileType, CheckCircle2,
+  Sparkles, Filter, X, MessageSquare, Lightbulb, Database,
+  ChevronRight, Hash,
+} from 'lucide-react';
 import { useAuthStore } from '../store/auth-store';
 import { PageTransition } from '../components/shared/PageTransition';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const API_URL =
   (window as Window & { __env__?: { API_URL?: string } }).__env__?.API_URL ??
@@ -118,60 +123,192 @@ const CATEGORIES: Category[] = [
   },
 ];
 
+interface DocMeta {
+  desc: string;
+  topics: string[];
+  aiCapabilities: string[];
+  highlights: string[];
+}
+
+const DOC_META: { keywords: string[]; meta: DocMeta }[] = [
+  {
+    keywords: ['injectable', 'botox', 'filler'],
+    meta: {
+      desc: 'Botox & dermal filler procedures, dosing, pre/post-care instructions, contraindications and pricing.',
+      topics: ['Botox protocol', 'Filler types', 'Pre-care', 'Post-care', 'Pricing', 'Contraindications'],
+      aiCapabilities: [
+        'What is the Botox protocol and dosing?',
+        'What are the pre-care instructions for fillers?',
+        'What are the contraindications for injectable treatments?',
+        'What is the pricing for lip or cheek fillers?',
+        'How long does post-care recovery take?',
+        'What should patients avoid after Botox?',
+      ],
+      highlights: [
+        'Full injectable treatment menu with dosing guides',
+        'Pre-care: avoid blood thinners 5 days before',
+        'Post-care: no exercise for 24h, avoid heat',
+        'Contraindications: pregnancy, autoimmune conditions, certain medications',
+        'Pricing schedule included per treatment zone',
+      ],
+    },
+  },
+  {
+    keywords: ['vip', 'membership', 'package'],
+    meta: {
+      desc: 'VIP membership tiers — Platinum (£5,200), Gold (£2,800) and Silver (£1,500) — with benefits and inclusions.',
+      topics: ['Platinum tier', 'Gold tier', 'Silver tier', 'Benefits', 'Inclusions', '2026 pricing'],
+      aiCapabilities: [
+        'What does the Platinum membership include?',
+        'What is the price of the Gold package?',
+        'How many treatments are included in Silver?',
+        'What is the difference between VIP tiers?',
+        'Are membership packages renewable annually?',
+        'What discounts do VIP members receive?',
+      ],
+      highlights: [
+        'Platinum £5,200/yr — unlimited priority treatments',
+        'Gold £2,800/yr — 10 treatments + 20% off retail',
+        'Silver £1,500/yr — 5 treatments + 10% off retail',
+        'All tiers include complimentary consultation',
+        'Priority booking for all VIP members',
+      ],
+    },
+  },
+  {
+    keywords: ['policy', 'policies', 'procedure', 'cancellation'],
+    meta: {
+      desc: 'Clinic policies: 48h cancellation notice, deposit requirements, no-show fees and GDPR compliance.',
+      topics: ['Cancellation (48h)', 'Deposits', 'No-show policy', 'GDPR', 'Refunds'],
+      aiCapabilities: [
+        'What is the cancellation policy?',
+        'How much deposit is required to book?',
+        'What happens if I miss my appointment?',
+        'How is patient data stored and protected?',
+        'Can I get a refund for unused treatments?',
+        'How do I request my GDPR data deletion?',
+      ],
+      highlights: [
+        '48h notice required for free cancellation',
+        '24h notice: 50% treatment fee charged',
+        'No-show: 100% fee applies',
+        '20–30% deposit required at booking',
+        'GDPR compliant — data deleted on request within 30 days',
+      ],
+    },
+  },
+  {
+    keywords: ['non-invasive', 'laser', 'hydrafacial', 'treatment'],
+    meta: {
+      desc: 'Non-invasive & laser treatments: HydraFacial, IPL, CO2 resurfacing, Nd:YAG, IV therapy and PRP.',
+      topics: ['HydraFacial', 'IPL', 'CO2 laser', 'Nd:YAG', 'PRP', 'IV therapy'],
+      aiCapabilities: [
+        'What is HydraFacial and how does it work?',
+        'How many IPL sessions are recommended?',
+        'What does CO2 laser treat?',
+        'What is PRP therapy and who is it for?',
+        'Is IV therapy available and what are the options?',
+        'What is the downtime for Nd:YAG laser?',
+      ],
+      highlights: [
+        'HydraFacial: 30–45 min, zero downtime, monthly recommended',
+        'IPL: 3–6 sessions for pigmentation and hair reduction',
+        'CO2 fractional resurfacing: 5–7 days downtime',
+        'Nd:YAG: vascular lesions and hair removal on dark skin',
+        'PRP: platelet-rich plasma for skin rejuvenation and hair loss',
+        'IV therapy: hydration, vitamins, glutathione drips',
+      ],
+    },
+  },
+  {
+    keywords: ['faq', 'patient'],
+    meta: {
+      desc: 'Answers to the 12 most frequently asked questions by patients about treatments, safety and aftercare.',
+      topics: ['Safety', 'Downtime', 'Results', 'Aftercare', 'Booking', 'Side effects'],
+      aiCapabilities: [
+        'Is Botox safe?',
+        'How long do results last?',
+        'What are the side effects?',
+        'When will I see results?',
+        'Can I combine treatments?',
+        'What should I do after my treatment?',
+      ],
+      highlights: [
+        '12 comprehensive Q&A pairs from real patients',
+        'Safety profile for all offered treatments',
+        'Expected timeline for visible results',
+        'Common side effects and how to manage them',
+        'Post-treatment do\'s and don\'ts',
+        'Guidance on combining multiple treatments',
+      ],
+    },
+  },
+  {
+    keywords: ['staff', 'emergency'],
+    meta: {
+      desc: 'Staff appointment flow, emergency response procedures, escalation protocols and GDPR data handling.',
+      topics: ['Appointment flow', 'Emergency steps', 'Escalation', 'GDPR', 'Team roles'],
+      aiCapabilities: [
+        'What is the appointment booking procedure?',
+        'What do staff do in an emergency?',
+        'Who to escalate to for clinical concerns?',
+        'How is patient data handled internally?',
+        'What are the team roles and responsibilities?',
+        'What is the check-in and check-out process?',
+      ],
+      highlights: [
+        'Full appointment lifecycle: booking → consent → treatment → checkout',
+        'Emergency protocol: call 999, administer first aid, notify clinic director',
+        '3-tier escalation: receptionist → nurse → clinic director',
+        'Patient records stored securely, access logged',
+        'Team roles: receptionist, aesthetic nurse, clinic director',
+      ],
+    },
+  },
+  {
+    keywords: ['payment', 'currency', 'currencies'],
+    meta: {
+      desc: 'Accepted payment methods: GBP, USD, EUR, AED and USDT (ERC-20 crypto) with transaction policies.',
+      topics: ['GBP', 'USD / EUR', 'AED', 'USDT crypto', 'Payment terms'],
+      aiCapabilities: [
+        'What currencies do you accept?',
+        'Do you accept crypto payments?',
+        'Can I pay in AED?',
+        'How do I pay with USDT?',
+        'Are wire transfers accepted?',
+        'What is the payment policy for memberships?',
+      ],
+      highlights: [
+        'Primary currency: GBP',
+        'International: USD, EUR at current exchange rates',
+        'Middle East: AED accepted',
+        'Crypto: USDT (ERC-20) — wallet address provided on request',
+        'Memberships: annual upfront or quarterly installments',
+        'No surcharges on card payments',
+      ],
+    },
+  },
+];
+
+function getDocMeta(name: string): DocMeta {
+  const lower = name.toLowerCase();
+  for (const entry of DOC_META) {
+    if (entry.keywords.some(k => lower.includes(k))) return entry.meta;
+  }
+  return {
+    desc: 'Document indexed and available for AI retrieval.',
+    topics: [],
+    aiCapabilities: [],
+    highlights: [],
+  };
+}
+
 function classifyDoc(name: string): CategoryKey {
   const lower = name.toLowerCase();
   for (const cat of CATEGORIES) {
     if (cat.keywords.some(k => lower.includes(k))) return cat.key;
   }
   return 'other';
-}
-
-const DOC_DESCRIPTIONS: { keywords: string[]; desc: string; topics: string[] }[] = [
-  {
-    keywords: ['injectable', 'botox', 'filler'],
-    desc: 'Botox & dermal filler procedures, dosing, pre/post-care instructions, contraindications and pricing.',
-    topics: ['Botox protocol', 'Filler types', 'Pre-care', 'Post-care', 'Pricing', 'Contraindications'],
-  },
-  {
-    keywords: ['vip', 'membership', 'package'],
-    desc: 'VIP membership tiers — Platinum (£5,200), Gold (£2,800) and Silver (£1,500) — with benefits and inclusions.',
-    topics: ['Platinum tier', 'Gold tier', 'Silver tier', 'Benefits', 'Inclusions', '2026 pricing'],
-  },
-  {
-    keywords: ['policy', 'policies', 'procedure', 'cancellation'],
-    desc: 'Clinic policies: 48h cancellation notice, deposit requirements, no-show fees and GDPR compliance.',
-    topics: ['Cancellation (48h)', 'Deposits', 'No-show policy', 'GDPR', 'Refunds'],
-  },
-  {
-    keywords: ['non-invasive', 'laser', 'hydrafacial', 'treatment'],
-    desc: 'Non-invasive & laser treatments: HydraFacial, IPL, CO2 resurfacing, Nd:YAG, IV therapy and PRP.',
-    topics: ['HydraFacial', 'IPL', 'CO2 laser', 'Nd:YAG', 'PRP', 'IV therapy'],
-  },
-  {
-    keywords: ['faq', 'patient'],
-    desc: 'Answers to the 12 most frequently asked questions by patients about treatments, safety and aftercare.',
-    topics: ['Safety', 'Downtime', 'Results', 'Aftercare', 'Booking', 'Side effects'],
-  },
-  {
-    keywords: ['staff', 'emergency'],
-    desc: 'Staff appointment flow, emergency response procedures, escalation protocols and GDPR data handling.',
-    topics: ['Appointment flow', 'Emergency steps', 'Escalation', 'GDPR', 'Team roles'],
-  },
-  {
-    keywords: ['payment', 'currency', 'currencies'],
-    desc: 'Accepted payment methods: GBP, USD, EUR, AED and USDT (ERC-20 crypto) with transaction policies.',
-    topics: ['GBP', 'USD / EUR', 'AED', 'USDT crypto', 'Payment terms'],
-  },
-];
-
-function getDocMeta(name: string): { desc: string; topics: string[] } {
-  const lower = name.toLowerCase();
-  for (const entry of DOC_DESCRIPTIONS) {
-    if (entry.keywords.some(k => lower.includes(k))) {
-      return { desc: entry.desc, topics: entry.topics };
-    }
-  }
-  return { desc: 'Document indexed and available for AI retrieval.', topics: [] };
 }
 
 function fmtDate(iso: string) {
@@ -183,16 +320,231 @@ function DocTypeIcon({ type, size = 16 }: { type: string; size?: number }) {
   return <FileText size={size} className="text-slate-400" />;
 }
 
+/* ── Report Panel (slide-in drawer) ─────────────────────────── */
+function DocReportPanel({
+  doc,
+  cat,
+  isAdmin,
+  onClose,
+  onDelete,
+}: {
+  doc: KnowledgeDoc | null;
+  cat: Category | null;
+  isAdmin: boolean;
+  onClose: () => void;
+  onDelete: (id: string, name: string) => void;
+}) {
+  const handleKey = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    if (doc) {
+      document.addEventListener('keydown', handleKey);
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.removeEventListener('keydown', handleKey);
+      document.body.style.overflow = '';
+    };
+  }, [doc, handleKey]);
+
+  return (
+    <AnimatePresence>
+      {doc && cat && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40"
+            onClick={onClose}
+          />
+
+          {/* Drawer */}
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-lg bg-white shadow-2xl flex flex-col overflow-hidden"
+          >
+            {/* Header */}
+            <div
+              className="flex-shrink-0 px-6 py-5 border-b border-slate-100"
+              style={{ borderTop: `4px solid ${cat.color}` }}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div
+                    className="h-11 w-11 rounded-xl flex items-center justify-center flex-shrink-0 border"
+                    style={{ background: cat.color + '15', borderColor: cat.color + '30' }}
+                  >
+                    <cat.Icon size={20} className={cat.text} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-slate-800 text-base leading-tight">{doc.name}</p>
+                    <span
+                      className={`inline-block text-xs font-semibold mt-1 px-2 py-0.5 rounded-full border ${cat.badge}`}
+                    >
+                      {cat.label}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  {isAdmin && (
+                    <button
+                      onClick={() => { onDelete(doc.id, doc.name); onClose(); }}
+                      className="h-8 w-8 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      title="Remove document"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+                  <button
+                    onClick={onClose}
+                    className="h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Status row */}
+              <div className="flex items-center gap-3 mt-4 flex-wrap">
+                <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Active in RAG
+                </span>
+                <span className="flex items-center gap-1.5 text-xs text-slate-500">
+                  <Hash className="h-3.5 w-3.5 text-slate-400" />
+                  {doc.chunk_count} chunks indexed
+                </span>
+                <span className="flex items-center gap-1.5 text-xs text-slate-500">
+                  <Database className="h-3.5 w-3.5 text-slate-400" />
+                  Indexed {fmtDate(doc.created_at)}
+                </span>
+              </div>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              {/* Overview */}
+              <ReportSection icon={<FileText className="h-4 w-4" />} title="Document Overview" color={cat.color}>
+                <p className="text-sm text-slate-600 leading-relaxed">{getDocMeta(doc.name).desc}</p>
+                {getDocMeta(doc.name).topics.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-3">
+                    {getDocMeta(doc.name).topics.map(t => (
+                      <span
+                        key={t}
+                        className="text-xs font-medium px-2 py-0.5 rounded-md border"
+                        style={{ background: cat.color + '0d', color: cat.color, borderColor: cat.color + '30' }}
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </ReportSection>
+
+              {/* Key Data Points */}
+              {getDocMeta(doc.name).highlights.length > 0 && (
+                <ReportSection icon={<Lightbulb className="h-4 w-4" />} title="Key Information Stored" color={cat.color}>
+                  <ul className="space-y-2">
+                    {getDocMeta(doc.name).highlights.map((h, i) => (
+                      <li key={i} className="flex items-start gap-2.5">
+                        <ChevronRight
+                          className="h-3.5 w-3.5 flex-shrink-0 mt-0.5"
+                          style={{ color: cat.color }}
+                        />
+                        <span className="text-sm text-slate-600">{h}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </ReportSection>
+              )}
+
+              {/* AI Capabilities */}
+              {getDocMeta(doc.name).aiCapabilities.length > 0 && (
+                <ReportSection icon={<MessageSquare className="h-4 w-4" />} title="Questions the AI Can Answer" color={cat.color}>
+                  <p className="text-xs text-slate-400 mb-3">
+                    Ask the AI Chief of Staff any of these using chat or Telegram:
+                  </p>
+                  <div className="space-y-1.5">
+                    {getDocMeta(doc.name).aiCapabilities.map((q, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-slate-50 border border-slate-100 hover:border-slate-200 transition-colors"
+                      >
+                        <Sparkles
+                          className="h-3 w-3 flex-shrink-0"
+                          style={{ color: cat.color }}
+                        />
+                        <span className="text-xs text-slate-600 italic">"{q}"</span>
+                      </div>
+                    ))}
+                  </div>
+                </ReportSection>
+              )}
+
+              {/* Technical details */}
+              <ReportSection icon={<Database className="h-4 w-4" />} title="Technical Details" color={cat.color}>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: 'File type', value: doc.file_type === 'application/pdf' ? 'PDF' : 'TXT' },
+                    { label: 'Chunks', value: String(doc.chunk_count) },
+                    { label: 'Indexed', value: fmtDate(doc.created_at) },
+                    { label: 'Vector store', value: 'Pinecone' },
+                    { label: 'Embedding model', value: 'text-embedding-3-small' },
+                    { label: 'Retrieval', value: 'Top-5 cosine' },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
+                      <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">{label}</p>
+                      <p className="text-sm font-semibold text-slate-700 mt-0.5">{value}</p>
+                    </div>
+                  ))}
+                </div>
+              </ReportSection>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function ReportSection({
+  icon, title, color, children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  color: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-3">
+        <span style={{ color }}>{icon}</span>
+        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">{title}</h3>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/* ── Main Page ──────────────────────────────────────────────── */
 export default function KnowledgePage() {
   const { token, user } = useAuthStore();
   const isAdmin = user?.role === 'admin';
 
-  const [docs, setDocs]           = useState<KnowledgeDoc[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [dragOver, setDragOver]   = useState(false);
-  const [error, setError]         = useState<string | null>(null);
+  const [docs, setDocs]               = useState<KnowledgeDoc[]>([]);
+  const [loading, setLoading]         = useState(true);
+  const [uploading, setUploading]     = useState(false);
+  const [dragOver, setDragOver]       = useState(false);
+  const [error, setError]             = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<CategoryKey | 'all'>('all');
+  const [selectedDoc, setSelectedDoc] = useState<KnowledgeDoc | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function fetchDocs() {
@@ -219,9 +571,7 @@ export default function KnowledgePage() {
       const form = new FormData();
       form.append('file', file);
       const r = await fetch(`${API_URL}/knowledge/upload`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: form,
+        method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form,
       });
       if (!r.ok) {
         const body = await r.json().catch(() => ({})) as { error?: string };
@@ -253,9 +603,9 @@ export default function KnowledgePage() {
     return map;
   }, [docs]);
 
-  const totalChunks = docs.reduce((s, d) => s + d.chunk_count, 0);
+  const totalChunks      = docs.reduce((s, d) => s + d.chunk_count, 0);
   const activeCategories = CATEGORIES.filter(c => categorised.has(c.key));
-  const lastIndexed = docs.length > 0
+  const lastIndexed      = docs.length > 0
     ? fmtDate(docs.reduce((a, b) => a.created_at > b.created_at ? a : b).created_at)
     : null;
 
@@ -263,13 +613,16 @@ export default function KnowledgePage() {
     ? docs
     : docs.filter(d => classifyDoc(d.name) === activeFilter);
 
+  const selectedCat = selectedDoc
+    ? (CATEGORIES.find(c => c.key === classifyDoc(selectedDoc.name)) ?? CATEGORIES[2])
+    : null;
+
   return (
     <PageTransition>
       <div className="p-6 space-y-6">
 
         {/* ── Hero Header ─────────────────────────────────────── */}
         <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 p-6 border border-slate-700/50">
-          {/* Decorative glow */}
           <div className="absolute -top-12 -right-12 w-48 h-48 bg-brand-500/20 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-8 -left-8 w-36 h-36 bg-indigo-500/15 rounded-full blur-2xl pointer-events-none" />
 
@@ -289,8 +642,6 @@ export default function KnowledgePage() {
                 <p className="text-sm text-slate-400">AI Chief of Staff answers grounded in your company documents</p>
               </div>
             </div>
-
-            {/* Stats */}
             <div className="flex items-center gap-4 flex-shrink-0">
               {[
                 { label: 'Documents', value: docs.length },
@@ -304,8 +655,6 @@ export default function KnowledgePage() {
               ))}
             </div>
           </div>
-
-          {/* RAG indicator row */}
           <div className="relative mt-4 flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
               <Sparkles className="h-3.5 w-3.5 text-brand-400" />
@@ -327,34 +676,26 @@ export default function KnowledgePage() {
             onDragLeave={() => setDragOver(false)}
             onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) void handleUpload(f); }}
             onClick={() => fileRef.current?.click()}
-            className="relative rounded-2xl border-2 border-dashed transition-all duration-200 cursor-pointer overflow-hidden"
+            className="relative rounded-2xl border-2 border-dashed transition-all duration-200 cursor-pointer"
             style={{
               borderColor: dragOver ? '#06b6d4' : uploading ? '#6366f1' : '#cbd5e1',
               background: dragOver ? 'rgba(6,182,212,0.04)' : uploading ? 'rgba(99,102,241,0.04)' : '#fafbfc',
             }}
           >
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".pdf,.txt"
-              className="hidden"
-              onChange={e => { const f = e.target.files?.[0]; if (f) void handleUpload(f); e.target.value = ''; }}
-            />
+            <input ref={fileRef} type="file" accept=".pdf,.txt" className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) void handleUpload(f); e.target.value = ''; }} />
             <div className="flex items-center gap-4 p-5">
-              <div className={`h-12 w-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${dragOver ? 'bg-cyan-100' : uploading ? 'bg-indigo-100' : 'bg-slate-100'}`}>
+              <div className={`h-12 w-12 rounded-xl flex items-center justify-center flex-shrink-0 border transition-colors ${dragOver ? 'bg-cyan-100 border-cyan-200' : uploading ? 'bg-indigo-100 border-indigo-200' : 'bg-slate-100 border-slate-200'}`}>
                 {uploading
                   ? <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                  : <Upload className={`h-5 w-5 ${dragOver ? 'text-cyan-600' : 'text-slate-400'}`} />
-                }
+                  : <Upload className={`h-5 w-5 ${dragOver ? 'text-cyan-600' : 'text-slate-400'}`} />}
               </div>
               <div>
                 <p className="font-semibold text-slate-700">
                   {uploading ? 'Indexing document…' : dragOver ? 'Drop to upload' : 'Upload new document'}
                 </p>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  {uploading
-                    ? 'Chunking, embedding and indexing into Pinecone — 10-30 seconds'
-                    : 'PDF or TXT · max 10 MB · auto-chunked and embedded'}
+                  {uploading ? 'Chunking, embedding and indexing into Pinecone — 10–30 seconds' : 'PDF or TXT · max 10 MB · auto-chunked and embedded'}
                 </p>
               </div>
             </div>
@@ -362,39 +703,24 @@ export default function KnowledgePage() {
         )}
 
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
-            {error}
-          </div>
+          <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">{error}</div>
         )}
 
         {/* ── Category filter tabs ─────────────────────────────── */}
         {!loading && docs.length > 0 && (
           <div className="flex items-center gap-2 flex-wrap">
             <Filter className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
-            <button
-              onClick={() => setActiveFilter('all')}
-              className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
-                activeFilter === 'all'
-                  ? 'bg-slate-800 text-white border-slate-800'
-                  : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
-              }`}
-            >
+            <button onClick={() => setActiveFilter('all')}
+              className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${activeFilter === 'all' ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}>
               All ({docs.length})
             </button>
             {activeCategories.map(cat => {
               const count = categorised.get(cat.key)?.length ?? 0;
               const isActive = activeFilter === cat.key;
               return (
-                <button
-                  key={cat.key}
-                  onClick={() => setActiveFilter(isActive ? 'all' : cat.key)}
-                  className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
-                    isActive
-                      ? `text-white border-transparent`
-                      : `bg-white text-slate-500 border-slate-200 hover:border-slate-300`
-                  }`}
-                  style={isActive ? { background: cat.color, borderColor: cat.color } : {}}
-                >
+                <button key={cat.key} onClick={() => setActiveFilter(isActive ? 'all' : cat.key)}
+                  className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${isActive ? 'text-white border-transparent' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}
+                  style={isActive ? { background: cat.color, borderColor: cat.color } : {}}>
                   {cat.label} ({count})
                 </button>
               );
@@ -405,9 +731,7 @@ export default function KnowledgePage() {
         {/* ── Document Grid ────────────────────────────────────── */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="h-28 bg-slate-100 rounded-2xl animate-pulse" />
-            ))}
+            {[1, 2, 3, 4].map(i => <div key={i} className="h-36 bg-slate-100 rounded-2xl animate-pulse" />)}
           </div>
         ) : docs.length === 0 ? (
           <div className="text-center py-20">
@@ -418,13 +742,11 @@ export default function KnowledgePage() {
             {isAdmin && <p className="text-sm text-slate-400">Upload your first document above to power the AI</p>}
           </div>
         ) : activeFilter === 'all' ? (
-          /* ── Category sections ── */
           <div className="space-y-6">
             {activeCategories.map(cat => {
               const catDocs = categorised.get(cat.key) ?? [];
               return (
                 <div key={cat.key}>
-                  {/* Category header */}
                   <div className={`flex items-center gap-3 mb-3 px-4 py-2.5 rounded-xl ${cat.bg} border ${cat.border}`}>
                     <div className="h-7 w-7 rounded-lg flex items-center justify-center" style={{ background: cat.color + '20' }}>
                       <cat.Icon size={15} className={cat.text} />
@@ -437,17 +759,10 @@ export default function KnowledgePage() {
                       {catDocs.length} doc{catDocs.length !== 1 ? 's' : ''}
                     </span>
                   </div>
-
-                  {/* Doc cards */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {catDocs.map(doc => (
-                      <DocCard
-                        key={doc.id}
-                        doc={doc}
-                        cat={cat}
-                        isAdmin={isAdmin}
-                        onDelete={handleDelete}
-                      />
+                      <DocCard key={doc.id} doc={doc} cat={cat} isAdmin={isAdmin}
+                        onDelete={handleDelete} onClick={() => setSelectedDoc(doc)} />
                     ))}
                   </div>
                 </div>
@@ -455,59 +770,64 @@ export default function KnowledgePage() {
             })}
           </div>
         ) : (
-          /* ── Filtered view ── */
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {filteredDocs.map(doc => {
               const cat = CATEGORIES.find(c => c.key === classifyDoc(doc.name)) ?? CATEGORIES[2];
               return (
-                <DocCard
-                  key={doc.id}
-                  doc={doc}
-                  cat={cat}
-                  isAdmin={isAdmin}
-                  onDelete={handleDelete}
-                />
+                <DocCard key={doc.id} doc={doc} cat={cat} isAdmin={isAdmin}
+                  onDelete={handleDelete} onClick={() => setSelectedDoc(doc)} />
               );
             })}
           </div>
         )}
-
       </div>
+
+      {/* ── Report Panel ────────────────────────────────────────── */}
+      <DocReportPanel
+        doc={selectedDoc}
+        cat={selectedCat}
+        isAdmin={isAdmin}
+        onClose={() => setSelectedDoc(null)}
+        onDelete={handleDelete}
+      />
     </PageTransition>
   );
 }
 
+/* ── Doc Card ──────────────────────────────────────────────── */
 function DocCard({
-  doc, cat, isAdmin, onDelete,
+  doc, cat, isAdmin, onDelete, onClick,
 }: {
   doc: KnowledgeDoc;
   cat: Category;
   isAdmin: boolean;
   onDelete: (id: string, name: string) => void;
+  onClick: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
   const meta = getDocMeta(doc.name);
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="relative flex flex-col bg-white border rounded-xl transition-all duration-150 overflow-hidden"
+      onClick={onClick}
+      onKeyDown={e => e.key === 'Enter' && onClick()}
+      className="relative flex flex-col bg-white border rounded-xl transition-all duration-150 overflow-hidden cursor-pointer"
       style={{
         borderColor: hovered ? cat.color + '60' : '#e2e8f0',
         boxShadow: hovered ? `0 0 0 3px ${cat.color}12, 0 4px 16px rgba(0,0,0,0.06)` : '0 1px 4px rgba(0,0,0,0.04)',
       }}
     >
-      {/* Top color strip */}
       <div className="h-0.5 w-full transition-all" style={{ background: hovered ? cat.color : 'transparent' }} />
 
       <div className="p-4 flex items-start gap-3">
-        {/* File type icon */}
         <div className={`h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 border transition-colors ${hovered ? cat.bg + ' ' + cat.border : 'bg-slate-50 border-slate-100'}`}>
           <DocTypeIcon type={doc.file_type} size={18} />
         </div>
 
-        {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <p className="font-semibold text-slate-800 text-sm leading-tight">{doc.name}</p>
@@ -518,9 +838,9 @@ function DocCard({
               </span>
               {isAdmin && (
                 <button
-                  onClick={() => onDelete(doc.id, doc.name)}
+                  onClick={e => { e.stopPropagation(); void onDelete(doc.id, doc.name); }}
                   className="h-6 w-6 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-                  title="Remove from knowledge base"
+                  title="Remove"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -528,34 +848,37 @@ function DocCard({
             </div>
           </div>
 
-          {/* Description */}
-          <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">{meta.desc}</p>
+          <p className="text-xs text-slate-500 mt-1.5 leading-relaxed line-clamp-2">{meta.desc}</p>
 
-          {/* Topic chips */}
           {meta.topics.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
               {meta.topics.map(topic => (
-                <span
-                  key={topic}
-                  className="text-[10px] font-medium px-1.5 py-0.5 rounded-md border"
-                  style={{ background: cat.color + '0d', color: cat.color, borderColor: cat.color + '30' }}
-                >
+                <span key={topic} className="text-[10px] font-medium px-1.5 py-0.5 rounded-md border"
+                  style={{ background: cat.color + '0d', color: cat.color, borderColor: cat.color + '30' }}>
                   {topic}
                 </span>
               ))}
             </div>
           )}
 
-          {/* Footer meta */}
           <div className="flex items-center gap-2 mt-2.5">
-            <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${cat.badge}`}>
-              {cat.label}
-            </span>
+            <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${cat.badge}`}>{cat.label}</span>
             <span className="text-xs text-slate-400">{doc.chunk_count} chunks</span>
             <span className="text-xs text-slate-300">·</span>
             <span className="text-xs text-slate-400">Indexed {fmtDate(doc.created_at)}</span>
           </div>
         </div>
+      </div>
+
+      {/* Click hint */}
+      <div
+        className="px-4 py-2 border-t border-slate-50 flex items-center justify-between transition-colors"
+        style={{ background: hovered ? cat.color + '06' : '#fafbfc' }}
+      >
+        <span className="text-xs" style={{ color: hovered ? cat.color : '#94a3b8' }}>
+          {hovered ? 'View full report →' : 'Click to view report'}
+        </span>
+        <ChevronRight className="h-3.5 w-3.5 transition-colors" style={{ color: hovered ? cat.color : '#cbd5e1' }} />
       </div>
     </div>
   );
