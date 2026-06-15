@@ -1,3 +1,4 @@
+import nodemailer from 'nodemailer';
 import { db } from '../db';
 import { queryKnowledge } from './pinecone';
 import type OpenAI from 'openai';
@@ -174,6 +175,22 @@ export const toolDefinitions: OpenAI.Chat.Completions.ChatCompletionTool[] = [
           },
         },
         required: ['query'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'send_email_to_client',
+      description: 'Send an email to a client by name or company. Use when the CEO asks to email a client directly from Telegram or Chat.',
+      parameters: {
+        type: 'object',
+        properties: {
+          client_name: { type: 'string', description: 'Name or company of the client to find and email.' },
+          subject: { type: 'string', description: 'Email subject line.' },
+          body: { type: 'string', description: 'Email body text (plain text).' },
+        },
+        required: ['client_name', 'subject', 'body'],
       },
     },
   },
@@ -417,6 +434,38 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
         [tenantId, createdBy, title, description, category, start_at, end_at]
       );
       return { success: true, event: res.rows[0] };
+    }
+
+    case 'send_email_to_client': {
+      const clientName = args.client_name as string;
+      const subject = args.subject as string;
+      const body = args.body as string;
+      if (!clientName || !subject || !body) return { error: 'client_name, subject, body are required' };
+
+      const gmailUser = process.env.GMAIL_USER;
+      const gmailPass = process.env.GMAIL_APP_PASSWORD;
+      if (!gmailUser || !gmailPass) return { error: 'Email sending not configured on the server' };
+
+      const clientRes = await db.query(
+        `SELECT name, email, company FROM aios.clients
+         WHERE tenant_id = $1 AND (LOWER(name) LIKE $2 OR LOWER(COALESCE(company,'')) LIKE $2)
+         ORDER BY created_at DESC LIMIT 1`,
+        [tenantId, `%${clientName.toLowerCase()}%`]
+      );
+      if (clientRes.rows.length === 0) return { error: `No client found matching "${clientName}"` };
+
+      const client = clientRes.rows[0] as { name: string; email: string; company: string };
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: { user: gmailUser, pass: gmailPass },
+      });
+      await transporter.sendMail({
+        from: `AIOS <${gmailUser}>`,
+        to: client.email,
+        subject,
+        text: body,
+      });
+      return { success: true, message: `Email sent to ${client.name} (${client.email})` };
     }
 
     case 'search_knowledge_base': {

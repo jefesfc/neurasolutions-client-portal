@@ -99,6 +99,7 @@ TOOL USAGE RULES (mandatory):
 - Every report response automatically includes a downloadable CSV file attachment with all metrics
 - "add client" / "create client" / "new client" / "añadir cliente": call create_client with name and email (ask for them if not provided)
 - "schedule meeting" / "add event" / "create event" / "add to calendar" / "agenda": call create_calendar_event with title, start_at, and category
+- "send email to [client]" / "email [name]" / "write to [client]" / "mandar email a": call send_email_to_client with client_name, subject, and body (ask for missing fields if not provided)
 
 REPORT FORMAT (mandatory when your response contains structured data — metrics, KPIs, tables, lists with numbers, financial summaries, or business reports):
 Return ONLY a valid JSON object — no markdown code fences, no extra text before or after the JSON:

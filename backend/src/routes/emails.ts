@@ -1,7 +1,18 @@
 import { Router, Request, Response } from 'express';
+import nodemailer from 'nodemailer';
 import { requireAuth } from '../middleware/requireAuth';
 import { db } from '../db';
 import { emitSecurityEvent } from '../lib/securityEvents';
+
+function createMailTransporter() {
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD,
+    },
+  });
+}
 
 const router = Router();
 
@@ -174,6 +185,60 @@ router.patch('/settings', requireAuth, async (req: Request, res: Response) => {
   } catch (err) {
     console.error('[emails/settings PATCH]', err);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// POST /emails/send — admin/manager sends an outbound email to a client
+router.post('/send', requireAuth, async (req: Request, res: Response) => {
+  const role = req.user!.app_role;
+  if (!['admin', 'manager'].includes(role)) {
+    res.status(403).json({ error: 'Admin or manager role required' });
+    return;
+  }
+
+  const { to, subject, body, client_name } = req.body as {
+    to: string;
+    subject: string;
+    body: string;
+    client_name?: string;
+  };
+
+  if (!to || !subject || !body) {
+    res.status(400).json({ error: 'to, subject, body required' });
+    return;
+  }
+
+  const gmailUser = process.env.GMAIL_USER;
+  const gmailPass = process.env.GMAIL_APP_PASSWORD;
+  if (!gmailUser || !gmailPass) {
+    res.status(500).json({ error: 'Email sending not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD.' });
+    return;
+  }
+
+  try {
+    const transporter = createMailTransporter();
+    await transporter.sendMail({
+      from: `AIOS <${gmailUser}>`,
+      to,
+      subject,
+      text: body,
+    });
+
+    // Log interaction (fire-and-forget)
+    db.query(
+      `INSERT INTO aios.interactions (id, tenant_id, user_id, channel, role, content)
+       VALUES (gen_random_uuid(), $1, $2, 'email', 'assistant', $3)`,
+      [
+        req.user!.tenant_id,
+        req.user!.user_id,
+        `Outbound email sent to ${client_name ?? to} <${to}>: ${subject}`,
+      ]
+    ).catch(() => {});
+
+    res.json({ ok: true, to, subject });
+  } catch (err) {
+    console.error('[emails/send]', err);
+    res.status(500).json({ error: 'Failed to send email' });
   }
 });
 

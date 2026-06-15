@@ -1,4 +1,3 @@
-import { Mail } from 'lucide-react';
 import { cn } from '../../lib/cn';
 import { formatRelative } from '../../lib/formatters';
 import type { Email } from '../../types/aios';
@@ -8,6 +7,22 @@ interface EmailListProps {
   selectedId: string | null;
   onSelect: (email: Email) => void;
   search: string;
+}
+
+function getInitials(name: string | null, email: string): string {
+  if (name) return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  return email[0].toUpperCase();
+}
+
+function getAvatarColor(seed: string): string {
+  const colors = [
+    'bg-indigo-500', 'bg-violet-500', 'bg-cyan-600',
+    'bg-emerald-600', 'bg-rose-500', 'bg-amber-600',
+    'bg-sky-600', 'bg-pink-600',
+  ];
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) & 0xffffffff;
+  return colors[Math.abs(h) % colors.length];
 }
 
 export function EmailList({ emails, selectedId, onSelect, search }: EmailListProps) {
@@ -24,60 +39,87 @@ export function EmailList({ emails, selectedId, onSelect, search }: EmailListPro
   if (filtered.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-slate-400 p-8 text-center">
-        <Mail className="h-8 w-8 mb-2 opacity-40" />
-        <p className="text-sm">
+        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+          <svg className="w-5 h-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+              d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+          </svg>
+        </div>
+        <p className="text-sm font-medium text-slate-500">
           {search ? 'No emails match your search' : 'No emails yet'}
         </p>
+        {search && <p className="text-xs text-slate-400 mt-1">Try a different keyword</p>}
       </div>
     );
   }
 
   return (
     <ul className="divide-y divide-slate-100">
-      {filtered.map((email) => (
-        <li
-          key={email.id}
-          onClick={() => onSelect(email)}
-          className={cn(
-            'px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors',
-            selectedId === email.id && 'bg-indigo-50 border-l-2 border-indigo-500'
-          )}
-        >
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              {!email.is_read && (
-                <span className="h-2 w-2 rounded-full bg-indigo-500 flex-shrink-0 mt-1.5" />
-              )}
-              <div className="min-w-0">
-                <p
-                  className={cn(
+      {filtered.map((email) => {
+        const isSelected = selectedId === email.id;
+        const initials = getInitials(email.from_name ?? null, email.from_email);
+        const avatarColor = getAvatarColor(email.from_email);
+        const displayName = email.from_name ?? email.from_email;
+
+        return (
+          <li
+            key={email.id}
+            onClick={() => onSelect(email)}
+            className={cn(
+              'group relative px-4 py-3.5 cursor-pointer transition-all duration-150',
+              isSelected
+                ? 'bg-indigo-50 border-l-[3px] border-indigo-500 shadow-[inset_0_0_0_1.5px_#6366f1]'
+                : 'border-l-[3px] border-transparent hover:bg-slate-50 hover:shadow-[inset_0_0_0_1.5px_#06b6d4]',
+              !email.is_read && !isSelected && 'bg-blue-50/40'
+            )}
+          >
+            <div className="flex items-start gap-3">
+              {/* Avatar */}
+              <div className={cn(
+                'flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold select-none',
+                avatarColor
+              )}>
+                {initials}
+              </div>
+
+              {/* Content */}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2 mb-0.5">
+                  <span className={cn(
                     'text-sm truncate',
-                    !email.is_read
-                      ? 'font-semibold text-slate-800'
-                      : 'font-medium text-slate-600'
-                  )}
-                >
-                  {email.from_name ?? email.from_email}
-                </p>
-                <p
-                  className={cn(
-                    'text-sm truncate',
-                    !email.is_read ? 'text-slate-700' : 'text-slate-500'
-                  )}
-                >
+                    !email.is_read ? 'font-semibold text-slate-900' : 'font-medium text-slate-600'
+                  )}>
+                    {displayName}
+                  </span>
+                  <span className="flex-shrink-0 text-[11px] text-slate-400 font-medium">
+                    {formatRelative(email.received_at)}
+                  </span>
+                </div>
+
+                <p className={cn(
+                  'text-[13px] truncate mb-0.5',
+                  !email.is_read ? 'font-semibold text-slate-800' : 'text-slate-600'
+                )}>
                   {email.subject ?? '(no subject)'}
                 </p>
+
                 {email.snippet && (
-                  <p className="text-xs text-slate-400 truncate mt-0.5">{email.snippet}</p>
+                  <p className="text-[12px] text-slate-400 truncate leading-snug">
+                    {email.snippet}
+                  </p>
                 )}
               </div>
+
+              {/* Unread dot */}
+              {!email.is_read && (
+                <div className="flex-shrink-0 mt-1">
+                  <span className="block w-2 h-2 rounded-full bg-indigo-500" />
+                </div>
+              )}
             </div>
-            <p className="text-xs text-slate-400 flex-shrink-0 mt-0.5">
-              {formatRelative(email.received_at)}
-            </p>
-          </div>
-        </li>
-      ))}
+          </li>
+        );
+      })}
     </ul>
   );
 }

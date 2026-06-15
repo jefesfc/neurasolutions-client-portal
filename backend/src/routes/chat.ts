@@ -24,6 +24,7 @@ TOOL USAGE RULES (mandatory):
 - "emails" / "inbox": call get_recent_emails
 - "team" / "members" / "staff": call get_team_members
 - "AI usage" / "AI cost" / "tokens": included in get_business_stats
+- "send email to [client]" / "email [name]" / "write to [client]": call send_email_to_client with the client name, subject, and body
 - Any question about numbers, stats, or data: always call the relevant tool — never answer from memory
 - Every structured report response automatically includes a downloadable CSV with all metrics
 

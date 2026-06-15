@@ -3,6 +3,7 @@ import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { MobileNav } from "./MobileNav";
 import { ChatBubble } from "../chat/ChatBubble";
+import { OnboardingModal } from "../onboarding/OnboardingModal";
 import { useLanguageStore } from "../../store/language-store";
 import { cn } from "../../lib/cn";
 
@@ -26,6 +27,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       </div>
       <MobileNav />
       <ChatBubble />
+      <OnboardingModal />
     </div>
   );
 }
