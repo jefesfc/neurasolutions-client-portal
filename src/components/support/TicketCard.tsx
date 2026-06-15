@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { useTranslations } from "../../i18n/useT";
 import { MessageSquare, Clock, ChevronRight } from "lucide-react";
 import type { SupportTicket } from "../../types";
@@ -22,12 +21,19 @@ const priorityBadge: Record<string, "default" | "success" | "warning" | "danger"
 
 interface TicketCardProps {
   ticket: SupportTicket;
+  onClick: () => void;
 }
 
-export function TicketCard({ ticket }: TicketCardProps) {
+export function TicketCard({ ticket, onClick }: TicketCardProps) {
   const T = useTranslations();
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 p-5">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={e => e.key === 'Enter' && onClick()}
+      className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md hover:border-brand-300 transition-all duration-200 p-5 cursor-pointer"
+    >
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-medium text-slate-400 font-mono">{ticket.number}</span>
         <div className="flex items-center gap-2">
@@ -50,9 +56,9 @@ export function TicketCard({ ticket }: TicketCardProps) {
             {formatRelative(ticket.updatedAt)}
           </span>
         </div>
-        <Link to={`/support/${ticket.id}`} className="text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1">
+        <span className="text-brand-600 font-medium flex items-center gap-1">
           {T.support.viewLink} <ChevronRight className="h-4 w-4" />
-        </Link>
+        </span>
       </div>
     </div>
   );
