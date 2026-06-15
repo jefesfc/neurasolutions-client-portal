@@ -66,7 +66,7 @@ export default function AISystemsPage() {
       />
       <div className="mb-6">
         <SearchInput
-          placeholder="Search systems..."
+          placeholder={t('aiSystems.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onClear={() => setSearch("")}

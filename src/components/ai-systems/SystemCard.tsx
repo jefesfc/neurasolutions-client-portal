@@ -5,6 +5,7 @@ import { cn } from "../../lib/cn";
 import type { AISystem } from "../../types";
 import { StatusDot } from "../shared/StatusDot";
 import { formatRelative, formatNumber } from "../../lib/formatters";
+import { useTranslations } from "../../i18n/useT";
 
 const healthColorMap: Record<string, "green" | "yellow" | "red" | "gray"> = {
   healthy: "green",
@@ -27,27 +28,13 @@ const categoryColors: Record<string, string> = {
   "knowledge-retrieval": "bg-cyan-50 text-cyan-700 border-cyan-200",
 };
 
-const categoryLabels: Record<string, string> = {
-  "lead-generation":     "Lead Gen",
-  "customer-support":    "Support",
-  "data-analysis":       "Data Analysis",
-  "workflow-automation": "Workflow",
-  "content-creation":    "Content",
-  "predictive-analytics":"Predictive",
-  "ai-assistant":        "AI Assistant",
-  "voice-processing":    "Voice",
-  "security":            "Security",
-  "email-automation":    "Email",
-  "calendar":            "Calendar",
-  "knowledge-retrieval": "Knowledge RAG",
-};
-
 interface SystemCardProps {
   system: AISystem;
   index: number;
 }
 
 export function SystemCard({ system, index }: SystemCardProps) {
+  const T = useTranslations();
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -69,7 +56,7 @@ export function SystemCard({ system, index }: SystemCardProps) {
                 {system.name}
               </h3>
               <span className={cn("text-xs font-medium px-1.5 py-0.5 rounded-md", categoryColors[system.category])}>
-                {categoryLabels[system.category]}
+                {T.aiSystems.categories[system.category] ?? system.category}
               </span>
             </div>
           </div>
@@ -85,10 +72,10 @@ export function SystemCard({ system, index }: SystemCardProps) {
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 mt-auto">
           {[
-            { label: "Interactions", value: formatNumber(system.metrics.interactionsThisMonth) },
-            { label: "Hours Saved", value: formatNumber(system.metrics.hoursSaved) },
-            { label: "Success Rate", value: `${system.successRate}%` },
-            { label: "Uptime", value: `${system.metrics.uptime}%` },
+            { label: T.aiSystems.stats.interactions, value: formatNumber(system.metrics.interactionsThisMonth) },
+            { label: T.aiSystems.stats.hoursSaved,   value: formatNumber(system.metrics.hoursSaved) },
+            { label: T.aiSystems.stats.successRate,  value: `${system.successRate}%` },
+            { label: T.aiSystems.stats.uptime,       value: `${system.metrics.uptime}%` },
           ].map((stat) => (
             <div key={stat.label} className="bg-slate-50 rounded-lg px-3 py-2">
               <p className="text-xs text-slate-400">{stat.label}</p>
@@ -101,7 +88,7 @@ export function SystemCard({ system, index }: SystemCardProps) {
         <div className="flex items-center gap-1 mt-3 pt-3 border-t border-slate-100">
           <Activity className="h-3 w-3 text-slate-400" />
           <span className="text-xs text-slate-400">
-            Last active {formatRelative(system.lastActive)}
+            {T.aiSystems.lastActive} {formatRelative(system.lastActive)}
           </span>
         </div>
       </Link>

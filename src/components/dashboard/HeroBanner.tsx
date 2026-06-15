@@ -8,6 +8,7 @@ import { Skeleton } from '../ui/Skeleton';
 import { Users, Building2, Shield, Cpu, AlertTriangle, TrendingUp, Activity } from 'lucide-react';
 import type { Lead, Client, TokenUsage } from '../../types/aios';
 import type { SecuritySummary } from '../../types/security';
+import { useTranslations } from '../../i18n/useT';
 
 const API_URL = (window as Window & { __env__?: { API_URL?: string } }).__env__?.API_URL
   ?? import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
@@ -22,12 +23,12 @@ const AGENT_COLORS: Record<string, string> = {
   'aios-reports':      '#10b981',
 };
 
-const LEAD_SEGS = [
-  { key: 'new'       as const, color: '#6366f1', label: 'New'        },
-  { key: 'qualified' as const, color: '#34d399', label: 'Qualified'  },
-  { key: 'won'       as const, color: '#06b6d4', label: 'Won'        },
-  { key: 'contacted' as const, color: '#818cf8', label: 'In Progress'},
-  { key: 'lost'      as const, color: '#e2e8f0', label: 'Lost'       },
+const LEAD_SEG_BASE = [
+  { key: 'new'       as const, color: '#6366f1' },
+  { key: 'qualified' as const, color: '#34d399' },
+  { key: 'won'       as const, color: '#06b6d4' },
+  { key: 'contacted' as const, color: '#818cf8' },
+  { key: 'lost'      as const, color: '#e2e8f0' },
 ];
 
 interface StatusCounts { new: number; qualified: number; won: number; lost: number; contacted: number }
@@ -79,7 +80,15 @@ function LeadsPipelineCard({ total, counts, activeClients, conversionRate }: {
   total: number; counts: StatusCounts; activeClients: number; conversionRate: number;
 }) {
   const navigate = useNavigate();
+  const T = useTranslations();
   const { hover, style } = useCardHover();
+  const LEAD_SEGS = [
+    { key: 'new'       as const, color: '#6366f1', label: T.dashboard.statusNew       },
+    { key: 'qualified' as const, color: '#34d399', label: T.dashboard.statusQualified },
+    { key: 'won'       as const, color: '#06b6d4', label: T.dashboard.statusWon       },
+    { key: 'contacted' as const, color: '#818cf8', label: T.dashboard.statusContacted },
+    { key: 'lost'      as const, color: '#e2e8f0', label: T.dashboard.statusLost      },
+  ];
   const R = 38;
   const C = 2 * Math.PI * R;
   let offset = 0;
@@ -94,7 +103,7 @@ function LeadsPipelineCard({ total, counts, activeClients, conversionRate }: {
 
   return (
     <div onClick={() => void navigate('/leads')} {...hover} style={style}>
-      <CardHeader icon={<Users size={14} />} title="Leads Pipeline" sub={`Status breakdown · ${total} total`} iconBg="#eef2ff" iconBorder="#c7d2fe" iconColor="#6366f1" />
+      <CardHeader icon={<Users size={14} />} title={T.dashboard.leadsPipeline} sub={T.dashboard.statusBreakdown(total)} iconBg="#eef2ff" iconBorder="#c7d2fe" iconColor="#6366f1" />
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <div style={{ position: 'relative', flexShrink: 0 }}>
           <svg width={100} height={100} viewBox="0 0 100 100">
@@ -124,12 +133,12 @@ function LeadsPipelineCard({ total, counts, activeClients, conversionRate }: {
         </div>
       </div>
       <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid #f1f5f9' }}>
-        <p style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Conversion Funnel</p>
+        <p style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>{T.dashboard.conversionFunnel}</p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           {[
-            { label: 'Leads',   value: String(total),            bg: '#eef2ff', color: '#6366f1' },
-            { label: 'Clients', value: String(activeClients),    bg: '#f0fdf4', color: '#10b981' },
-            { label: 'Rate',    value: `${conversionRate}%`,     bg: '#ecfeff', color: '#06b6d4' },
+            { label: T.dashboard.leads,   value: String(total),            bg: '#eef2ff', color: '#6366f1' },
+            { label: T.dashboard.clients, value: String(activeClients),    bg: '#f0fdf4', color: '#10b981' },
+            { label: T.dashboard.conversion, value: `${conversionRate}%`, bg: '#ecfeff', color: '#06b6d4' },
           ].map((item, i) => (
             <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
               <div style={{ flex: 1, textAlign: 'center', background: item.bg, borderRadius: 6, padding: '6px 4px' }}>
@@ -149,6 +158,7 @@ function LeadsPipelineCard({ total, counts, activeClients, conversionRate }: {
 
 function ClientsOverviewCard({ clients, activeClients }: { clients: Client[]; activeClients: number }) {
   const navigate = useNavigate();
+  const T = useTranslations();
   const { hover, style } = useCardHover();
   const totalRevenue = clients.reduce((sum, c) => sum + (c.contract_value ?? 0), 0);
   const churned = clients.filter(c => c.status === 'churned').length;
@@ -159,12 +169,12 @@ function ClientsOverviewCard({ clients, activeClients }: { clients: Client[]; ac
 
   return (
     <div onClick={() => void navigate('/clients')} {...hover} style={style}>
-      <CardHeader icon={<Building2 size={14} />} title="Clients Overview" sub="Active accounts" iconBg="#f0fdf4" iconBorder="#bbf7d0" iconColor="#10b981" />
+      <CardHeader icon={<Building2 size={14} />} title={T.dashboard.clientsOverview} sub={T.dashboard.activeAccounts} iconBg="#f0fdf4" iconBorder="#bbf7d0" iconColor="#10b981" />
       <div>
         {[
-          { label: 'Active Clients',     val: activeClients,                               tag: activeClients > 0 ? `${clients.length} total` : undefined,  tagColor: '#94a3b8' },
-          { label: 'Total Contract Value', val: `£${totalRevenue.toLocaleString()}`,        tag: undefined, tagColor: undefined },
-          { label: 'Churned',            val: churned,                                     tag: churned > 0 ? 'Attention' : 'None',  tagColor: churned > 0 ? '#ef4444' : '#10b981' },
+          { label: T.dashboard.activeClients,      val: activeClients,                          tag: activeClients > 0 ? `${clients.length} total` : undefined, tagColor: '#94a3b8' },
+          { label: T.dashboard.totalContractValue, val: `£${totalRevenue.toLocaleString()}`,    tag: undefined, tagColor: undefined },
+          { label: T.dashboard.churned,            val: churned,                                tag: churned > 0 ? T.dashboard.attention : T.dashboard.none, tagColor: churned > 0 ? '#ef4444' : '#10b981' },
         ].map(row => (
           <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f8fafc' }}>
             <span style={{ fontSize: 11, color: '#64748b' }}>{row.label}</span>
@@ -176,9 +186,9 @@ function ClientsOverviewCard({ clients, activeClients }: { clients: Client[]; ac
         ))}
       </div>
       <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid #f1f5f9' }}>
-        <p style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Recent Clients</p>
+        <p style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>{T.dashboard.recentClients}</p>
         {recent.length === 0
-          ? <p style={{ fontSize: 11, color: '#94a3b8' }}>No clients yet</p>
+          ? <p style={{ fontSize: 11, color: '#94a3b8' }}>{T.dashboard.noClientsYet}</p>
           : recent.map((c, i) => (
             <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: i < recent.length - 1 ? 8 : 0 }}>
               <div style={{ width: 26, height: 26, borderRadius: 7, background: `linear-gradient(135deg, ${AVATAR_COLORS[i % AVATAR_COLORS.length]}, ${AVATAR_COLORS[(i + 1) % AVATAR_COLORS.length]})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'white', flexShrink: 0 }}>
@@ -186,10 +196,10 @@ function ClientsOverviewCard({ clients, activeClients }: { clients: Client[]; ac
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontSize: 11, fontWeight: 600, color: '#0f172a', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.company || c.name}</p>
-                <p style={{ fontSize: 10, color: '#94a3b8', margin: '1px 0 0' }}>{c.status === 'active' ? 'Active' : c.status}</p>
+                <p style={{ fontSize: 10, color: '#94a3b8', margin: '1px 0 0' }}>{c.status === 'active' ? T.dashboard.clientActive : c.status}</p>
               </div>
               <span style={{ fontSize: 9, fontWeight: 700, color: c.status === 'active' ? '#10b981' : '#ef4444', background: c.status === 'active' ? '#f0fdf4' : '#fef2f2', border: `1px solid ${c.status === 'active' ? '#bbf7d0' : '#fecaca'}`, borderRadius: 10, padding: '2px 6px', flexShrink: 0 }}>
-                {c.status === 'active' ? 'Active' : 'Inactive'}
+                {c.status === 'active' ? T.dashboard.clientActive : T.dashboard.clientInactive}
               </span>
             </div>
           ))
@@ -203,6 +213,7 @@ function ClientsOverviewCard({ clients, activeClients }: { clients: Client[]; ac
 
 function SecurityHealthCard({ secSummary }: { secSummary: SecuritySummary | null }) {
   const navigate = useNavigate();
+  const T = useTranslations();
   const { hover, style } = useCardHover();
   const highAlerts = parseInt(secSummary?.high_unresolved ?? '0', 10);
   const medAlerts  = parseInt(secSummary?.medium_count    ?? '0', 10);
@@ -216,21 +227,21 @@ function SecurityHealthCard({ secSummary }: { secSummary: SecuritySummary | null
 
   return (
     <div onClick={() => void navigate('/security')} {...hover} style={style}>
-      <CardHeader icon={<Shield size={14} />} title="Security Health" sub="Real-time threat status" iconBg="#f0fdf4" iconBorder="#bbf7d0" iconColor="#10b981" />
+      <CardHeader icon={<Shield size={14} />} title={T.dashboard.securityHealth} sub={T.dashboard.realtimeStatus} iconBg="#f0fdf4" iconBorder="#bbf7d0" iconColor="#10b981" />
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <svg width={110} height={80} viewBox="0 0 110 80">
           <path d="M 10 70 A 45 45 0 0 1 100 70" fill="none" stroke="#f1f5f9" strokeWidth={12} strokeLinecap="round" />
           <path d="M 10 70 A 45 45 0 0 1 100 70" fill="none" stroke={scoreColor} strokeWidth={12} strokeLinecap="round"
             strokeDasharray={`${arcFill} ${ARC_LEN}`} />
           <text x={55} y={62} textAnchor="middle" fontSize={20} fontWeight={800} fill="#0f172a">{score}</text>
-          <text x={55} y={74} textAnchor="middle" fontSize={8} fill="#94a3b8">SCORE</text>
+          <text x={55} y={74} textAnchor="middle" fontSize={8} fill="#94a3b8">{T.dashboard.score}</text>
         </svg>
         <div style={{ display: 'flex', gap: 16, marginTop: 4 }}>
           {[
-            { label: 'Critical', val: '0',              color: '#ef4444' },
-            { label: 'High',     val: String(highAlerts), color: '#f59e0b' },
-            { label: 'Medium',   val: String(medAlerts),  color: '#818cf8' },
-            { label: 'Total',    val: String(totalToday), color: '#94a3b8' },
+            { label: T.dashboard.critical, val: '0',               color: '#ef4444' },
+            { label: T.dashboard.high,     val: String(highAlerts), color: '#f59e0b' },
+            { label: T.dashboard.medium,   val: String(medAlerts),  color: '#818cf8' },
+            { label: T.dashboard.total,    val: String(totalToday), color: '#94a3b8' },
           ].map(m => (
             <div key={m.label} style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>{secSummary === null ? '—' : m.val}</div>
@@ -244,7 +255,7 @@ function SecurityHealthCard({ secSummary }: { secSummary: SecuritySummary | null
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', borderRadius: 8, background: '#fef2f2', border: '1px solid #fecaca' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b', flexShrink: 0 }} />
-              <span style={{ fontSize: 11, color: '#475569' }}>High Alerts</span>
+              <span style={{ fontSize: 11, color: '#475569' }}>{T.dashboard.highAlerts}</span>
             </div>
             <span style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>{highAlerts}</span>
           </div>
@@ -253,7 +264,7 @@ function SecurityHealthCard({ secSummary }: { secSummary: SecuritySummary | null
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', borderRadius: 8, background: '#f8fafc', border: '1px solid #f1f5f9' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#818cf8', flexShrink: 0 }} />
-              <span style={{ fontSize: 11, color: '#475569' }}>Medium Events</span>
+              <span style={{ fontSize: 11, color: '#475569' }}>{T.dashboard.mediumEvents}</span>
             </div>
             <span style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>{medAlerts}</span>
           </div>
@@ -261,7 +272,7 @@ function SecurityHealthCard({ secSummary }: { secSummary: SecuritySummary | null
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', borderRadius: 8, background: '#f0fdf4', border: '1px solid #dcfce7' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', flexShrink: 0 }} />
-            <span style={{ fontSize: 11, color: '#166534', fontWeight: 500 }}>RLS Active · Protected</span>
+            <span style={{ fontSize: 11, color: '#166534', fontWeight: 500 }}>{T.dashboard.rlsActive}</span>
           </div>
           <span style={{ fontSize: 11, color: '#10b981' }}>✓</span>
         </div>
@@ -274,6 +285,7 @@ function SecurityHealthCard({ secSummary }: { secSummary: SecuritySummary | null
 
 function PlatformHealthCard({ openCount, highCount }: { openCount: number; highCount: number }) {
   const navigate = useNavigate();
+  const T = useTranslations();
   const { hover, style } = useCardHover();
   const ticketColor = openCount === 0 ? '#10b981' : highCount > 0 ? '#ef4444' : '#f59e0b';
 
@@ -293,11 +305,11 @@ function PlatformHealthCard({ openCount, highCount }: { openCount: number; highC
           <Activity size={14} />
         </div>
         <div style={{ flex: 1 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>Platform Health</p>
-          <p style={{ fontSize: 10, color: '#94a3b8', margin: '2px 0 0' }}>Service uptime · last 30 days</p>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>{T.dashboard.platformHealth}</p>
+          <p style={{ fontSize: 10, color: '#94a3b8', margin: '2px 0 0' }}>{T.dashboard.serviceUptime}</p>
         </div>
         <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '3px 8px', fontSize: 10, fontWeight: 700, color: '#10b981', flexShrink: 0 }}>
-          All Systems ✓
+          {T.dashboard.allSystems}
         </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -315,7 +327,7 @@ function PlatformHealthCard({ openCount, highCount }: { openCount: number; highC
       </div>
       {openCount > 0 && (
         <div style={{ marginTop: 12, padding: '8px 12px', borderRadius: 8, background: ticketColor + '10', border: `1px solid ${ticketColor}30`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 11, color: '#475569' }}>Open Support Tickets</span>
+          <span style={{ fontSize: 11, color: '#475569' }}>{T.dashboard.openTickets}</span>
           <span style={{ fontSize: 12, fontWeight: 700, color: ticketColor }}>{openCount}</span>
         </div>
       )}
@@ -331,6 +343,7 @@ function AICostCard({ totalCost, agentList, maxAgentCost }: {
   maxAgentCost: number;
 }) {
   const navigate = useNavigate();
+  const T = useTranslations();
   const { hover, style } = useCardHover();
   const budgetPct = Math.min((totalCost / AI_MONTHLY_BUDGET) * 100, 100);
 
@@ -341,17 +354,17 @@ function AICostCard({ totalCost, agentList, maxAgentCost }: {
           <Cpu size={14} />
         </div>
         <div style={{ flex: 1 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>AI Cost Breakdown</p>
-          <p style={{ fontSize: 10, color: '#94a3b8', margin: '2px 0 0' }}>By agent · current month</p>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>{T.dashboard.aiCostBreakdown}</p>
+          <p style={{ fontSize: 10, color: '#94a3b8', margin: '2px 0 0' }}>{T.dashboard.byAgent}</p>
         </div>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
-          <p style={{ fontSize: 10, color: '#94a3b8', margin: 0 }}>Total</p>
+          <p style={{ fontSize: 10, color: '#94a3b8', margin: 0 }}>{T.dashboard.total}</p>
           <p style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>£{totalCost.toFixed(2)}</p>
         </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {agentList.length === 0
-          ? <p style={{ fontSize: 11, color: '#94a3b8' }}>No usage recorded yet</p>
+          ? <p style={{ fontSize: 11, color: '#94a3b8' }}>{T.dashboard.noUsage}</p>
           : agentList.map(([agent, data]) => {
               const barPct = (data.cost / maxAgentCost) * 100;
               const color  = AGENT_COLORS[agent] ?? '#6366f1';
@@ -369,14 +382,14 @@ function AICostCard({ totalCost, agentList, maxAgentCost }: {
       </div>
       <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid #f1f5f9' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-          <span style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Monthly Budget</span>
+          <span style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{T.dashboard.monthlyBudget}</span>
           <span style={{ fontSize: 11, fontWeight: 700, color: '#0f172a' }}>£{totalCost.toFixed(2)} / £{AI_MONTHLY_BUDGET}</span>
         </div>
         <div style={{ height: 8, background: '#f1f5f9', borderRadius: 4, overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${budgetPct}%`, background: 'linear-gradient(90deg, #f59e0b, #fbbf24)', borderRadius: 4 }} />
         </div>
         <p style={{ marginTop: 5, fontSize: 10, fontWeight: 600, color: '#10b981' }}>
-          {(100 - budgetPct).toFixed(1)}% budget remaining
+          {T.dashboard.budgetRemaining((100 - budgetPct).toFixed(1))}
         </p>
       </div>
     </div>
@@ -387,8 +400,16 @@ function AICostCard({ totalCost, agentList, maxAgentCost }: {
 
 function ActiveSystemsStrip({ secSummary }: { secSummary: SecuritySummary | null }) {
   const navigate = useNavigate();
+  const T = useTranslations();
   const highAlerts = parseInt(secSummary?.high_unresolved ?? '0', 10);
   const secStatus  = secSummary === null ? 'connecting' : highAlerts > 0 ? 'alert' : 'online';
+
+  const TAG: Record<string, { label: string; color: string; bg: string; border: string }> = {
+    online:     { label: T.dashboard.online,     color: '#10b981', bg: '#f0fdf4', border: '#bbf7d0' },
+    warning:    { label: T.dashboard.warning,    color: '#f59e0b', bg: '#fffbeb', border: '#fde68a' },
+    alert:      { label: T.dashboard.alert,      color: '#ef4444', bg: '#fef2f2', border: '#fecaca' },
+    connecting: { label: T.dashboard.connecting, color: '#94a3b8', bg: '#f8fafc', border: '#e2e8f0' },
+  };
 
   const SYSTEMS = [
     { emoji: '🤖', name: 'Chief of Staff', type: 'AI Agent',       status: 'online'      as const, route: '/systems'   },
@@ -400,16 +421,10 @@ function ActiveSystemsStrip({ secSummary }: { secSummary: SecuritySummary | null
   ] as const;
 
   const DOT: Record<string, string> = { online: '#10b981', warning: '#f59e0b', alert: '#ef4444', connecting: '#94a3b8' };
-  const TAG: Record<string, { label: string; color: string; bg: string; border: string }> = {
-    online:     { label: 'Online',      color: '#10b981', bg: '#f0fdf4', border: '#bbf7d0' },
-    warning:    { label: 'Warning',     color: '#f59e0b', bg: '#fffbeb', border: '#fde68a' },
-    alert:      { label: 'Alert',       color: '#ef4444', bg: '#fef2f2', border: '#fecaca' },
-    connecting: { label: 'Connecting',  color: '#94a3b8', bg: '#f8fafc', border: '#e2e8f0' },
-  };
 
   return (
     <div>
-      <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 12 }}>Active Systems & Integrations</p>
+      <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 12 }}>{T.dashboard.activeSystems}</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12 }}>
         {SYSTEMS.map(sys => {
           const tag = TAG[sys.status];
@@ -463,6 +478,7 @@ function SystemCard({ sys, dotColor, tag, onClick }: {
 
 export function HeroBanner() {
   const navigate = useNavigate();
+  const T = useTranslations();
   const user  = useAuthStore(s => s.user);
   const token = useAuthStore(s => s.token);
 
@@ -531,7 +547,7 @@ export function HeroBanner() {
 
   const now      = new Date();
   const hour     = now.getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const greeting = hour < 12 ? T.dashboard.greetMorning : hour < 18 ? T.dashboard.greetAfternoon : T.dashboard.greetEvening;
   const dateStr  = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
@@ -549,22 +565,22 @@ export function HeroBanner() {
         <div style={{ position: 'relative', zIndex: 1 }}>
           <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 4px' }}>{greeting}</p>
           <h2 style={{ fontSize: 22, fontWeight: 800, color: 'white', letterSpacing: '-0.5px', margin: '0 0 4px' }}>
-            Welcome back, {user?.name ?? 'Admin'} 👋
+            {T.dashboard.welcomeBack(user?.name ?? 'Admin')}
           </h2>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', margin: 0 }}>{dateStr} · Here's your business overview</p>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', margin: 0 }}>{dateStr} · {T.dashboard.overview}</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative', zIndex: 1 }}>
           <button
             onClick={() => void navigate('/reports')}
             style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', background: 'rgba(255,255,255,0.12)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}
           >
-            View Reports
+            {T.dashboard.viewReports}
           </button>
           <button
             onClick={() => void navigate('/systems')}
             style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', background: 'white', color: '#4f46e5', border: 'none' }}
           >
-            AI Systems
+            {T.nav.aiSystems}
           </button>
         </div>
       </div>
@@ -572,22 +588,22 @@ export function HeroBanner() {
       {/* ── 6 KPI TILES ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12 }}>
         <div onClick={() => void navigate('/leads')} style={{ cursor: 'pointer' }}>
-          <KPITile label="Leads" value={leads.length} sub="active pipeline" color="#6366f1" Icon={Users} />
+          <KPITile label={T.dashboard.leads} value={leads.length} sub={T.dashboard.activePipeline} color="#6366f1" Icon={Users} />
         </div>
         <div onClick={() => void navigate('/clients')} style={{ cursor: 'pointer' }}>
-          <KPITile label="Clients" value={activeClients} sub={`${clients.length} total`} color="#10b981" Icon={Building2} />
+          <KPITile label={T.dashboard.clients} value={activeClients} sub={`${clients.length} total`} color="#10b981" Icon={Building2} />
         </div>
         <div onClick={() => void navigate('/security')} style={{ cursor: 'pointer' }}>
-          <KPITile label="Security" value={secScore} sub={highAlertsSec > 0 ? 'Alerts active' : 'Protected'} color="#34d399" Icon={Shield} />
+          <KPITile label={T.dashboard.security} value={secScore} sub={highAlertsSec > 0 ? T.dashboard.alertsActive : T.dashboard.protected} color="#34d399" Icon={Shield} />
         </div>
         <div onClick={() => void navigate('/billing')} style={{ cursor: 'pointer' }}>
-          <KPITile label="AI Cost" value={`£${totalCost.toFixed(2)}`} sub="this month" color="#f59e0b" Icon={Cpu} />
+          <KPITile label={T.dashboard.aiCost} value={`£${totalCost.toFixed(2)}`} sub={T.dashboard.thisMonth} color="#f59e0b" Icon={Cpu} />
         </div>
         <div onClick={() => void navigate('/support')} style={{ cursor: 'pointer' }}>
-          <KPITile label="Tickets" value={openCount} sub={highCount > 0 ? `${highCount} high priority` : 'all clear'} color="#f87171" Icon={AlertTriangle} />
+          <KPITile label={T.dashboard.tickets} value={openCount} sub={highCount > 0 ? T.dashboard.highPriority(highCount) : T.dashboard.allClear} color="#f87171" Icon={AlertTriangle} />
         </div>
         <div onClick={() => void navigate('/leads')} style={{ cursor: 'pointer' }}>
-          <KPITile label="Conversion" value={`${conversionRate}%`} sub="lead → client" color="#06b6d4" Icon={TrendingUp} />
+          <KPITile label={T.dashboard.conversion} value={`${conversionRate}%`} sub={T.dashboard.leadToClient} color="#06b6d4" Icon={TrendingUp} />
         </div>
       </div>
 
