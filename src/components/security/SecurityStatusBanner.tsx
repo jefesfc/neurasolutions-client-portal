@@ -24,31 +24,25 @@ interface Props {
 
 const STATUS_CONFIG = {
   protected: {
-    color: '#22c55e',
-    borderColor: 'rgba(34,197,94,0.3)',
-    accentBg: 'rgba(34,197,94,0.06)',
+    color: '#10b981',
+    bg: '#f0fdf4',
     label: 'System Protected',
     desc: 'No active threats — all events resolved',
     Icon: ShieldCheck,
-    pulse: false,
   },
   warning: {
     color: '#f59e0b',
-    borderColor: 'rgba(245,158,11,0.35)',
-    accentBg: 'rgba(245,158,11,0.06)',
+    bg: '#fffbeb',
     label: 'Pending Events',
     desc: 'There are unresolved events that require review',
     Icon: ShieldAlert,
-    pulse: true,
   },
   critical: {
     color: '#ef4444',
-    borderColor: 'rgba(239,68,68,0.4)',
-    accentBg: 'rgba(239,68,68,0.07)',
+    bg: '#fef2f2',
     label: 'Active Threat',
     desc: 'High severity events detected and unresolved',
     Icon: ShieldX,
-    pulse: true,
   },
 };
 
@@ -70,34 +64,33 @@ function computeStatus(events: SecurityEvent[]): StatusInfo {
 
 function TrafficLight({ status }: { status: SecurityStatus }) {
   const lights = [
-    { id: 'critical',  color: '#ef4444', glow: 'rgba(239,68,68,0.6)',  active: status === 'critical' },
-    { id: 'warning',   color: '#f59e0b', glow: 'rgba(245,158,11,0.6)', active: status === 'warning' },
-    { id: 'protected', color: '#22c55e', glow: 'rgba(34,197,94,0.6)',  active: status === 'protected' },
+    { id: 'critical',  color: '#ef4444', glow: 'rgba(239,68,68,0.5)',  active: status === 'critical' },
+    { id: 'warning',   color: '#f59e0b', glow: 'rgba(245,158,11,0.5)', active: status === 'warning' },
+    { id: 'protected', color: '#22c55e', glow: 'rgba(34,197,94,0.5)',  active: status === 'protected' },
   ];
 
   return (
     <div style={{
-      background: '#060c18',
-      border: '2px solid rgba(255,255,255,0.1)',
+      background: '#f8fafc',
+      border: '2px solid #e2e8f0',
       borderRadius: 18,
       padding: '14px 10px',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       gap: 10,
-      boxShadow: '0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
+      boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
       flexShrink: 0,
     }}>
       {lights.map(light => (
         <div key={light.id} style={{
           width: 28, height: 28, borderRadius: '50%',
-          background: light.active ? light.color : `${light.color}20`,
+          background: light.active ? light.color : `${light.color}25`,
           boxShadow: light.active
-            ? `0 0 14px ${light.glow}, 0 0 28px ${light.glow}, inset 0 1px 0 rgba(255,255,255,0.35)`
-            : 'inset 0 1px 0 rgba(255,255,255,0.04)',
+            ? `0 0 12px ${light.glow}, 0 0 24px ${light.glow}, inset 0 1px 0 rgba(255,255,255,0.35)`
+            : 'none',
           transition: 'all 0.4s ease',
           ...(light.active && light.id !== 'protected' ? {
-            '--sem-color': light.glow,
             animation: 'semaphore-pulse 2s ease-in-out infinite',
           } as React.CSSProperties : {}),
         }} />
@@ -111,29 +104,29 @@ function SevPill({ label, count, color }: { label: string; count: number; color:
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      background: active ? `${color}12` : 'rgba(255,255,255,0.03)',
-      borderTop: `2px solid ${active ? color : 'rgba(255,255,255,0.1)'}`,
-      borderLeft:   `1px solid ${active ? color + '35' : 'rgba(255,255,255,0.07)'}`,
-      borderRight:  `1px solid ${active ? color + '35' : 'rgba(255,255,255,0.07)'}`,
-      borderBottom: `1px solid ${active ? color + '35' : 'rgba(255,255,255,0.07)'}`,
+      background: active ? `${color}10` : '#fff',
+      borderTop: `2px solid ${active ? color : '#e2e8f0'}`,
+      borderLeft:   `1px solid ${active ? color + '30' : '#e2e8f0'}`,
+      borderRight:  `1px solid ${active ? color + '30' : '#e2e8f0'}`,
+      borderBottom: `1px solid ${active ? color + '30' : '#e2e8f0'}`,
       borderRadius: '0 0 10px 10px',
-      padding: '10px 18px', minWidth: 72,
+      padding: '9px 16px', minWidth: 70,
       transition: 'all 0.35s ease',
-      boxShadow: active ? `0 4px 14px ${color}18` : 'none',
+      boxShadow: active ? `0 2px 10px ${color}18` : 'none',
     }}>
       <span style={{
-        fontSize: 26, fontWeight: 800, lineHeight: 1,
-        color: active ? color : '#334155',
+        fontSize: 24, fontWeight: 800, lineHeight: 1,
+        color: active ? color : '#cbd5e1',
         fontVariantNumeric: 'tabular-nums',
-        transition: 'color 0.35s ease',
         letterSpacing: '-0.5px',
+        transition: 'color 0.35s ease',
       }}>
         {count}
       </span>
       <span style={{
         fontSize: 9, fontWeight: 700, marginTop: 5,
         textTransform: 'uppercase', letterSpacing: '0.7px',
-        color: active ? `${color}bb` : '#475569',
+        color: active ? `${color}cc` : '#94a3b8',
         transition: 'color 0.35s ease',
       }}>
         {label}
@@ -171,34 +164,24 @@ export function SecurityStatusBanner({ events, loading, lastUpdated, onRefresh, 
 
   return (
     <div style={{
-      /* Always dark background — no transparency bleed */
-      background: 'linear-gradient(135deg, #080e1c 0%, #0f1828 60%, #131e2e 100%)',
-      border: `1px solid ${cfg.borderColor}`,
-      borderRadius: 16,
-      padding: '18px 20px',
+      background: cfg.bg,
+      borderLeft: `4px solid ${cfg.color}`,
+      borderTop: `1px solid ${cfg.color}30`,
+      borderRight: `1px solid ${cfg.color}30`,
+      borderBottom: `1px solid ${cfg.color}30`,
+      borderRadius: 14,
+      padding: '16px 20px',
       display: 'flex',
       alignItems: 'center',
       gap: 20,
       flexWrap: 'wrap',
-      transition: 'border-color 0.5s ease',
-      boxShadow: `0 0 0 1px ${cfg.borderColor} inset, 0 4px 24px rgba(0,0,0,0.35)`,
-      position: 'relative',
-      overflow: 'hidden',
+      transition: 'background 0.5s ease, border-color 0.5s ease',
+      boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
     }}>
-
-      {/* Subtle colored glow in top-left corner */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, width: 220, height: '100%',
-        background: `radial-gradient(ellipse at 0% 50%, ${cfg.accentBg} 0%, transparent 70%)`,
-        pointerEvents: 'none', transition: 'background 0.5s ease',
-      }} />
-
-      {/* Traffic light */}
       <TrafficLight status={info.status} />
 
-      {/* Status text */}
-      <div style={{ flex: 1, minWidth: 200, position: 'relative' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
+      <div style={{ flex: 1, minWidth: 200 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
           <cfg.Icon size={16} color={cfg.color} />
           <span style={{
             fontSize: 13, fontWeight: 800, color: cfg.color,
@@ -207,11 +190,11 @@ export function SecurityStatusBanner({ events, loading, lastUpdated, onRefresh, 
             {cfg.label}
           </span>
         </div>
-        <p style={{ color: '#94a3b8', fontSize: 12, margin: '0 0 8px', lineHeight: 1.4 }}>{cfg.desc}</p>
+        <p style={{ color: '#475569', fontSize: 12, margin: '0 0 8px', lineHeight: 1.4 }}>{cfg.desc}</p>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 11, color: '#64748b', display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
             {info.totalEvents} events analyzed
           </span>
           {info.totalUnresolved > 0 && (
@@ -219,13 +202,12 @@ export function SecurityStatusBanner({ events, loading, lastUpdated, onRefresh, 
               · {info.totalUnresolved} unresolved
             </span>
           )}
-          <span style={{ fontSize: 11, color: '#475569', marginLeft: 'auto' }}>
+          <span style={{ fontSize: 11, color: '#94a3b8', marginLeft: 'auto' }}>
             Updated: {relativeTime}
           </span>
         </div>
       </div>
 
-      {/* Severity breakdown */}
       <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
         <SevPill label="Critical" count={info.criticalCount} color="#ef4444" />
         <SevPill label="High"     count={info.highCount}     color="#f97316" />
@@ -233,9 +215,7 @@ export function SecurityStatusBanner({ events, loading, lastUpdated, onRefresh, 
         <SevPill label="Low"      count={info.lowCount}      color="#3b82f6" />
       </div>
 
-      {/* Action buttons */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
-        {/* Resolve All — only when there are unresolved events */}
         {info.totalUnresolved > 0 && onResolveAll && (
           <button
             onClick={() => void handleResolveAll()}
@@ -243,10 +223,10 @@ export function SecurityStatusBanner({ events, loading, lastUpdated, onRefresh, 
             title="Mark all as resolved"
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              padding: '6px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700,
-              background: resolving ? 'rgba(34,197,94,0.1)' : 'rgba(34,197,94,0.15)',
-              border: '1px solid rgba(34,197,94,0.35)',
-              color: resolving ? '#166534' : '#22c55e',
+              padding: '7px 14px', borderRadius: 8, fontSize: 11, fontWeight: 700,
+              background: resolving ? '#f0fdf4' : '#10b981',
+              border: '1px solid #10b98140',
+              color: resolving ? '#166534' : '#fff',
               cursor: resolving ? 'not-allowed' : 'pointer',
               whiteSpace: 'nowrap', transition: 'all 0.18s',
             }}
@@ -255,18 +235,16 @@ export function SecurityStatusBanner({ events, loading, lastUpdated, onRefresh, 
             {resolving ? 'Resolving...' : 'Resolve All'}
           </button>
         )}
-
-        {/* Refresh */}
         <button
           onClick={onRefresh}
           disabled={loading}
           title="Refresh now"
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '6px', borderRadius: 8,
-            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+            padding: '7px', borderRadius: 8,
+            background: '#fff', border: '1px solid #e2e8f0',
             cursor: loading ? 'not-allowed' : 'pointer',
-            color: loading ? '#1e2d3d' : '#475569',
+            color: loading ? '#cbd5e1' : '#64748b',
             transition: 'all 0.18s',
           }}
         >

@@ -71,31 +71,31 @@ export function ReportMessage({ report }: { report: ReportData }) {
       border: '1px solid #e2e8f0',
       boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
     }}>
-      {/* Dark header */}
+      {/* Indigo header */}
       <div style={{
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
         padding: '11px 14px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <div>
-          <p style={{ margin: '0 0 2px', fontSize: 9, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 700 }}>
+          <p style={{ margin: '0 0 2px', fontSize: 9, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 700 }}>
             Business Report
           </p>
           <p style={{ margin: 0, fontSize: 13, color: 'white', fontWeight: 700 }}>
             {report.title}
           </p>
           {report.subtitle && (
-            <p style={{ margin: '2px 0 0', fontSize: 10, color: '#94a3b8' }}>
+            <p style={{ margin: '2px 0 0', fontSize: 10, color: 'rgba(255,255,255,0.7)' }}>
               {report.subtitle}
             </p>
           )}
         </div>
         <div style={{
-          background: 'rgba(99,102,241,0.2)',
-          border: '1px solid rgba(99,102,241,0.4)',
+          background: 'rgba(255,255,255,0.15)',
+          border: '1px solid rgba(255,255,255,0.3)',
           borderRadius: 6, padding: '4px 8px',
         }}>
-          <span style={{ fontSize: 9, color: '#a5b4fc', fontWeight: 700, letterSpacing: '0.5px' }}>AIOS</span>
+          <span style={{ fontSize: 9, color: 'white', fontWeight: 700, letterSpacing: '0.5px' }}>AIOS</span>
         </div>
       </div>
 

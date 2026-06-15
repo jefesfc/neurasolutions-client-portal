@@ -188,26 +188,28 @@ export default function SecurityPage() {
 
         {/* Operational Security Model */}
         <div style={{
-          background: 'linear-gradient(135deg, #080e1c 0%, #0f1828 100%)',
-          border: '1px solid rgba(129,140,248,0.15)',
+          background: '#ffffff',
+          border: '1px solid #e2e8f0',
           borderRadius: 16, padding: '20px 20px 16px',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
         }}>
           {/* Section header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-            <div style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(129,140,248,0.15)', border: '1px solid rgba(129,140,248,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Shield size={15} color="#818cf8" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18, paddingBottom: 14, borderBottom: '1px solid #f1f5f9' }}>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: '#eef2ff', border: '1px solid #c7d2fe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Shield size={15} color="#6366f1" />
             </div>
             <div>
-              <p style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.6px', margin: 0 }}>
+              <p style={{ color: '#0f172a', fontWeight: 700, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.6px', margin: 0 }}>
                 Operational Security Model
               </p>
-              <p style={{ color: '#475569', fontSize: 11, margin: '2px 0 0' }}>6 active security layers</p>
+              <p style={{ color: '#94a3b8', fontSize: 11, margin: '2px 0 0' }}>6 active security layers</p>
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: 10 }}>
             {OPERATIONAL_MODEL.map(item => {
               const isHovered = tileHover === item.actionKey;
+              const c = isHovered ? '#06b6d4' : item.color;
               return (
                 <div
                   key={item.title}
@@ -215,45 +217,47 @@ export default function SecurityPage() {
                   onMouseEnter={() => setTileHover(item.actionKey)}
                   onMouseLeave={() => setTileHover(null)}
                   style={{
-                    background: isHovered ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.025)',
-                    borderTop: `2px solid ${isHovered ? item.color : item.color + '50'}`,
-                    borderLeft:   `1px solid ${isHovered ? item.color + '40' : 'rgba(255,255,255,0.06)'}`,
-                    borderRight:  `1px solid ${isHovered ? item.color + '40' : 'rgba(255,255,255,0.06)'}`,
-                    borderBottom: `1px solid ${isHovered ? item.color + '40' : 'rgba(255,255,255,0.06)'}`,
+                    background: '#fff',
+                    borderTop: `2px solid ${c}`,
+                    borderLeft:   `1px solid ${isHovered ? '#06b6d440' : item.color + '25'}`,
+                    borderRight:  `1px solid ${isHovered ? '#06b6d440' : item.color + '25'}`,
+                    borderBottom: `1px solid ${isHovered ? '#06b6d440' : item.color + '25'}`,
                     borderRadius: '0 0 12px 12px',
                     padding: '14px 16px 12px',
                     cursor: 'pointer',
                     transition: 'all 0.18s ease',
                     transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
-                    boxShadow: isHovered ? `0 6px 20px ${item.color}20` : 'none',
+                    boxShadow: isHovered
+                      ? `0 0 0 2px rgba(6,182,212,0.20), 0 6px 20px rgba(6,182,212,0.12)`
+                      : '0 1px 3px rgba(0,0,0,0.05)',
                     display: 'flex', flexDirection: 'column', gap: 10,
                   }}
                 >
-                  {/* Icon + title row */}
+                  {/* Icon + title */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{
-                      width: 36, height: 36, borderRadius: 9, flexShrink: 0,
-                      background: isHovered ? `${item.color}22` : `${item.color}14`,
-                      border: `1px solid ${item.color}30`,
+                      width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+                      background: `${c}15`,
+                      border: `1px solid ${c}30`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       transition: 'all 0.18s',
                     }}>
-                      <item.icon size={16} color={item.color} style={{ transform: isHovered ? 'scale(1.12)' : 'scale(1)', transition: 'transform 0.18s' }} />
+                      <item.icon size={15} color={c} style={{ transform: isHovered ? 'scale(1.1)' : 'scale(1)', transition: 'transform 0.18s' }} />
                     </div>
-                    <p style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 13, margin: 0 }}>{item.title}</p>
+                    <p style={{ color: '#0f172a', fontWeight: 700, fontSize: 13, margin: 0 }}>{item.title}</p>
                   </div>
 
                   {/* Description */}
-                  <p style={{ color: '#94a3b8', fontSize: 12, margin: 0, lineHeight: 1.6, paddingLeft: 2 }}>{item.desc}</p>
+                  <p style={{ color: '#475569', fontSize: 12, margin: 0, lineHeight: 1.6 }}>{item.desc}</p>
 
-                  {/* Footer */}
+                  {/* Footer action */}
                   <div style={{
                     display: 'flex', alignItems: 'center', gap: 4,
-                    paddingTop: 8, borderTop: `1px solid ${isHovered ? item.color + '20' : 'rgba(255,255,255,0.05)'}`,
+                    paddingTop: 8, borderTop: `1px solid ${isHovered ? '#06b6d420' : '#f1f5f9'}`,
                     transition: 'border-color 0.18s',
                   }}>
-                    {item.actionKey === 'audit' ? <Download size={10} color={item.color} /> : null}
-                    <span style={{ color: item.color, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    {item.actionKey === 'audit' && <Download size={10} color={c} />}
+                    <span style={{ color: c, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', transition: 'color 0.18s' }}>
                       {item.actionLabel} →
                     </span>
                   </div>
@@ -262,20 +266,21 @@ export default function SecurityPage() {
             })}
           </div>
 
-          {/* RLS status toast */}
+          {/* RLS toast */}
           {rlsToast && (
             <div style={{
-              marginTop: 14, background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.3)',
-              borderRadius: 10, padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 12,
+              marginTop: 14, background: '#f0fdf4', border: '1px solid #bbf7d0',
+              borderLeft: '3px solid #10b981',
+              borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12,
               animation: 'fadeIn 0.25s ease',
             }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(52,211,153,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Lock size={14} color="#34d399" />
+              <div style={{ width: 30, height: 30, borderRadius: 8, background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Lock size={13} color="#10b981" />
               </div>
               <div>
-                <p style={{ color: '#34d399', fontSize: 12, fontWeight: 700, margin: '0 0 2px' }}>RLS Active — System Protected</p>
-                <span style={{ color: '#94a3b8', fontSize: 12 }}>
-                  PostgreSQL Row-Level Security enforced · All queries automatically filtered by <code style={{ color: '#cbd5e1', fontSize: 11 }}>tenant_id</code> at the database layer · No cross-tenant data leakage possible
+                <p style={{ color: '#166534', fontSize: 12, fontWeight: 700, margin: '0 0 2px' }}>RLS Active — System Protected</p>
+                <span style={{ color: '#475569', fontSize: 12 }}>
+                  PostgreSQL Row-Level Security enforced · All queries automatically filtered by <code style={{ color: '#0f172a', fontSize: 11, background: '#f1f5f9', padding: '1px 4px', borderRadius: 4 }}>tenant_id</code> at the database layer
                 </span>
               </div>
             </div>

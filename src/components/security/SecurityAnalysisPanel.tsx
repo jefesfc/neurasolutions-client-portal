@@ -47,7 +47,6 @@ export function SecurityAnalysisPanel({ token, range }: Props) {
   const [nextRun, setNextRun]     = useState<Date | null>(null);
   const [saveFlash, setSaveFlash] = useState(false);
 
-  /* Compute next run whenever savedCfg changes */
   useEffect(() => {
     if (savedCfg) {
       setNextRun(computeNextRun(savedCfg));
@@ -56,7 +55,6 @@ export function SecurityAnalysisPanel({ token, range }: Props) {
     }
   }, [savedCfg]);
 
-  /* Auto-run if a schedule is due on mount */
   useEffect(() => {
     if (!savedCfg) return;
     const lastRun = localStorage.getItem(LAST_RUN_KEY);
@@ -106,34 +104,34 @@ export function SecurityAnalysisPanel({ token, range }: Props) {
   }
 
   const selectStyle: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)',
-    borderRadius: 8, color: '#e2e8f0', fontSize: 12, padding: '6px 10px', outline: 'none', cursor: 'pointer',
+    background: '#fff', border: '1px solid #e2e8f0',
+    borderRadius: 8, color: '#0f172a', fontSize: 12, padding: '6px 10px', outline: 'none', cursor: 'pointer',
   };
 
   return (
     <div style={{
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
-      border: '1px solid rgba(99,102,241,0.3)', borderRadius: 14, padding: 20,
+      background: '#ffffff',
+      border: '1px solid #e2e8f0', borderRadius: 14, padding: 20,
+      boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
     }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(99,102,241,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ShieldCheck size={18} color="#818cf8" />
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: '#eef2ff', border: '1px solid #c7d2fe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <ShieldCheck size={18} color="#6366f1" />
           </div>
           <div>
-            <p style={{ color: '#e2e8f0', fontWeight: 700, fontSize: 14, margin: 0 }}>AI Security Analysis</p>
-            <p style={{ color: '#94a3b8', fontSize: 11, margin: 0 }}>GPT-4o threat assessment</p>
+            <p style={{ color: '#0f172a', fontWeight: 700, fontSize: 14, margin: 0 }}>AI Security Analysis</p>
+            <p style={{ color: '#64748b', fontSize: 11, margin: 0 }}>GPT-4o threat assessment</p>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          {/* Mode toggle */}
-          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: 3, gap: 3 }}>
+          <div style={{ display: 'flex', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 3, gap: 3 }}>
             {(['realtime', 'scheduled'] as const).map(m => (
               <button key={m} onClick={() => setSchedMode(m)} style={{
                 padding: '4px 12px', borderRadius: 6, fontSize: 11, fontWeight: 600,
-                background: schedMode === m ? 'rgba(99,102,241,0.5)' : 'transparent',
-                color: schedMode === m ? '#c7d2fe' : '#64748b',
+                background: schedMode === m ? '#6366f1' : 'transparent',
+                color: schedMode === m ? '#fff' : '#64748b',
                 border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: 4,
               }}>
@@ -142,10 +140,9 @@ export function SecurityAnalysisPanel({ token, range }: Props) {
               </button>
             ))}
           </div>
-          {/* Run button */}
           <button onClick={() => void runAnalysis()} disabled={loading} style={{
             padding: '6px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700,
-            background: loading ? '#475569' : '#6366f1', color: '#fff',
+            background: loading ? '#e2e8f0' : '#6366f1', color: loading ? '#94a3b8' : '#fff',
             border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
             display: 'flex', alignItems: 'center', gap: 6,
           }}>
@@ -155,18 +152,17 @@ export function SecurityAnalysisPanel({ token, range }: Props) {
         </div>
       </div>
 
-      {/* ── Scheduled config form ───────────────────────────────────── */}
+      {/* Scheduled config form */}
       {schedMode === 'scheduled' && (
         <div style={{
-          background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)',
+          background: '#f8fafc', border: '1px solid #e2e8f0',
           borderRadius: 10, padding: 16, marginBottom: 16,
         }}>
-          <p style={{ color: '#94a3b8', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px' }}>
+          <p style={{ color: '#64748b', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px' }}>
             Schedule Configuration
           </p>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
 
-            {/* Frequency */}
             <div>
               <label style={{ color: '#64748b', fontSize: 10, fontWeight: 600, display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Frequency</label>
               <select value={schedCfg.frequency} onChange={e => setSchedCfg(c => ({ ...c, frequency: e.target.value as 'daily' | 'weekly' }))} style={selectStyle}>
@@ -175,7 +171,6 @@ export function SecurityAnalysisPanel({ token, range }: Props) {
               </select>
             </div>
 
-            {/* Day of week (weekly only) */}
             {schedCfg.frequency === 'weekly' && (
               <div>
                 <label style={{ color: '#64748b', fontSize: 10, fontWeight: 600, display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Day</label>
@@ -185,7 +180,6 @@ export function SecurityAnalysisPanel({ token, range }: Props) {
               </div>
             )}
 
-            {/* Time */}
             <div>
               <label style={{ color: '#64748b', fontSize: 10, fontWeight: 600, display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Time</label>
               <input
@@ -196,11 +190,10 @@ export function SecurityAnalysisPanel({ token, range }: Props) {
               />
             </div>
 
-            {/* Save / Clear */}
             <button onClick={saveSchedule} style={{
               display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px',
               borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600,
-              background: saveFlash ? '#10b981' : 'rgba(99,102,241,0.6)', color: '#fff',
+              background: saveFlash ? '#10b981' : '#6366f1', color: '#fff',
               transition: 'background 0.2s',
             }}>
               <Save size={13} /> {saveFlash ? 'Saved!' : 'Save Schedule'}
@@ -209,20 +202,19 @@ export function SecurityAnalysisPanel({ token, range }: Props) {
             {savedCfg && (
               <button onClick={clearSchedule} style={{
                 display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px',
-                borderRadius: 8, border: '1px solid rgba(239,68,68,0.3)', cursor: 'pointer',
-                fontSize: 12, background: 'transparent', color: '#f87171',
+                borderRadius: 8, border: '1px solid #fecaca', cursor: 'pointer',
+                fontSize: 12, background: 'transparent', color: '#ef4444',
               }}>
                 <Trash2 size={13} /> Clear
               </button>
             )}
           </div>
 
-          {/* Next run + last run info */}
           <div style={{ marginTop: 12, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
             {nextRun && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Clock size={11} color="#818cf8" />
-                <span style={{ color: '#a5b4fc', fontSize: 11 }}>
+                <Clock size={11} color="#6366f1" />
+                <span style={{ color: '#6366f1', fontSize: 11 }}>
                   Next run: <strong>{nextRun.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' })} at {nextRun.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</strong>
                 </span>
               </div>
@@ -237,13 +229,13 @@ export function SecurityAnalysisPanel({ token, range }: Props) {
       )}
 
       {error && (
-        <div style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '10px 14px', color: '#fca5a5', fontSize: 12, marginBottom: 12 }}>
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderLeft: '3px solid #ef4444', borderRadius: 8, padding: '10px 14px', color: '#b91c1c', fontSize: 12, marginBottom: 12 }}>
           {error}
         </div>
       )}
 
       {!result && !loading && (
-        <div style={{ textAlign: 'center', padding: '20px 0', color: '#475569', fontSize: 12 }}>
+        <div style={{ textAlign: 'center', padding: '20px 0', color: '#94a3b8', fontSize: 12 }}>
           {schedMode === 'scheduled' && savedCfg
             ? `Scheduled ${savedCfg.frequency === 'daily' ? 'daily' : `every ${DAYS[savedCfg.dayOfWeek]}`} at ${savedCfg.time}. Click "Run Analysis" to run now.`
             : 'Click "Run Analysis" to get an AI-powered security assessment for the selected time range.'}
@@ -262,8 +254,8 @@ export function SecurityAnalysisPanel({ token, range }: Props) {
           </div>
           {expanded && (
             <div style={{
-              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: 10, padding: 16, color: '#cbd5e1', fontSize: 13, lineHeight: 1.7,
+              background: '#f8fafc', border: '1px solid #e2e8f0',
+              borderRadius: 10, padding: 16, color: '#334155', fontSize: 13, lineHeight: 1.7,
               whiteSpace: 'pre-wrap', maxHeight: 320, overflowY: 'auto',
             }}>
               {result.analysis}
