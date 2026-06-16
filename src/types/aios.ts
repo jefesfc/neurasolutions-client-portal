@@ -36,7 +36,7 @@ export interface Client {
   website: string | null;
   contract_value: number | null;
   status: 'active' | 'inactive' | 'churned';
-  stage: ClientStage;
+  stage: ClientStage | null;
   notes: string | null;
   assigned_to: string | null;
   address: string | null;

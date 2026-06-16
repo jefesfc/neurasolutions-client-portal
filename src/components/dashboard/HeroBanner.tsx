@@ -165,7 +165,7 @@ function ClientsOverviewCard({ clients, activeClients }: { clients: Client[]; ac
       <div>
         {[
           { label: T.dashboard.activeClients,      val: activeClients,                          tag: activeClients > 0 ? `${clients.length} total` : undefined, tagColor: '#94a3b8' },
-          { label: T.dashboard.totalContractValue, val: `£${totalRevenue.toLocaleString()}`,    tag: undefined, tagColor: undefined },
+          { label: T.dashboard.totalContractValue, val: `£${totalRevenue.toLocaleString('en-GB')}`,    tag: undefined, tagColor: undefined },
           { label: T.dashboard.churned,            val: churned,                                tag: churned > 0 ? T.dashboard.attention : T.dashboard.none, tagColor: churned > 0 ? '#ef4444' : '#10b981' },
         ].map(row => (
           <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f8fafc' }}>
