@@ -227,6 +227,7 @@ export default function ClientsPage() {
                   <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colCompany}</th>
                   {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colName}</th>}
                   {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colEmail}</th>}
+                  {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colPhone}</th>}
                   <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colValue}</th>
                   <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colStage}</th>
                   {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colStatus}</th>}
@@ -247,6 +248,7 @@ export default function ClientsPage() {
                       <td className="px-4 py-3 font-medium text-slate-800">{client.company}</td>
                       {!selectedClient && <td className="px-4 py-3 text-slate-600">{client.name}</td>}
                       {!selectedClient && <td className="px-4 py-3 text-slate-500">{client.email}</td>}
+                      {!selectedClient && <td className="px-4 py-3 text-slate-500">{client.phone ?? '—'}</td>}
                       <td className="px-4 py-3 text-slate-600">
                         {client.contract_value != null
                           ? `£${client.contract_value.toLocaleString('en-GB', { minimumFractionDigits: 0 })}`

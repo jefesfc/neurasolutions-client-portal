@@ -130,6 +130,7 @@ export default function LeadsPage() {
               <tr className="border-b border-slate-100 bg-slate-50">
                 <th className="text-left px-4 py-3 font-medium text-slate-500">{T.leads.colName}</th>
                 <th className="text-left px-4 py-3 font-medium text-slate-500">{T.leads.colEmail}</th>
+                <th className="text-left px-4 py-3 font-medium text-slate-500">{T.leads.colPhone}</th>
                 <th className="text-left px-4 py-3 font-medium text-slate-500">{T.leads.colSource}</th>
                 <th className="text-left px-4 py-3 font-medium text-slate-500">{T.leads.colStatus}</th>
                 <th className="text-left px-4 py-3 font-medium text-slate-500">{T.leads.colScore}</th>
@@ -143,6 +144,7 @@ export default function LeadsPage() {
                   <tr key={lead.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-4 py-3 font-medium text-slate-800">{lead.name}</td>
                     <td className="px-4 py-3 text-slate-500">{lead.email}</td>
+                    <td className="px-4 py-3 text-slate-500">{lead.phone ?? '—'}</td>
                     <td className="px-4 py-3 text-slate-500">{SOURCE_LABEL[lead.source] ?? lead.source}</td>
                     <td className="px-4 py-3">
                       <Badge variant={STATUS_BADGE_VARIANT[lead.status]} dot>{STATUS_BADGE_LABEL[lead.status]}</Badge>

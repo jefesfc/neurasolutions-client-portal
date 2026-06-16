@@ -228,6 +228,52 @@ export const toolDefinitions: OpenAI.Chat.Completions.ChatCompletionTool[] = [
   {
     type: 'function',
     function: {
+      name: 'get_support_tickets',
+      description: 'Get support tickets for this company. Filter by status or priority. Use when asked about customer support, issues, tickets, or complaints.',
+      parameters: {
+        type: 'object',
+        properties: {
+          status: {
+            type: 'string',
+            enum: ['open', 'in_progress', 'resolved', 'closed'],
+            description: 'Filter by ticket status. Omit to get all.',
+          },
+          priority: {
+            type: 'string',
+            enum: ['low', 'medium', 'high', 'critical'],
+            description: 'Filter by priority. Omit to get all.',
+          },
+          limit: { type: 'number', description: 'Max tickets to return (default 10, max 50).' },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'create_lead',
+      description: 'Create a new lead in the CRM. Use when the CEO wants to add a prospect directly from chat or Telegram.',
+      parameters: {
+        type: 'object',
+        properties: {
+          name:   { type: 'string', description: 'Full name of the lead.' },
+          email:  { type: 'string', description: 'Lead email address.' },
+          phone:  { type: 'string', description: 'Phone number (optional).' },
+          source: {
+            type: 'string',
+            enum: ['website', 'linkedin', 'referral', 'ads', 'other'],
+            description: 'Lead source (default: other).',
+          },
+          notes:  { type: 'string', description: 'Initial notes (optional).' },
+        },
+        required: ['name', 'email'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
       name: 'create_calendar_event',
       description: 'Create a new calendar event. Use when the CEO wants to schedule a meeting, reminder, or any event directly from Telegram.',
       parameters: {
@@ -427,6 +473,37 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
         [tenantId]
       );
       return res.rows[0];
+    }
+
+    case 'get_support_tickets': {
+      const status   = args.status as string | undefined;
+      const priority = args.priority as string | undefined;
+      const limit    = Math.min(+(args.limit ?? 10), 50);
+      let q = `SELECT subject, description, category, priority, status, created_at
+               FROM aios.support_tickets WHERE tenant_id = $1`;
+      const params: unknown[] = [tenantId];
+      if (status)   { params.push(status);   q += ` AND status = $${params.length}`; }
+      if (priority) { params.push(priority); q += ` AND priority = $${params.length}`; }
+      params.push(limit);
+      q += ` ORDER BY created_at DESC LIMIT $${params.length}`;
+      const res = await db.query(q, params);
+      return { count: res.rowCount, tickets: res.rows };
+    }
+
+    case 'create_lead': {
+      const name   = args.name as string;
+      const email  = args.email as string;
+      if (!name || !email) return { error: 'name and email are required' };
+      const phone  = (args.phone as string | undefined) ?? null;
+      const source = (args.source as string | undefined) ?? 'other';
+      const notes  = (args.notes as string | undefined) ?? null;
+      const res = await db.query(
+        `INSERT INTO aios.leads (id, tenant_id, name, email, phone, source, status, score, notes)
+         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, 'new', 50, $6)
+         RETURNING id, name, email, source, status, created_at`,
+        [tenantId, name, email, phone, source, notes]
+      );
+      return { success: true, lead: res.rows[0] };
     }
 
     case 'create_client': {

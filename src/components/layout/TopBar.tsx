@@ -31,8 +31,12 @@ function timeAgo(iso: string, lang: 'en' | 'ar') {
 
 function NotifDropdown({ onClose }: { onClose: () => void }) {
   const t = useT();
-  const { lang, isRTL } = useLanguageStore((s) => ({ lang: s.lang, isRTL: s.lang === 'ar' }));
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationStore();
+  const lang = useLanguageStore((s) => s.lang);
+  const isRTL = lang === 'ar';
+  const notifications = useNotificationStore((s) => s.notifications);
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const markAsRead = useNotificationStore((s) => s.markAsRead);
+  const markAllAsRead = useNotificationStore((s) => s.markAllAsRead);
   const navigate = useNavigate();
 
   function handleClick(n: Notification) {

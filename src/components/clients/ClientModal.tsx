@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -59,9 +60,11 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
   const [dischargeDate, setDischargeDate]           = useState('');
   const [dischargeNotes, setDischargeNotes]         = useState('');
 
-  const [users, setUsers]   = useState<User[]>([]);
-  const [saving, setSaving] = useState(false);
-  const [error, setError]   = useState<string | null>(null);
+  const [users, setUsers]         = useState<User[]>([]);
+  const [saving, setSaving]       = useState(false);
+  const [error, setError]         = useState<string | null>(null);
+  const [journeyOpen, setJourneyOpen] = useState(false);
+  const toggleJourney = useCallback(() => setJourneyOpen(v => !v), []);
 
   useEffect(() => {
     postgrest.get<User>('users', { order: 'name.asc', limit: 200 }).then(setUsers).catch((err) => {
@@ -258,62 +261,73 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
 
         {/* ── Clinical Journey ── */}
         <div>
-          <div className="flex items-center gap-3 mb-3">
+          <button
+            type="button"
+            onClick={toggleJourney}
+            className="w-full flex items-center gap-3 py-2 group"
+          >
             <div className="flex-1 h-px bg-slate-200" />
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Clinical Journey</span>
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider group-hover:text-slate-700 transition-colors flex items-center gap-1.5">
+              Clinical Journey
+              {journeyOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </span>
             <div className="flex-1 h-px bg-slate-200" />
-          </div>
+          </button>
 
-          {/* Current stage selector */}
-          <div className="mb-4">
-            <label className={labelCls}>Current Stage</label>
-            <div className="flex gap-2 flex-wrap">
-              {(Object.entries(STAGE_CONFIG) as [ClientStage, typeof STAGE_CONFIG[ClientStage]][]).map(([key, cfg]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setStage(key)}
-                  className="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all"
-                  style={{
-                    background:   stage === key ? cfg.color : cfg.bg,
-                    color:        stage === key ? '#fff' : cfg.color,
-                    borderColor:  stage === key ? cfg.color : `${cfg.color}40`,
-                  }}
-                >
-                  {cfg.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Stage milestones */}
-          <div className="space-y-3">
-            {JOURNEY_STAGES.map(({ key, label, date, setDate, noteVal, setNote }) => {
-              const cfg = STAGE_CONFIG[key];
-              return (
-                <div
-                  key={key}
-                  className="rounded-xl border p-3"
-                  style={{ borderColor: `${cfg.color}30`, background: cfg.bg }}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 rounded-full" style={{ background: cfg.color }} />
-                    <span className="text-xs font-bold" style={{ color: cfg.color }}>{label}</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-xs text-slate-500 mb-1">Date</label>
-                      <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-slate-500 mb-1">Notes</label>
-                      <Input value={noteVal} onChange={e => setNote(e.target.value)} placeholder={`${label} notes…`} />
-                    </div>
-                  </div>
+          {journeyOpen && (
+            <>
+              {/* Current stage selector */}
+              <div className="mb-4 mt-2">
+                <label className={labelCls}>Current Stage</label>
+                <div className="flex gap-2 flex-wrap">
+                  {(Object.entries(STAGE_CONFIG) as [ClientStage, typeof STAGE_CONFIG[ClientStage]][]).map(([key, cfg]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setStage(key)}
+                      className="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all"
+                      style={{
+                        background:   stage === key ? cfg.color : cfg.bg,
+                        color:        stage === key ? '#fff' : cfg.color,
+                        borderColor:  stage === key ? cfg.color : `${cfg.color}40`,
+                      }}
+                    >
+                      {cfg.label}
+                    </button>
+                  ))}
                 </div>
-              );
-            })}
-          </div>
+              </div>
+
+              {/* Stage milestones */}
+              <div className="space-y-3">
+                {JOURNEY_STAGES.map(({ key, label, date, setDate, noteVal, setNote }) => {
+                  const cfg = STAGE_CONFIG[key];
+                  return (
+                    <div
+                      key={key}
+                      className="rounded-xl border p-3"
+                      style={{ borderColor: `${cfg.color}30`, background: cfg.bg }}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 rounded-full" style={{ background: cfg.color }} />
+                        <span className="text-xs font-bold" style={{ color: cfg.color }}>{label}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs text-slate-500 mb-1">Date</label>
+                          <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-slate-500 mb-1">Notes</label>
+                          <Input value={noteVal} onChange={e => setNote(e.target.value)} placeholder={`${label} notes…`} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
 
         {error && <p className="text-sm text-danger">{error}</p>}

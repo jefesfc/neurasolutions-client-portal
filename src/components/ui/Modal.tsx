@@ -53,19 +53,25 @@ export function Modal({ open, onClose, title, description, children, size = "md"
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             className={cn(
-              "relative w-full bg-white rounded-2xl shadow-xl border border-slate-200 p-6",
+              "relative w-full bg-white rounded-2xl shadow-xl border border-slate-200 flex flex-col max-h-[90vh]",
               sizeStyles[size]
             )}
           >
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
-            {title && <h2 className="text-lg font-semibold text-slate-800 mb-1">{title}</h2>}
-            {description && <p className="text-sm text-slate-500 mb-4">{description}</p>}
-            <div className="mt-2">{children}</div>
+            {/* Sticky header */}
+            <div className="flex-shrink-0 relative px-6 pt-6 pb-4 border-b border-slate-100">
+              <button
+                onClick={onClose}
+                className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              {title && <h2 className="text-lg font-semibold text-slate-800 mb-1 pr-8">{title}</h2>}
+              {description && <p className="text-sm text-slate-500">{description}</p>}
+            </div>
+            {/* Scrollable body */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              {children}
+            </div>
           </motion.div>
         </div>
       )}
