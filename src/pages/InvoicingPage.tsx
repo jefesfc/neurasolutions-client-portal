@@ -82,6 +82,15 @@ export default function InvoicingPage() {
 
   useEffect(() => { void fetchAll(); }, [fetchAll]);
 
+  // Refresh after returning from Stripe checkout (success_url includes ?paid=...)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('paid')) {
+      void fetchAll();
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [fetchAll]);
+
   async function handleMarkPaid(id: string) {
     await fetch(`${API_URL}/invoicing/${id}`, {
       method: 'PATCH',
@@ -102,7 +111,7 @@ export default function InvoicingPage() {
       return;
     }
     const { url } = await res.json() as { url: string };
-    window.open(url, '_blank');
+    window.location.href = url;
   }
 
   async function handleDelete(id: string) {
