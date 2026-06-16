@@ -44,6 +44,20 @@ router.post('/checkout/:invoiceId', requireAuth, async (req: Request, res: Respo
 
     // 2. Resolve or create Stripe Customer
     let customerId = inv.stripe_customer_id ?? undefined;
+    if (customerId) {
+      // Verify the customer still exists in this Stripe account
+      try {
+        await stripe.customers.retrieve(customerId);
+      } catch {
+        customerId = undefined;
+        if (inv.client_id) {
+          await db.query(
+            `UPDATE aios.clients SET stripe_customer_id = NULL WHERE id = $1 AND tenant_id = $2`,
+            [inv.client_id, tenantId]
+          );
+        }
+      }
+    }
     if (!customerId && inv.client_email) {
       const customer = await stripe.customers.create({
         name: inv.client_name ?? undefined,
