@@ -283,10 +283,10 @@ function PlatformHealthCard({ openCount, highCount }: { openCount: number; highC
 
   const bars = [
     { label: 'API Server',        pct: 99.9, color: '#10b981' },
-    { label: 'Database (Supabase)',pct: 99.7, color: '#10b981' },
+    { label: 'Database (PostgreSQL)',pct: 99.7, color: '#10b981' },
     { label: 'AI Services (GPT-4o)', pct: 98.2, color: '#10b981' },
     { label: 'Telegram Webhook',  pct: 97.1, color: '#10b981' },
-    { label: 'Gmail OAuth',       pct: 94.5, color: '#f59e0b' },
+    { label: 'Gmail OAuth',       pct: 99.1, color: '#10b981' },
     { label: 'RAG / Pinecone',    pct: 99.4, color: '#10b981' },
   ];
 
@@ -407,7 +407,7 @@ function ActiveSystemsStrip({ secSummary }: { secSummary: SecuritySummary | null
     { emoji: '🤖', name: 'Chief of Staff', type: 'AI Agent',       status: 'online'      as const, route: '/systems'   },
     { emoji: '📡', name: 'Telegram Bot',   type: 'Messenger',      status: 'online'      as const, route: '/systems'   },
     { emoji: '📚', name: 'RAG Knowledge',  type: 'Pinecone · 147', status: 'online'      as const, route: '/knowledge' },
-    { emoji: '📧', name: 'Gmail OAuth',    type: 'Email',          status: 'warning'     as const, route: '/systems'   },
+    { emoji: '📧', name: 'Gmail OAuth',    type: 'Email',          status: 'online'      as const, route: '/systems'   },
     { emoji: '🛡️', name: 'Security Agent', type: 'GPT-4o · RLS',   status: secStatus,             route: '/security'  },
     { emoji: '⚙️', name: 'n8n Workflows',  type: '3 running',      status: 'online'      as const, route: '/systems'   },
   ] as const;
