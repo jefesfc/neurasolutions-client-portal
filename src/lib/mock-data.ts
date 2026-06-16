@@ -70,10 +70,10 @@ export const mockSubscription: SubscriptionPlan = {
 };
 
 export const mockUsageStats: UsageStats = {
-  aiInteractions: { used: 3842, limit: 50000 },
-  storageUsed: { used: 18, limit: 100, unit: "GB" },
+  aiInteractions: { used: 3842, limit: 100000 },
+  storageUsed: { used: 18, limit: 250, unit: "GB" },
   apiCalls: { used: 12450, limit: 500000 },
-  activeSystems: { used: 3, limit: 5 },
+  activeSystems: { used: 3, limit: 8 },
 };
 
 export const mockTokenSpending = [

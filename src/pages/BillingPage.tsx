@@ -51,15 +51,15 @@ export default function BillingPage() {
   const usageStats = stats
     ? {
         aiInteractions: stats.usage.aiInteractions,
-        storageUsed: { used: 18, limit: 100, unit: "GB" },
+        storageUsed: { used: 18, limit: mockSubscription.limits.storageGb, unit: "GB" },
         apiCalls: { used: stats.usage.totalTokens, limit: 500000 },
-        activeSystems: { used: Math.max(stats.usage.activeAgents, 3), limit: 5 },
+        activeSystems: { used: Math.max(stats.usage.activeAgents, 3), limit: mockSubscription.limits.aiSystems },
       }
     : {
-        aiInteractions: { used: 0, limit: 50000 },
-        storageUsed: { used: 18, limit: 100, unit: "GB" },
+        aiInteractions: { used: 0, limit: mockSubscription.limits.monthlyInteractions },
+        storageUsed: { used: 18, limit: mockSubscription.limits.storageGb, unit: "GB" },
         apiCalls: { used: 0, limit: 500000 },
-        activeSystems: { used: 3, limit: 5 },
+        activeSystems: { used: 3, limit: mockSubscription.limits.aiSystems },
       };
 
   return (

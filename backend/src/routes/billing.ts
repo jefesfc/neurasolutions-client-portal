@@ -69,7 +69,7 @@ router.get('/stats', requireAuth, async (req: Request, res: Response) => {
     res.json({
       tokenSpending,
       usage: {
-        aiInteractions: { used: parseInt(interactionsRes.rows[0].total, 10), limit: 50000 },
+        aiInteractions: { used: parseInt(interactionsRes.rows[0].total, 10), limit: 100000 },
         totalTokens: parseInt(u.total_tokens, 10),
         totalCostGbp,
         activeAgents: parseInt(u.active_agents, 10),
