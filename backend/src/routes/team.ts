@@ -62,7 +62,7 @@ router.post('/create', requireAuth, async (req: Request, res: Response) => {
       `INSERT INTO aios.users (tenant_id, email, name, role, password_hash, is_active, section_permissions)
        VALUES ($1, $2, $3, $4, $5, true, $6)
        RETURNING id, tenant_id, email, name, role, avatar, phone, is_active, section_permissions`,
-      [tenantId, email.toLowerCase(), name, role, password_hash, perms]
+      [tenantId, email.toLowerCase(), name, role, password_hash, JSON.stringify(perms)]
     );
 
     res.status(201).json({ user: result.rows[0] });
@@ -118,7 +118,7 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response) => {
       `UPDATE aios.users SET role = COALESCE($1, role), section_permissions = $2
        WHERE id = $3 AND tenant_id = $4
        RETURNING id, role, section_permissions`,
-      [role ?? null, perms, req.params.id, requestingUser.tenant_id]
+      [role ?? null, JSON.stringify(perms), req.params.id, requestingUser.tenant_id]
     );
 
     if (result.rows.length === 0) {
