@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import Stripe from 'stripe';
 import { db } from '../db';
 import { queryKnowledge } from './pinecone';
 import type OpenAI from 'openai';
@@ -191,6 +192,36 @@ export const toolDefinitions: OpenAI.Chat.Completions.ChatCompletionTool[] = [
           body: { type: 'string', description: 'Email body text (plain text).' },
         },
         required: ['client_name', 'subject', 'body'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'request_payment',
+      description: 'Send a Stripe payment link to a client for a specific invoice. Use when the CEO asks to request payment from a client or send a payment link. Finds the invoice by number or client name, creates a Stripe Checkout Session, and emails the link to the client.',
+      parameters: {
+        type: 'object',
+        properties: {
+          invoice_number: { type: 'string', description: 'Invoice number (e.g. INV-2026-06-ABC123). Use this if known.' },
+          client_name: { type: 'string', description: 'Client name or company to find the latest pending invoice for. Use if invoice_number is not known.' },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_invoice_status',
+      description: 'Check the payment status of an invoice. Returns status (pending/paid/overdue), amount, due date, and Stripe payment info if available.',
+      parameters: {
+        type: 'object',
+        properties: {
+          invoice_number: { type: 'string', description: 'Invoice number to look up (e.g. INV-2026-06-ABC123).' },
+          client_name: { type: 'string', description: 'Client name or company to find their latest invoice.' },
+        },
+        required: [],
       },
     },
   },
@@ -434,6 +465,155 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
         [tenantId, createdBy, title, description, category, start_at, end_at]
       );
       return { success: true, event: res.rows[0] };
+    }
+
+    case 'request_payment': {
+      const invoiceNumber = args.invoice_number as string | undefined;
+      const clientName    = args.client_name as string | undefined;
+      if (!invoiceNumber && !clientName) return { error: 'Provide invoice_number or client_name' };
+
+      const stripeKey = process.env.STRIPE_SECRET_KEY;
+      if (!stripeKey) return { error: 'Stripe not configured on the server' };
+      const stripe = new Stripe(stripeKey, { apiVersion: '2026-05-27.dahlia' });
+
+      // Find invoice
+      let q = `SELECT ci.*, c.name AS client_name, c.email AS client_email, c.company AS client_company, c.stripe_customer_id
+               FROM aios.client_invoices ci
+               LEFT JOIN aios.clients c ON c.id = ci.client_id
+               WHERE ci.tenant_id = $1 AND ci.status IN ('pending','overdue')`;
+      const params: unknown[] = [tenantId];
+      if (invoiceNumber) { params.push(invoiceNumber); q += ` AND ci.invoice_number = $${params.length}`; }
+      else if (clientName) {
+        params.push(`%${clientName.toLowerCase()}%`);
+        q += ` AND (LOWER(c.name) LIKE $${params.length} OR LOWER(COALESCE(c.company,'')) LIKE $${params.length})`;
+      }
+      q += ' ORDER BY ci.created_at DESC LIMIT 1';
+
+      const invRes = await db.query(q, params);
+      if (invRes.rows.length === 0) return { error: 'No pending invoice found for that client or number' };
+
+      const inv = invRes.rows[0] as {
+        id: string; invoice_number: string; amount: string; currency: string;
+        description: string | null; client_id: string | null;
+        client_name: string | null; client_email: string | null; client_company: string | null;
+        stripe_customer_id: string | null;
+      };
+
+      if (!inv.client_email) return { error: `Client ${inv.client_name ?? ''} has no email address` };
+
+      // Resolve or create Stripe Customer
+      let customerId = inv.stripe_customer_id ?? undefined;
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          name: inv.client_name ?? undefined,
+          email: inv.client_email,
+          metadata: { tenant_id: tenantId, client_id: inv.client_id ?? '' },
+        });
+        customerId = customer.id;
+        if (inv.client_id) {
+          await db.query(
+            `UPDATE aios.clients SET stripe_customer_id = $1 WHERE id = $2 AND tenant_id = $3`,
+            [customerId, inv.client_id, tenantId]
+          );
+        }
+      }
+
+      const currency = (inv.currency ?? 'GBP').toLowerCase();
+      const amountPence = Math.round(parseFloat(inv.amount) * 100);
+      const frontendUrl = process.env.FRONTEND_URL ?? 'https://ios.neurasolutions.cloud';
+
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        line_items: [{
+          price_data: {
+            currency,
+            unit_amount: amountPence,
+            product_data: {
+              name: `Invoice ${inv.invoice_number}`,
+              description: inv.description ?? `${inv.client_company ?? inv.client_name ?? 'Client'} — ${inv.invoice_number}`,
+            },
+          },
+          quantity: 1,
+        }],
+        mode: 'payment',
+        success_url: `${frontendUrl}/invoicing?paid=${inv.invoice_number}`,
+        cancel_url:  `${frontendUrl}/invoicing`,
+        metadata: { invoice_id: inv.id, invoice_number: inv.invoice_number, tenant_id: tenantId },
+      });
+
+      await db.query(
+        `UPDATE aios.client_invoices SET stripe_checkout_session_id = $1 WHERE id = $2`,
+        [session.id, inv.id]
+      );
+
+      // Send payment link by email
+      const gmailUser = process.env.GMAIL_USER;
+      const gmailPass = process.env.GMAIL_APP_PASSWORD;
+      let emailSent = false;
+      if (gmailUser && gmailPass && session.url) {
+        const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: gmailUser, pass: gmailPass } });
+        await transporter.sendMail({
+          from: `Noor Aesthetics <${gmailUser}>`,
+          to: inv.client_email,
+          subject: `Payment Request — Invoice ${inv.invoice_number}`,
+          html: `<p>Hi ${inv.client_name ?? 'there'},</p>
+<p>Please find your invoice <strong>${inv.invoice_number}</strong> for <strong>${inv.currency} ${parseFloat(inv.amount).toFixed(2)}</strong>.</p>
+<p><a href="${session.url}" style="background:#6366f1;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;">Pay Now</a></p>
+<p>If you have any questions, please reply to this email.</p>
+<p>Best regards,<br/>Noor Aesthetics</p>`,
+        });
+        emailSent = true;
+      }
+
+      return {
+        success: true,
+        invoice_number: inv.invoice_number,
+        amount: `${inv.currency} ${parseFloat(inv.amount).toFixed(2)}`,
+        client: inv.client_name,
+        client_email: inv.client_email,
+        payment_url: session.url,
+        email_sent: emailSent,
+        message: emailSent
+          ? `Payment link sent to ${inv.client_name} (${inv.client_email}) for invoice ${inv.invoice_number}`
+          : `Payment link created for ${inv.invoice_number}. Email not sent (no email config). Share manually: ${session.url}`,
+      };
+    }
+
+    case 'get_invoice_status': {
+      const invoiceNumber = args.invoice_number as string | undefined;
+      const clientName    = args.client_name as string | undefined;
+      if (!invoiceNumber && !clientName) return { error: 'Provide invoice_number or client_name' };
+
+      let q = `SELECT ci.invoice_number, ci.amount, ci.currency, ci.status, ci.paid_at, ci.due_date,
+                      ci.stripe_payment_intent_id, ci.created_at,
+                      c.name AS client_name, c.email AS client_email, c.company
+               FROM aios.client_invoices ci
+               LEFT JOIN aios.clients c ON c.id = ci.client_id
+               WHERE ci.tenant_id = $1`;
+      const params: unknown[] = [tenantId];
+      if (invoiceNumber) { params.push(invoiceNumber); q += ` AND ci.invoice_number = $${params.length}`; }
+      else if (clientName) {
+        params.push(`%${clientName.toLowerCase()}%`);
+        q += ` AND (LOWER(c.name) LIKE $${params.length} OR LOWER(COALESCE(c.company,'')) LIKE $${params.length})`;
+      }
+      q += ' ORDER BY ci.created_at DESC LIMIT 1';
+
+      const res = await db.query(q, params);
+      if (res.rows.length === 0) return { error: 'No invoice found' };
+      const row = res.rows[0] as {
+        invoice_number: string; amount: string; currency: string; status: string;
+        paid_at: string | null; due_date: string | null; stripe_payment_intent_id: string | null;
+        created_at: string; client_name: string | null; client_email: string | null; company: string | null;
+      };
+      return {
+        invoice_number: row.invoice_number,
+        client: row.client_name ?? row.company ?? 'Unknown',
+        amount: `${row.currency} ${parseFloat(row.amount).toFixed(2)}`,
+        status: row.status,
+        due_date: row.due_date ?? 'N/A',
+        paid_at: row.paid_at ?? null,
+        stripe_payment: row.stripe_payment_intent_id ? `Paid via Stripe (${row.stripe_payment_intent_id})` : null,
+      };
     }
 
     case 'send_email_to_client': {

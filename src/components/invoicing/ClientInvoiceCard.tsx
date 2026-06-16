@@ -1,4 +1,4 @@
-import { Building2, Calendar, FileText, MoreHorizontal, Check, Edit2, Trash2 } from 'lucide-react';
+import { Building2, Calendar, FileText, MoreHorizontal, Check, Edit2, Trash2, CreditCard, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import type { ClientInvoice } from '../../types/invoicing';
 import { STATUS_CONFIG } from '../../types/invoicing';
@@ -8,13 +8,22 @@ interface Props {
   onMarkPaid: (id: string) => void;
   onEdit: (inv: ClientInvoice) => void;
   onDelete: (id: string) => void;
+  onRequestPayment?: (id: string) => Promise<void>;
 }
 
-export function ClientInvoiceCard({ invoice, onMarkPaid, onEdit, onDelete }: Props) {
+export function ClientInvoiceCard({ invoice, onMarkPaid, onEdit, onDelete, onRequestPayment }: Props) {
   const [menu, setMenu] = useState(false);
+  const [payLoading, setPayLoading] = useState(false);
   const cfg = STATUS_CONFIG[invoice.status];
-  const sym = invoice.currency === 'GBP' ? '£' : '$';
+  const sym = invoice.currency === 'GBP' ? '£' : invoice.currency === 'EUR' ? '€' : invoice.currency === 'AED' ? 'د.إ' : '$';
   const fmt = (v: number) => `${sym}${Number(v).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const canPay = (invoice.status === 'pending' || invoice.status === 'overdue') && !!onRequestPayment;
+
+  async function handleRequestPayment() {
+    if (!onRequestPayment) return;
+    setPayLoading(true);
+    try { await onRequestPayment(invoice.id); } finally { setPayLoading(false); }
+  }
 
   return (
     <div style={{
@@ -84,9 +93,29 @@ export function ClientInvoiceCard({ invoice, onMarkPaid, onEdit, onDelete }: Pro
         )}
       </div>
 
-      <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-        <FileText size={11} color="#94a3b8" />
-        <span style={{ fontSize: 11, color: '#94a3b8' }}>{invoice.invoice_number}</span>
+      <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <FileText size={11} color="#94a3b8" />
+          <span style={{ fontSize: 11, color: '#94a3b8' }}>{invoice.invoice_number}</span>
+        </div>
+        {canPay && (
+          <button
+            onClick={handleRequestPayment}
+            disabled={payLoading}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              background: payLoading ? '#e0e7ff' : '#6366f1', color: '#fff',
+              border: 'none', borderRadius: 7, padding: '5px 12px',
+              fontSize: 11, fontWeight: 600, cursor: payLoading ? 'not-allowed' : 'pointer',
+              transition: 'background 0.15s',
+            }}
+          >
+            {payLoading
+              ? <><Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> Generating…</>
+              : <><CreditCard size={11} /> Request Payment</>
+            }
+          </button>
+        )}
       </div>
     </div>
   );

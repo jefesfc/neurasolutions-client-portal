@@ -91,6 +91,20 @@ export default function InvoicingPage() {
     void fetchAll();
   }
 
+  async function handleRequestPayment(id: string) {
+    const res = await fetch(`${API_URL}/stripe/checkout/${id}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const err = await res.json() as { error?: string };
+      alert(err.error ?? 'Failed to create payment link');
+      return;
+    }
+    const { url } = await res.json() as { url: string };
+    window.open(url, '_blank');
+  }
+
   async function handleDelete(id: string) {
     if (!confirm('Delete this invoice?')) return;
     await fetch(`${API_URL}/invoicing/${id}`, {
@@ -233,6 +247,7 @@ export default function InvoicingPage() {
                   onMarkPaid={canEdit ? handleMarkPaid : () => {}}
                   onEdit={canEdit ? () => {} : () => {}}
                   onDelete={canEdit ? handleDelete : () => {}}
+                  onRequestPayment={canEdit ? handleRequestPayment : undefined}
                 />
               ))
             )}

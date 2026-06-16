@@ -18,6 +18,7 @@ import supportRouter from './routes/support';
 import reportsRouter from './routes/reports';
 import postgrestProxyRouter from './routes/postgrestProxy';
 import knowledgeRouter from './routes/knowledge';
+import stripeRouter from './routes/stripe';
 
 dotenv.config();
 
@@ -31,6 +32,10 @@ const allowedOrigins = [
   'http://localhost:5174',
 ];
 app.use(cors({ origin: (origin, cb) => cb(null, !origin || allowedOrigins.includes(origin)) }));
+
+// Stripe webhook needs raw body — must be registered BEFORE express.json()
+app.use('/stripe/webhook', express.raw({ type: 'application/json' }), stripeRouter);
+
 app.use(express.json());
 app.use(securityMonitor);
 
@@ -50,6 +55,7 @@ app.use('/support', supportRouter);
 app.use('/reports', reportsRouter);
 
 app.use('/knowledge', knowledgeRouter);
+app.use('/stripe', stripeRouter);
 app.use('/pg', postgrestProxyRouter);
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
