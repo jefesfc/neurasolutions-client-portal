@@ -33,8 +33,8 @@ const allowedOrigins = [
 ];
 app.use(cors({ origin: (origin, cb) => cb(null, !origin || allowedOrigins.includes(origin)) }));
 
-// Stripe webhook needs raw body — must be registered BEFORE express.json()
-app.use('/stripe/webhook', express.raw({ type: 'application/json' }), stripeRouter);
+// Stripe webhook needs raw body for signature verification — applied BEFORE express.json()
+app.use('/stripe/webhook', express.raw({ type: 'application/json' }));
 
 app.use(express.json());
 app.use(securityMonitor);
