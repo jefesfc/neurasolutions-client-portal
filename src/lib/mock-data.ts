@@ -1,5 +1,4 @@
 import type {
-  Client,
   SubscriptionPlan,
   Invoice,
   AISystem,
@@ -14,24 +13,6 @@ import type {
   MetricComparison,
   UsageStats,
 } from "../types";
-
-// ── Client ──
-
-export const mockClient: Client = {
-  id: "c_001",
-  companyName: "Atlas Ventures",
-  logo: "",
-  industry: "Financial Services",
-  size: "50-200 employees",
-  website: "atlasventures.com",
-  memberSince: "2024-06-15",
-  accountManager: {
-    name: "Sarah Chen",
-    email: "sarah.chen@neurasolutions.com",
-    avatar: "",
-    phone: "+1 (415) 555-0142",
-  },
-};
 
 // ── Subscription ──
 

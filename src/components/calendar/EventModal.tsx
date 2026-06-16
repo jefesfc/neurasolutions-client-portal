@@ -6,7 +6,7 @@ import { Textarea } from '../ui/Textarea';
 import { useAuthStore } from '../../store/auth-store';
 import { postgrest } from '../../lib/postgrest';
 import type { CalendarEvent, CalendarEventInput, EventCategory, EventStatus, RecurrenceFreq } from '../../types/calendar';
-import type { Lead, Contact } from '../../types/aios';
+import type { Lead, Client } from '../../types/aios';
 import { CATEGORY_CONFIG } from '../../types/calendar';
 import { EventBadge } from './EventBadge';
 import { useTranslations } from '../../i18n/useT';
@@ -58,12 +58,12 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
   const [recurrFreq, setRecurrFreq]   = useState<RecurrenceFreq | ''>('');
   const [recurrInterval, setRecurrInterval] = useState(1);
   const [recurrUntil, setRecurrUntil] = useState('');
-  const [linkedType, setLinkedType]   = useState<'lead' | 'contact' | ''>('');
+  const [linkedType, setLinkedType]   = useState<'lead' | 'client' | ''>('');
   const [linkedId, setLinkedId]       = useState('');
   const [amount, setAmount]           = useState('');
   const [currency, setCurrency]       = useState('GBP');
   const [leads, setLeads]             = useState<Lead[]>([]);
-  const [contacts, setContacts]       = useState<Contact[]>([]);
+  const [clients, setClients]         = useState<Client[]>([]);
   const [saving, setSaving]           = useState(false);
   const [deleting, setDeleting]       = useState(false);
   const [error, setError]             = useState<string | null>(null);
@@ -100,7 +100,7 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
     if (linkedType === 'lead') {
       postgrest.get<Lead>('leads', { order: 'name.asc', limit: 200 }).then(setLeads).catch(() => {});
     } else {
-      postgrest.get<Contact>('contacts', { order: 'name.asc', limit: 200 }).then(setContacts).catch(() => {});
+      postgrest.get<Client>('clients', { order: 'name.asc', limit: 200 }).then(setClients).catch(() => {});
     }
   }, [linkedType]);
 
@@ -249,12 +249,12 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
             <div className="flex gap-2">
               <select
                 value={linkedType}
-                onChange={e => { setLinkedType(e.target.value as 'lead' | 'contact' | ''); setLinkedId(''); }}
+                onChange={e => { setLinkedType(e.target.value as 'lead' | 'client' | ''); setLinkedId(''); }}
                 className={`w-32 ${selectCls}`}
               >
                 <option value="">{T.calendar.linkNone}</option>
                 <option value="lead">{T.calendar.linkLead}</option>
-                <option value="contact">{T.calendar.linkContact}</option>
+                <option value="client">{T.calendar.linkContact}</option>
               </select>
               {linkedType === 'lead' && (
                 <select value={linkedId} onChange={e => setLinkedId(e.target.value)} className={`flex-1 ${selectCls}`}>
@@ -262,10 +262,10 @@ export function EventModal({ event, defaultDate, isOpen, canEdit, onClose, onSav
                   {leads.map(l => <option key={l.id} value={l.id}>{l.name} — {l.email}</option>)}
                 </select>
               )}
-              {linkedType === 'contact' && (
+              {linkedType === 'client' && (
                 <select value={linkedId} onChange={e => setLinkedId(e.target.value)} className={`flex-1 ${selectCls}`}>
                   <option value="">{T.calendar.selectContact}</option>
-                  {contacts.map(c => <option key={c.id} value={c.id}>{c.name} — {c.company ?? c.email}</option>)}
+                  {clients.map(c => <option key={c.id} value={c.id}>{c.company} — {c.name}</option>)}
                 </select>
               )}
             </div>

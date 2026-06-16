@@ -1,18 +1,3 @@
-export interface Client {
-  id: string;
-  companyName: string;
-  logo: string;
-  industry: string;
-  size: string;
-  website: string;
-  memberSince: string;
-  accountManager: {
-    name: string;
-    email: string;
-    avatar: string;
-    phone: string;
-  };
-}
 
 export interface SubscriptionPlan {
   id: string;

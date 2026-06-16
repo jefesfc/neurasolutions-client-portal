@@ -7,7 +7,6 @@ export type {
 } from "./common";
 
 export type {
-  Client,
   SubscriptionPlan,
   PlanFeature,
   PlanLimits,
