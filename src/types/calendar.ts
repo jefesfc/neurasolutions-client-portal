@@ -20,7 +20,7 @@ export interface CalendarEvent {
   all_day: boolean;
   status: EventStatus;
   recurrence_rule: RecurrenceRule | null;
-  linked_type: 'lead' | 'contact' | null;
+  linked_type: 'lead' | 'client' | null;
   linked_id: string | null;
   amount: number | null;
   currency: string;
@@ -36,7 +36,7 @@ export interface CalendarEventInput {
   end_at?: string;
   all_day?: boolean;
   recurrence_rule?: RecurrenceRule;
-  linked_type?: 'lead' | 'contact';
+  linked_type?: 'lead' | 'client';
   linked_id?: string;
   amount?: number;
   currency?: string;
