@@ -84,5 +84,5 @@ export async function deleteDocument(
   chunkCount: number,
 ): Promise<void> {
   const ids = Array.from({ length: chunkCount }, (_, i) => `${docId}-${i}`);
-  await getIndex().namespace(tenantId).deleteMany(ids);
+  await getIndex().namespace(tenantId).deleteMany({ ids });
 }
