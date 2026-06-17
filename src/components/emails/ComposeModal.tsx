@@ -48,10 +48,12 @@ export function ComposeModal({
   useEffect(() => {
     if (open) {
       setTo(initialTo);
+      setClientSearch('');
       setSubject(initialSubject);
       setBody(initialBody);
       setError('');
       setSuccess(false);
+      setShowClientPicker(false);
     }
   }, [open, initialTo, initialSubject, initialBody]);
 
