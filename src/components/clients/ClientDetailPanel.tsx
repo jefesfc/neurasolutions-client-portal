@@ -1,7 +1,8 @@
-import { X, ArrowRightLeft, User as UserIcon, Mail, Phone, Globe, MapPin, Calendar, PoundSterling, Tag, FileText, CheckCircle2 } from 'lucide-react';
+import { X, ArrowRightLeft, User as UserIcon, Mail, Phone, Globe, MapPin, Calendar, PoundSterling, Tag, FileText, CheckCircle2, Sparkles } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import type { Client, ClientStage } from '../../types/aios';
+import { NOOR_TREATMENTS } from './ClientModal';
 
 const STATUS_BADGE: Record<Client['status'], { variant: 'success' | 'warning' | 'danger'; label: string }> = {
   active:   { variant: 'success', label: 'Active'   },
@@ -87,6 +88,35 @@ export function ClientDetailPanel({ client, canEdit, onEdit, onDelete, onClose }
             <Field icon={<FileText className="h-3.5 w-3.5" />}     label="Notes"          value={client.notes} />
           </div>
         </div>
+
+        {/* ── Treatments ── */}
+        {(client.treatments ?? []).length > 0 && (
+          <div>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex-1 h-px bg-slate-100" />
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3" />
+                Treatments
+              </span>
+              <div className="flex-1 h-px bg-slate-100" />
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {(client.treatments ?? []).map(id => {
+                const t = NOOR_TREATMENTS.find(x => x.id === id);
+                if (!t) return null;
+                return (
+                  <span
+                    key={id}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold"
+                    style={{ background: '#eef2ff', color: '#4338ca', border: '1px solid #c7d2fe' }}
+                  >
+                    ✦ {t.label}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* ── Clinical Journey ── */}
         <div>

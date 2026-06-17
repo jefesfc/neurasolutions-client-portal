@@ -95,6 +95,7 @@ router.post('/', requireAuth, requireAdminOrManager, async (req: Request, res: R
       investigation_date, investigation_notes,
       follow_up_date, follow_up_notes,
       discharge_date, discharge_notes,
+      treatments,
     } = req.body as Record<string, unknown>;
     const tenantId = req.user!.tenant_id;
 
@@ -110,8 +111,9 @@ router.post('/', requireAuth, requireAdminOrManager, async (req: Request, res: R
          admission_date, admission_notes,
          investigation_date, investigation_notes,
          follow_up_date, follow_up_notes,
-         discharge_date, discharge_notes)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
+         discharge_date, discharge_notes,
+         treatments)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
       RETURNING *
     `, [
       tenantId, name, email, company,
@@ -123,6 +125,7 @@ router.post('/', requireAuth, requireAdminOrManager, async (req: Request, res: R
       investigation_date ?? null, investigation_notes ?? null,
       follow_up_date ?? null, follow_up_notes ?? null,
       discharge_date ?? null, discharge_notes ?? null,
+      Array.isArray(treatments) ? treatments : [],
     ]);
 
     res.status(201).json(result.rows[0]);
@@ -186,6 +189,10 @@ router.patch('/:id', requireAuth, requireAdminOrManager, async (req: Request, re
     addDirect('follow_up_notes', 'follow_up_notes');
     addDirect('discharge_date', 'discharge_date');
     addDirect('discharge_notes', 'discharge_notes');
+    if ('treatments' in body) {
+      params.push(Array.isArray(body.treatments) ? body.treatments : []);
+      setClauses.push(`treatments = $${params.length}`);
+    }
 
     if (setClauses.length === 0) {
       res.status(400).json({ error: 'No fields to update' });

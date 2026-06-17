@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PenSquare, Mail, MailOpen, MailCheck, Send } from 'lucide-react';
+import { PenSquare, Mail, MailOpen, MailCheck, Send, FileText } from 'lucide-react';
 import { useQuery } from '../hooks/useQuery';
 import { postgrest } from '../lib/postgrest';
 import { PageTransition } from '../components/shared/PageTransition';
@@ -11,6 +11,7 @@ import { EmailList } from '../components/emails/EmailList';
 import { EmailPreview } from '../components/emails/EmailPreview';
 import { ComposeModal } from '../components/emails/ComposeModal';
 import { useAuthStore } from '../store/auth-store';
+import { generateTreatmentsBrochurePDF } from '../lib/pdf';
 import type { Email } from '../types/aios';
 
 type ComposeMode = 'compose' | 'reply' | 'client';
@@ -107,6 +108,13 @@ export default function EmailsPage() {
                 placeholder="Search emails..."
               />
             </div>
+            <button
+              onClick={() => void generateTreatmentsBrochurePDF()}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm font-semibold transition-colors"
+            >
+              <FileText className="w-4 h-4" />
+              Brochure PDF
+            </button>
             {canCompose && (
               <button
                 onClick={() => setCompose({ open: true, mode: 'compose', initialTo: '', initialSubject: '', initialBody: '' })}

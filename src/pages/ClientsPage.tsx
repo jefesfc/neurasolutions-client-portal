@@ -232,6 +232,7 @@ export default function ClientsPage() {
                   <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colStage}</th>
                   {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colStatus}</th>}
                   {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colRenewal}</th>}
+                  {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">Treatments</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -275,6 +276,26 @@ export default function ClientsPage() {
                           {client.next_renewal_at
                             ? new Date(`${client.next_renewal_at}T00:00:00`).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
                             : '—'}
+                        </td>
+                      )}
+                      {!selectedClient && (
+                        <td className="px-4 py-3">
+                          {(client.treatments ?? []).length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {(client.treatments ?? []).slice(0, 2).map(id => (
+                                <span key={id} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100">
+                                  {id.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                                </span>
+                              ))}
+                              {(client.treatments ?? []).length > 2 && (
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                                  +{(client.treatments ?? []).length - 2}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-slate-300 text-xs">—</span>
+                          )}
                         </td>
                       )}
                     </tr>

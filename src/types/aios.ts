@@ -50,6 +50,7 @@ export interface Client {
   follow_up_notes: string | null;
   discharge_date: string | null;
   discharge_notes: string | null;
+  treatments: string[] | null;
   created_at: string;
   updated_at: string;
 }

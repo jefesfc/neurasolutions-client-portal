@@ -1,5 +1,27 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+
+export const NOOR_TREATMENTS = [
+  // Injectable
+  { id: 'anti-wrinkle',   label: 'Anti-Wrinkle Injections',    category: 'Injectable' },
+  { id: 'dermal-fillers', label: 'Dermal Fillers',              category: 'Injectable' },
+  { id: 'lip-augmentation', label: 'Lip Augmentation',         category: 'Injectable' },
+  { id: 'jaw-slimming',   label: 'Jaw / Face Slimming',         category: 'Injectable' },
+  { id: 'skin-booster',   label: 'Skin Boosters (Profhilo)',    category: 'Injectable' },
+  { id: 'prp',            label: 'PRP Therapy',                 category: 'Injectable' },
+  // Laser & Light
+  { id: 'co2-laser',      label: 'CO2 Laser Resurfacing',       category: 'Laser & Light' },
+  { id: 'ipl',            label: 'IPL Photofacial',             category: 'Laser & Light' },
+  { id: 'laser-hair',     label: 'Laser Hair Removal',          category: 'Laser & Light' },
+  // Skin
+  { id: 'hydrafacial',    label: 'HydraFacial',                 category: 'Skin Treatments' },
+  { id: 'chemical-peel',  label: 'Chemical Peel',               category: 'Skin Treatments' },
+  { id: 'microneedling',  label: 'Microneedling',               category: 'Skin Treatments' },
+  { id: 'microneedling-prp', label: 'Microneedling + PRP',      category: 'Skin Treatments' },
+  // Body
+  { id: 'body-contouring', label: 'Non-Invasive Body Contouring', category: 'Body' },
+  { id: 'thread-lift',    label: 'Thread Lift',                 category: 'Body' },
+] as const;
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -60,11 +82,15 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
   const [dischargeDate, setDischargeDate]           = useState('');
   const [dischargeNotes, setDischargeNotes]         = useState('');
 
+  const [treatments, setTreatments] = useState<string[]>([]);
+
   const [users, setUsers]         = useState<User[]>([]);
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState<string | null>(null);
   const [journeyOpen, setJourneyOpen] = useState(false);
+  const [treatmentsOpen, setTreatmentsOpen] = useState(false);
   const toggleJourney = useCallback(() => setJourneyOpen(v => !v), []);
+  const toggleTreatments = useCallback(() => setTreatmentsOpen(v => !v), []);
 
   useEffect(() => {
     postgrest.get<User>('users', { order: 'name.asc', limit: 200 }).then(setUsers).catch((err) => {
@@ -82,6 +108,7 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
       setAddress(''); setNextRenewalAt('');
       setAssignedTo(convertingFromLead.assigned_to ?? '');
       setNotes(convertingFromLead.notes ?? '');
+      setTreatments([]);
       setAdmissionDate(''); setAdmissionNotes('');
       setInvestigationDate(''); setInvestigationNotes('');
       setFollowUpDate(''); setFollowUpNotes('');
@@ -100,6 +127,7 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
       setNextRenewalAt(initialData.next_renewal_at ?? '');
       setAssignedTo(initialData.assigned_to ?? '');
       setNotes(initialData.notes ?? '');
+      setTreatments(initialData.treatments ?? []);
       setAdmissionDate(initialData.admission_date ?? '');
       setAdmissionNotes(initialData.admission_notes ?? '');
       setInvestigationDate(initialData.investigation_date ?? '');
@@ -113,6 +141,7 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
       setIndustry(''); setWebsite(''); setContractValue('');
       setStatus('active'); setStage('admission');
       setAddress(''); setNextRenewalAt(''); setAssignedTo(''); setNotes('');
+      setTreatments([]);
       setAdmissionDate(''); setAdmissionNotes('');
       setInvestigationDate(''); setInvestigationNotes('');
       setFollowUpDate(''); setFollowUpNotes('');
@@ -140,6 +169,7 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
       next_renewal_at:      nextRenewalAt || null,
       assigned_to:          assignedTo || null,
       notes:                notes.trim() || null,
+      treatments,
       admission_date:       admissionDate || null,
       admission_notes:      admissionNotes.trim() || null,
       investigation_date:   investigationDate || null,
@@ -257,6 +287,59 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
         <div>
           <label className={labelCls}>Notes</label>
           <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} placeholder="General notes…" />
+        </div>
+
+        {/* ── Treatments ── */}
+        <div>
+          <button type="button" onClick={toggleTreatments} className="w-full flex items-center gap-3 py-2 group">
+            <div className="flex-1 h-px bg-slate-200" />
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider group-hover:text-slate-700 transition-colors flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" />
+              Treatments
+              {treatments.length > 0 && (
+                <span className="ml-1 bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  {treatments.length}
+                </span>
+              )}
+              {treatmentsOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </span>
+            <div className="flex-1 h-px bg-slate-200" />
+          </button>
+
+          {treatmentsOpen && (() => {
+            const categories = [...new Set(NOOR_TREATMENTS.map(t => t.category))];
+            return (
+              <div className="mt-2 space-y-3">
+                {categories.map(cat => (
+                  <div key={cat}>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">{cat}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {NOOR_TREATMENTS.filter(t => t.category === cat).map(t => {
+                        const selected = treatments.includes(t.id);
+                        return (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => setTreatments(prev =>
+                              selected ? prev.filter(x => x !== t.id) : [...prev, t.id]
+                            )}
+                            className="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all"
+                            style={{
+                              background:  selected ? '#6366f1' : '#f8fafc',
+                              color:       selected ? '#fff' : '#475569',
+                              borderColor: selected ? '#6366f1' : '#e2e8f0',
+                            }}
+                          >
+                            {selected && '✓ '}{t.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </div>
 
         {/* ── Clinical Journey ── */}
