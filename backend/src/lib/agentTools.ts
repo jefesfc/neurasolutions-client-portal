@@ -868,6 +868,7 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
         from: `AIOS <${gmailUser}>`,
         to: client.email,
         subject,
+        html: buildEmailHtml(body, gmailUser),
         text: body,
       });
       return { success: true, message: `Email sent to ${client.name} (${client.email})` };
