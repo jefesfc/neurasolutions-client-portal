@@ -14,6 +14,89 @@ function createMailTransporter() {
   });
 }
 
+function buildEmailHtml(body: string, senderEmail: string): string {
+  // Convert markdown-style text to HTML
+  const htmlBody = body
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .split('\n')
+    .map((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) return '<br/>';
+      if (trimmed.startsWith('- ')) return `<li style="margin:4px 0;">${trimmed.slice(2)}</li>`;
+      return `<p style="margin:0 0 10px 0;">${trimmed}</p>`;
+    })
+    .join('\n');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+</head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.10);">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#4338ca 100%);padding:36px 40px 28px;">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td>
+                  <div style="display:inline-flex;align-items:center;gap:10px;">
+                    <div style="width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:8px;display:inline-block;text-align:center;line-height:36px;font-size:18px;">✦</div>
+                    <span style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:-0.3px;vertical-align:middle;margin-left:10px;">AIOS</span>
+                    <span style="color:rgba(255,255,255,0.45);font-size:12px;font-weight:500;margin-left:8px;vertical-align:middle;letter-spacing:1px;text-transform:uppercase;">by NeuraSolutions</span>
+                  </div>
+                </td>
+                <td align="right">
+                  <span style="color:rgba(255,255,255,0.5);font-size:11px;">${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Accent bar -->
+        <tr><td style="height:4px;background:linear-gradient(90deg,#818cf8,#6366f1,#4f46e5);"></td></tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="background:#ffffff;padding:40px 40px 32px;">
+            <div style="color:#1e293b;font-size:15px;line-height:1.7;">
+              ${htmlBody}
+            </div>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:24px 40px;">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td>
+                  <p style="margin:0;color:#94a3b8;font-size:11px;line-height:1.6;">
+                    This email was sent via <strong style="color:#6366f1;">AIOS</strong> — AI Operating System.<br/>
+                    Sent from <a href="mailto:${senderEmail}" style="color:#6366f1;text-decoration:none;">${senderEmail}</a>
+                  </p>
+                </td>
+                <td align="right">
+                  <div style="width:28px;height:28px;background:linear-gradient(135deg,#4338ca,#6366f1);border-radius:6px;display:inline-block;text-align:center;line-height:28px;color:#fff;font-size:13px;">✦</div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
 const router = Router();
 
 // POST /emails/ingest — n8n calls this with a service JWT
@@ -265,6 +348,7 @@ router.post('/send', requireAuth, async (req: Request, res: Response) => {
       to,
       subject,
       text: body,
+      html: buildEmailHtml(body, smtpUser),
     });
 
     // Log interaction (fire-and-forget)
