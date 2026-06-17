@@ -1,6 +1,48 @@
 import { useEffect } from 'react';
-import { Printer, ArrowLeft, Check } from 'lucide-react';
+import { Printer, ArrowLeft, Check, FileDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+function downloadMembershipTxt() {
+  const lines: string[] = [
+    'NOOR AESTHETICS — VIP MEMBERSHIP PACKAGES 2026',
+    '='.repeat(52),
+    'Private Aesthetic Clinic · London',
+    '',
+    'Three membership tiers designed for clients who want priority access,',
+    'consistent results and the very best of aesthetic medicine.',
+    '',
+  ];
+
+  for (const tier of TIERS) {
+    lines.push(`\n${'—'.repeat(40)}`);
+    lines.push(`${tier.name.toUpperCase()} MEMBERSHIP — ${tier.price} ${tier.priceNote}`);
+    lines.push(tier.tagline);
+    lines.push('');
+    lines.push('Features included:');
+    for (const f of tier.features) lines.push(`  - ${f}`);
+  }
+
+  lines.push(`\n${'='.repeat(52)}`);
+  lines.push('\nCOMPARISON TABLE');
+  lines.push('-'.repeat(40));
+  const col = 22;
+  lines.push(`${'Feature'.padEnd(col)}SILVER          GOLD            PLATINUM`);
+  for (const row of COMPARISON) {
+    lines.push(`${row.feature.padEnd(col)}${row.silver.padEnd(16)}${row.gold.padEnd(16)}${row.platinum}`);
+  }
+
+  lines.push('');
+  lines.push('All memberships are annual. Renewable each year.');
+  lines.push('Priority booking, dedicated support and exclusive member events included.');
+  lines.push('www.nooraesthetics.co.uk');
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'Noor Aesthetics - Membership Packages.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
 
 const TIERS = [
   {
@@ -131,6 +173,9 @@ export default function MembershipBrochurePage() {
         <Link to="/emails" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '13px', fontWeight: 500, color: '#475569', textDecoration: 'none', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
           <ArrowLeft size={14} /> Back
         </Link>
+        <button onClick={downloadMembershipTxt} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#0891b2', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 500, color: 'white', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
+          <FileDown size={14} /> Download TXT for RAG
+        </button>
         <button onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#0f172a', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 500, color: 'white', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
           <Printer size={14} /> Print / Save PDF
         </button>

@@ -1,6 +1,34 @@
 import { useEffect } from 'react';
-import { Printer, ArrowLeft } from 'lucide-react';
+import { Printer, ArrowLeft, FileDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+function downloadTreatmentsTxt() {
+  const lines: string[] = [
+    'NOOR AESTHETICS — TREATMENT MENU',
+    '='.repeat(48),
+    'Private Aesthetic Clinic · London',
+    '',
+  ];
+  for (const cat of CATALOGUE) {
+    lines.push(`\n== ${cat.category.toUpperCase()} ==`);
+    for (const item of cat.items) {
+      lines.push(`\n${item.name}`);
+      lines.push(`Duration: ${item.duration} | Price: ${item.price}`);
+      lines.push(item.desc);
+    }
+  }
+  lines.push('\n' + '='.repeat(48));
+  lines.push('All prices are "from" prices. Final price depends on area and complexity.');
+  lines.push('Complimentary consultation available. CQC Registered. GMC Practitioners.');
+  lines.push('www.nooraesthetics.co.uk');
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'Noor Aesthetics - Treatment Menu.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
 
 const CATALOGUE = [
   {
@@ -77,6 +105,9 @@ export default function TreatmentsBrochurePage() {
         <Link to="/emails" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '13px', fontWeight: 500, color: '#475569', textDecoration: 'none', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
           <ArrowLeft size={14} /> Back
         </Link>
+        <button onClick={downloadTreatmentsTxt} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#0891b2', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 500, color: 'white', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
+          <FileDown size={14} /> Download TXT for RAG
+        </button>
         <button onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#0f172a', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 500, color: 'white', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
           <Printer size={14} /> Print / Save PDF
         </button>
