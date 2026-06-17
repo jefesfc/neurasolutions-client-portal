@@ -493,8 +493,20 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
       const params: unknown[] = [tenantId];
       if (status) { params.push(status); q += ` AND status = $${params.length}`; }
       if (search) {
-        params.push(`%${search.toLowerCase()}%`);
-        q += ` AND (LOWER(name) LIKE $${params.length} OR LOWER(COALESCE(company,'')) LIKE $${params.length})`;
+        const term = search.toLowerCase().trim();
+        const words = term.split(/[\s\-,]+/).filter((w) => w.length > 1);
+        const conditions: string[] = [];
+        params.push(`%${term}%`);
+        const fi = params.length;
+        conditions.push(`LOWER(name) LIKE $${fi}`, `LOWER(COALESCE(company,'')) LIKE $${fi}`);
+        for (const word of words) {
+          if (word !== term) {
+            params.push(`%${word}%`);
+            const wi = params.length;
+            conditions.push(`LOWER(name) LIKE $${wi}`, `LOWER(COALESCE(company,'')) LIKE $${wi}`);
+          }
+        }
+        q += ` AND (${conditions.join(' OR ')})`;
       }
       params.push(limit);
       q += ` ORDER BY created_at DESC LIMIT $${params.length}`;
@@ -601,13 +613,21 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
       const brochureType = args.brochure_type as 'treatments' | 'membership';
       if (!clientName) return { error: 'client_name is required' };
 
+      const bTerm = clientName.toLowerCase().trim();
+      const bWords = bTerm.split(/[\s\-,]+/).filter((w) => w.length > 1);
+      const bConds: string[] = [];
+      const bParams: unknown[] = [tenantId];
+      bParams.push(`%${bTerm}%`);
+      const bFi = bParams.length;
+      bConds.push(`LOWER(name) LIKE $${bFi}`, `LOWER(COALESCE(company,'')) LIKE $${bFi}`);
+      for (const w of bWords) {
+        if (w !== bTerm) { bParams.push(`%${w}%`); const wi = bParams.length; bConds.push(`LOWER(name) LIKE $${wi}`, `LOWER(COALESCE(company,'')) LIKE $${wi}`); }
+      }
       const clientRes = await db.query(
         `SELECT name, email, company FROM aios.clients
-         WHERE tenant_id = $1
-           AND (LOWER(name) LIKE $2 OR LOWER(COALESCE(company,'')) LIKE $2)
-           AND status = 'active'
+         WHERE tenant_id = $1 AND (${bConds.join(' OR ')}) AND status = 'active'
          LIMIT 1`,
-        [tenantId, `%${clientName.toLowerCase()}%`]
+        bParams
       );
       if (clientRes.rows.length === 0) return { error: `Active client "${clientName}" not found` };
       const client = clientRes.rows[0] as { name: string; email: string; company: string | null };
@@ -821,11 +841,21 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
       const gmailPass = process.env.GMAIL_APP_PASSWORD;
       if (!gmailUser || !gmailPass) return { error: 'Email sending not configured on the server' };
 
+      const eTerm = clientName.toLowerCase().trim();
+      const eWords = eTerm.split(/[\s\-,]+/).filter((w) => w.length > 1);
+      const eConds: string[] = [];
+      const eParams: unknown[] = [tenantId];
+      eParams.push(`%${eTerm}%`);
+      const eFi = eParams.length;
+      eConds.push(`LOWER(name) LIKE $${eFi}`, `LOWER(COALESCE(company,'')) LIKE $${eFi}`);
+      for (const w of eWords) {
+        if (w !== eTerm) { eParams.push(`%${w}%`); const wi = eParams.length; eConds.push(`LOWER(name) LIKE $${wi}`, `LOWER(COALESCE(company,'')) LIKE $${wi}`); }
+      }
       const clientRes = await db.query(
         `SELECT name, email, company FROM aios.clients
-         WHERE tenant_id = $1 AND (LOWER(name) LIKE $2 OR LOWER(COALESCE(company,'')) LIKE $2)
+         WHERE tenant_id = $1 AND (${eConds.join(' OR ')})
          ORDER BY created_at DESC LIMIT 1`,
-        [tenantId, `%${clientName.toLowerCase()}%`]
+        eParams
       );
       if (clientRes.rows.length === 0) return { error: `No client found matching "${clientName}"` };
 

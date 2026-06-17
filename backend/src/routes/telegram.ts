@@ -311,7 +311,12 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
       text = transcription.text.trim();
       if (!text) return;
 
-      // Let the user know AIOS heard them
+      // Show transcription so user can verify what was heard
+      await callTelegram(botToken, 'sendMessage', {
+        chat_id: chatId,
+        text: `🎙 _"${text}"_`,
+        parse_mode: 'Markdown',
+      });
       await callTelegram(botToken, 'sendChatAction', { chat_id: chatId, action: 'typing' });
     } else {
       text = message.text!.trim();
