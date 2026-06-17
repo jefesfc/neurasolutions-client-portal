@@ -587,10 +587,19 @@ export default function KnowledgePage() {
 
   async function handleDelete(id: string, name: string) {
     if (!confirm(`Remove "${name}" from the knowledge base?`)) return;
-    await fetch(`${API_URL}/knowledge/docs/${id}`, {
-      method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
-    });
-    setDocs(prev => prev.filter(d => d.id !== id));
+    try {
+      const r = await fetch(`${API_URL}/knowledge/docs/${id}`, {
+        method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!r.ok) {
+        const body = await r.json().catch(() => ({})) as { error?: string };
+        setError(body.error ?? 'Delete failed');
+        return;
+      }
+      setDocs(prev => prev.filter(d => d.id !== id));
+    } catch {
+      setError('Network error — delete failed');
+    }
   }
 
   const categorised = useMemo(() => {

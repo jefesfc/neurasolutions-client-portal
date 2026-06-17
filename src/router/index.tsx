@@ -25,6 +25,8 @@ import SecurityPage from "../pages/SecurityPage";
 import NotificationsPage from "../pages/NotificationsPage";
 import InvoicingPage from "../pages/InvoicingPage";
 import KnowledgePage from "../pages/KnowledgePage";
+import TreatmentsBrochurePage from "../pages/brochure/TreatmentsBrochurePage";
+import MembershipBrochurePage from "../pages/brochure/MembershipBrochurePage";
 import NotFoundPage from "../pages/NotFoundPage";
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -212,6 +214,22 @@ export const router = createBrowserRouter([
           <KnowledgePage />
         </ModulePermissionsGuard>
       </Protected>
+    ),
+  },
+  {
+    path: ROUTES.BrochureTreatments,
+    element: (
+      <ProtectedRoute>
+        <TreatmentsBrochurePage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: ROUTES.BrochureMembership,
+    element: (
+      <ProtectedRoute>
+        <MembershipBrochurePage />
+      </ProtectedRoute>
     ),
   },
   {

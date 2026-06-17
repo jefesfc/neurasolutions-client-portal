@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { PenSquare, Mail, MailOpen, MailCheck, Send, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { PenSquare, Mail, MailOpen, MailCheck, Send, FileText, ExternalLink } from 'lucide-react';
 import { useQuery } from '../hooks/useQuery';
 import { postgrest } from '../lib/postgrest';
 import { PageTransition } from '../components/shared/PageTransition';
@@ -11,7 +12,7 @@ import { EmailList } from '../components/emails/EmailList';
 import { EmailPreview } from '../components/emails/EmailPreview';
 import { ComposeModal } from '../components/emails/ComposeModal';
 import { useAuthStore } from '../store/auth-store';
-import { generateTreatmentsBrochurePDF, generateMembershipPDF } from '../lib/pdf';
+import { ROUTES } from '../config/routes';
 import type { Email } from '../types/aios';
 
 type ComposeMode = 'compose' | 'reply' | 'client';
@@ -34,6 +35,7 @@ const COMPOSE_CLOSED: ComposeState = {
 
 export default function EmailsPage() {
   const user = useAuthStore((s) => s.user);
+  const navigate = useNavigate();
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [search, setSearch] = useState('');
   const [compose, setCompose] = useState<ComposeState>(COMPOSE_CLOSED);
@@ -109,18 +111,18 @@ export default function EmailsPage() {
               />
             </div>
             <button
-              onClick={() => void generateMembershipPDF()}
+              onClick={() => navigate(ROUTES.BrochureMembership)}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-700 text-sm font-semibold transition-colors"
             >
-              <FileText className="w-4 h-4" />
-              Membership PDF
+              <ExternalLink className="w-4 h-4" />
+              Membership Brochure
             </button>
             <button
-              onClick={() => void generateTreatmentsBrochurePDF()}
+              onClick={() => navigate(ROUTES.BrochureTreatments)}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm font-semibold transition-colors"
             >
-              <FileText className="w-4 h-4" />
-              Treatments PDF
+              <ExternalLink className="w-4 h-4" />
+              Treatments Brochure
             </button>
             {canCompose && (
               <button

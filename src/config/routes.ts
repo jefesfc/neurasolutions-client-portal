@@ -20,4 +20,6 @@ export const ROUTES = {
   Notifications: "/notifications",
   Invoicing: "/invoicing",
   Knowledge: "/knowledge",
+  BrochureTreatments: "/brochure/treatments",
+  BrochureMembership: "/brochure/membership",
 } as const;

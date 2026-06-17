@@ -69,16 +69,21 @@ router.delete('/docs/:id', requireAuth, async (req: Request, res: Response) => {
   const user = (req as any).user;
   if (user.app_role !== 'admin') return res.status(403).json({ error: 'Admin only' });
 
-  const { rows } = await db.query(
-    `SELECT id, chunk_count FROM aios.knowledge_docs WHERE id = $1 AND tenant_id = $2`,
-    [req.params.id, user.tenant_id],
-  );
-  if (!rows[0]) return res.status(404).json({ error: 'Document not found' });
+  try {
+    const { rows } = await db.query(
+      `SELECT id, chunk_count FROM aios.knowledge_docs WHERE id = $1 AND tenant_id = $2`,
+      [req.params.id, user.tenant_id],
+    );
+    if (!rows[0]) return res.status(404).json({ error: 'Document not found' });
 
-  await deleteDocument(user.tenant_id, rows[0].id, rows[0].chunk_count);
-  await db.query(`DELETE FROM aios.knowledge_docs WHERE id = $1`, [req.params.id]);
+    await deleteDocument(user.tenant_id, rows[0].id, rows[0].chunk_count);
+    await db.query(`DELETE FROM aios.knowledge_docs WHERE id = $1`, [req.params.id]);
 
-  res.status(204).send();
+    res.status(204).send();
+  } catch (err) {
+    console.error('[knowledge/delete]', err);
+    res.status(500).json({ error: 'Delete failed' });
+  }
 });
 
 export default router;
