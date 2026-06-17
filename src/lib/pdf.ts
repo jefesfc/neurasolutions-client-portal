@@ -941,11 +941,7 @@ export async function generateMembershipPDF(): Promise<void> {
   doc.addPage();
   await addPageHeader(doc, 'Membership Comparison', 'All tiers · ' + today);
 
-  const allFeatures = [...new Set(MEMBERSHIP_TIERS.flatMap(t => t.features))];
-  const compRows: string[][] = [];
-
-  // Price row
-  compRows.push(['Annual Price', '£1,500', '£2,800', '£5,200']);
+  // Feature comparison
 
   // Feature rows
   const featureMatrix = [
