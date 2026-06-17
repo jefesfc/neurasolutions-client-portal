@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Send, ChevronDown, X } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Send, ChevronDown, X, Paperclip } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { useQuery } from '../../hooks/useQuery';
 import { useAuthStore } from '../../store/auth-store';
@@ -33,11 +33,13 @@ export function ComposeModal({
   const [to, setTo] = useState(initialTo);
   const [subject, setSubject] = useState(initialSubject);
   const [body, setBody] = useState(initialBody);
+  const [attachments, setAttachments] = useState<File[]>([]);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [showClientPicker, setShowClientPicker] = useState(false);
   const [clientSearch, setClientSearch] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: clients } = useQuery<Client>('clients', {
     select: 'id,name,email,company,status',
@@ -51,6 +53,7 @@ export function ComposeModal({
       setClientSearch('');
       setSubject(initialSubject);
       setBody(initialBody);
+      setAttachments([]);
       setError('');
       setSuccess(false);
       setShowClientPicker(false);
@@ -73,6 +76,19 @@ export function ComposeModal({
     setShowClientPicker(false);
   }
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    setAttachments((prev) => {
+      const existing = new Set(prev.map((f) => f.name));
+      return [...prev, ...files.filter((f) => !existing.has(f.name))];
+    });
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  function removeAttachment(name: string) {
+    setAttachments((prev) => prev.filter((f) => f.name !== name));
+  }
+
   async function handleSend() {
     if (!to || !subject || !body) {
       setError(T.email.errorFields);
@@ -81,11 +97,25 @@ export function ComposeModal({
     setError('');
     setSending(true);
     try {
-      const res = await fetch(`${API_URL}/emails/send`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ to, subject, body }),
-      });
+      let res: Response;
+      if (attachments.length > 0) {
+        const form = new FormData();
+        form.append('to', to);
+        form.append('subject', subject);
+        form.append('body', body);
+        attachments.forEach((f) => form.append('attachments', f));
+        res = await fetch(`${API_URL}/emails/send`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: form,
+        });
+      } else {
+        res = await fetch(`${API_URL}/emails/send`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ to, subject, body }),
+        });
+      }
       if (!res.ok) {
         const d = await res.json() as { error?: string };
         setError(d.error ?? 'Failed to send email');
@@ -205,19 +235,63 @@ export function ComposeModal({
             />
           </div>
 
+          {/* Attachments */}
+          <div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={handleFileChange}
+            />
+            {attachments.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {attachments.map((f) => (
+                  <span
+                    key={f.name}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 text-[12px] font-medium max-w-[200px]"
+                  >
+                    <Paperclip className="w-3 h-3 flex-shrink-0" />
+                    <span className="truncate">{f.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeAttachment(f.name)}
+                      className="flex-shrink-0 text-indigo-400 hover:text-indigo-700 ml-0.5"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
           {error && (
             <p className="text-xs text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
           )}
 
           {/* Actions */}
           <div className="flex items-center justify-between pt-1">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 transition-colors"
-            >
-              {T.common.cancel}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 transition-colors"
+              >
+                {T.common.cancel}
+              </button>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 text-slate-500 hover:text-indigo-700 text-sm transition-colors"
+                title="Attach file"
+              >
+                <Paperclip className="w-4 h-4" />
+                {attachments.length > 0 && (
+                  <span className="text-[11px] font-semibold text-indigo-600">{attachments.length}</span>
+                )}
+              </button>
+            </div>
             <button
               type="button"
               onClick={() => void handleSend()}

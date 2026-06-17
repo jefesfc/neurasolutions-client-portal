@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PenSquare, Mail, MailOpen, MailCheck, Send, ExternalLink } from 'lucide-react';
 import { useQuery } from '../hooks/useQuery';
@@ -14,6 +14,9 @@ import { ComposeModal } from '../components/emails/ComposeModal';
 import { useAuthStore } from '../store/auth-store';
 import { ROUTES } from '../config/routes';
 import type { Email } from '../types/aios';
+
+declare const window: Window & { __env__?: { API_URL?: string } };
+const API_URL = window.__env__?.API_URL ?? import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
 type ComposeMode = 'compose' | 'reply' | 'client';
 
@@ -35,15 +38,33 @@ const COMPOSE_CLOSED: ComposeState = {
 
 export default function EmailsPage() {
   const user = useAuthStore((s) => s.user);
+  const token = useAuthStore((s) => s.token);
   const navigate = useNavigate();
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [search, setSearch] = useState('');
   const [compose, setCompose] = useState<ComposeState>(COMPOSE_CLOSED);
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
 
   const { data: emails, loading, error } = useQuery<Email>('emails', {
     order: 'received_at.desc',
     limit: 100,
   });
+
+  const handleDelete = useCallback(async (id: string) => {
+    setDeletedIds((prev) => new Set([...prev, id]));
+    if (selectedEmail?.id === id) setSelectedEmail(null);
+    try {
+      const r = await fetch(`${API_URL}/emails/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!r.ok) {
+        setDeletedIds((prev) => { const s = new Set(prev); s.delete(id); return s; });
+      }
+    } catch {
+      setDeletedIds((prev) => { const s = new Set(prev); s.delete(id); return s; });
+    }
+  }, [selectedEmail, token]);
 
   const { data: sentInteractions } = useQuery<{ id: string }>('interactions', {
     select: 'id',
@@ -82,7 +103,7 @@ export default function EmailsPage() {
   const T = useTranslations();
   const canCompose = user?.role === 'admin' || user?.role === 'manager';
 
-  const allEmails = emails ?? [];
+  const allEmails = (emails ?? []).filter((e) => !deletedIds.has(e.id));
   const unreadCount = allEmails.filter((e) => !e.is_read).length;
   const readCount = allEmails.filter((e) => e.is_read).length;
   const totalCount = allEmails.length;
@@ -173,9 +194,10 @@ export default function EmailsPage() {
                 <span className="text-xs text-slate-400">{(emails ?? []).length} messages</span>
               </div>
               <EmailList
-                emails={emails ?? []}
+                emails={allEmails}
                 selectedId={selectedEmail?.id ?? null}
                 onSelect={(email) => void handleSelect(email)}
+                onDelete={canCompose ? handleDelete : undefined}
                 search={search}
               />
             </div>
@@ -186,6 +208,7 @@ export default function EmailsPage() {
                 email={selectedEmail}
                 onReply={canCompose ? handleReply : undefined}
                 onSendToClient={canCompose ? handleSendToClient : undefined}
+                onDelete={canCompose ? handleDelete : undefined}
               />
             </div>
           </>

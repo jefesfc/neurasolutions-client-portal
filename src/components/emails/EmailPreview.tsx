@@ -1,4 +1,4 @@
-import { Reply, Send, Tag } from 'lucide-react';
+import { Reply, Send, Tag, Trash2 } from 'lucide-react';
 import { useTranslations } from '../../i18n/useT';
 import type { Email } from '../../types/aios';
 
@@ -6,6 +6,7 @@ interface EmailPreviewProps {
   email: Email | null;
   onReply?: (email: Email) => void;
   onSendToClient?: (email: Email) => void;
+  onDelete?: (id: string) => void;
 }
 
 function getInitials(name: string | null, email: string): string {
@@ -13,7 +14,7 @@ function getInitials(name: string | null, email: string): string {
   return email[0].toUpperCase();
 }
 
-export function EmailPreview({ email, onReply, onSendToClient }: EmailPreviewProps) {
+export function EmailPreview({ email, onReply, onSendToClient, onDelete }: EmailPreviewProps) {
   const T = useTranslations();
 
   if (!email) {
@@ -84,21 +85,32 @@ export function EmailPreview({ email, onReply, onSendToClient }: EmailPreviewPro
         )}
 
         {/* Action bar */}
-        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100">
-          <button
-            onClick={() => onReply?.(email)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-medium transition-colors"
-          >
-            <Reply className="w-3.5 h-3.5" />
-            {T.common.reply}
-          </button>
-          <button
-            onClick={() => onSendToClient?.(email)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-cyan-700 text-xs font-medium transition-colors"
-          >
-            <Send className="w-3.5 h-3.5" />
-            {T.email.sendToClient}
-          </button>
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onReply?.(email)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-medium transition-colors"
+            >
+              <Reply className="w-3.5 h-3.5" />
+              {T.common.reply}
+            </button>
+            <button
+              onClick={() => onSendToClient?.(email)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-cyan-700 text-xs font-medium transition-colors"
+            >
+              <Send className="w-3.5 h-3.5" />
+              {T.email.sendToClient}
+            </button>
+          </div>
+          {onDelete && (
+            <button
+              onClick={() => onDelete(email.id)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-medium transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Delete
+            </button>
+          )}
         </div>
       </div>
 

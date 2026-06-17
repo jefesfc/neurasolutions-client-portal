@@ -1,3 +1,4 @@
+import { Trash2 } from 'lucide-react';
 import { cn } from '../../lib/cn';
 import { formatRelative } from '../../lib/formatters';
 import { useTranslations } from '../../i18n/useT';
@@ -7,6 +8,7 @@ interface EmailListProps {
   emails: Email[];
   selectedId: string | null;
   onSelect: (email: Email) => void;
+  onDelete?: (id: string) => void;
   search: string;
 }
 
@@ -26,7 +28,7 @@ function getAvatarColor(seed: string): string {
   return colors[Math.abs(h) % colors.length];
 }
 
-export function EmailList({ emails, selectedId, onSelect, search }: EmailListProps) {
+export function EmailList({ emails, selectedId, onSelect, onDelete, search }: EmailListProps) {
   const T = useTranslations();
   const filtered = emails.filter((e) => {
     if (!search) return true;
@@ -118,12 +120,22 @@ export function EmailList({ emails, selectedId, onSelect, search }: EmailListPro
                 )}
               </div>
 
-              {/* Unread dot */}
-              {!email.is_read && (
-                <div className="flex-shrink-0 mt-1.5">
+              {/* Right side: unread dot + delete */}
+              <div className="flex-shrink-0 flex flex-col items-center gap-1.5 mt-0.5">
+                {!email.is_read && (
                   <span className="block w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_4px_rgba(99,102,241,0.6)]" />
-                </div>
-              )}
+                )}
+                {onDelete && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); onDelete(email.id); }}
+                    className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-all"
+                    title="Delete email"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
           </li>
         );

@@ -2,7 +2,62 @@ import nodemailer from 'nodemailer';
 import Stripe from 'stripe';
 import { db } from '../db';
 import { queryKnowledge } from './pinecone';
+import { buildEmailHtml } from './emailBuilder';
 import type OpenAI from 'openai';
+
+const BROCHURE_TREATMENTS_BODY = `We're delighted to share our complete treatment menu with you.
+
+**INJECTABLE TREATMENTS**
+- Anti-Wrinkle Injections from £250
+- Dermal Fillers from £350
+- Lip Augmentation from £299
+- Jaw Slimming (Masseter) from £350
+- Skin Booster (Profhilo) from £450
+- PRP Therapy from £400
+
+**LASER & RESURFACING**
+- CO2 Laser Resurfacing from £800
+- IPL Photofacial from £350
+- Laser Hair Removal from £100 per session
+
+**SKIN TREATMENTS**
+- HydraFacial from £160
+- Chemical Peel from £180
+- Microneedling from £250
+- Microneedling with PRP from £450
+
+**BODY TREATMENTS**
+- Body Contouring from £300
+- Thread Lift from £1,200
+
+All treatments include a complimentary consultation. To book or for more information, please reply to this email or call the clinic directly.`;
+
+const BROCHURE_MEMBERSHIP_BODY = `We'd love to welcome you as a member of Noor Aesthetics. Please find our exclusive packages below.
+
+**SILVER MEMBERSHIP — £1,500/year**
+- 2 Anti-Wrinkle treatments per year
+- 1 HydraFacial every month
+- 10% discount on all additional treatments
+- Priority booking
+
+**GOLD MEMBERSHIP — £2,800/year**
+- 4 Anti-Wrinkle treatments per year
+- 1 HydraFacial + 1 Chemical Peel per month
+- 20% discount on all treatments
+- Dedicated personal consultant
+- Free annual skin assessment
+- Complimentary birthday treatment
+
+**PLATINUM MEMBERSHIP — £5,200/year (or £450/month)**
+- Unlimited Anti-Wrinkle and Filler treatments
+- Unlimited HydraFacials and Chemical Peels
+- 30% discount on all laser and body treatments
+- Same-day VIP booking
+- Dedicated personal consultant
+- Quarterly PRP sessions included
+- Annual full skin rejuvenation package
+
+For a complimentary membership consultation or to join, please reply to this email. We look forward to welcoming you.`;
 
 export const toolDefinitions: OpenAI.Chat.Completions.ChatCompletionTool[] = [
   {
@@ -274,6 +329,25 @@ export const toolDefinitions: OpenAI.Chat.Completions.ChatCompletionTool[] = [
   {
     type: 'function',
     function: {
+      name: 'send_brochure',
+      description: 'Send a Noor Aesthetics brochure by email to a client. Use when the CEO asks to send a brochure, price list, or membership info to a client.',
+      parameters: {
+        type: 'object',
+        properties: {
+          client_name: { type: 'string', description: 'Name or company of the client to send the brochure to.' },
+          brochure_type: {
+            type: 'string',
+            enum: ['treatments', 'membership'],
+            description: '"treatments" = full treatment menu with prices. "membership" = Silver/Gold/Platinum membership packages.',
+          },
+        },
+        required: ['client_name', 'brochure_type'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
       name: 'create_calendar_event',
       description: 'Create a new calendar event. Use when the CEO wants to schedule a meeting, reminder, or any event directly from Telegram.',
       parameters: {
@@ -520,6 +594,50 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
         [tenantId, name, email, phone, company, contractValue]
       );
       return { success: true, client: res.rows[0] };
+    }
+
+    case 'send_brochure': {
+      const clientName   = args.client_name as string;
+      const brochureType = args.brochure_type as 'treatments' | 'membership';
+      if (!clientName) return { error: 'client_name is required' };
+
+      const clientRes = await db.query(
+        `SELECT name, email, company FROM aios.clients
+         WHERE tenant_id = $1
+           AND (LOWER(name) LIKE $2 OR LOWER(COALESCE(company,'')) LIKE $2)
+           AND status = 'active'
+         LIMIT 1`,
+        [tenantId, `%${clientName.toLowerCase()}%`]
+      );
+      if (clientRes.rows.length === 0) return { error: `Active client "${clientName}" not found` };
+      const client = clientRes.rows[0] as { name: string; email: string; company: string | null };
+      if (!client.email) return { error: `Client "${client.name}" has no email address` };
+
+      const subject = brochureType === 'treatments'
+        ? 'Noor Aesthetics — Treatment Menu & Pricing'
+        : 'Noor Aesthetics — Exclusive Membership Packages';
+      const body = brochureType === 'treatments' ? BROCHURE_TREATMENTS_BODY : BROCHURE_MEMBERSHIP_BODY;
+
+      const gmailUser = process.env.GMAIL_USER;
+      const gmailPass = process.env.GMAIL_APP_PASSWORD;
+      if (!gmailUser || !gmailPass) return { error: 'Email not configured on the server' };
+
+      const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: gmailUser, pass: gmailPass } });
+      await transporter.sendMail({
+        from: `Noor Aesthetics <${gmailUser}>`,
+        to: client.email,
+        subject,
+        text: body,
+        html: buildEmailHtml(body, gmailUser),
+      });
+
+      db.query(
+        `INSERT INTO aios.interactions (id, tenant_id, user_id, channel, role, content)
+         VALUES (gen_random_uuid(), $1, (SELECT id FROM aios.users WHERE tenant_id = $1 AND role = 'admin' LIMIT 1), 'email', 'assistant', $2)`,
+        [tenantId, `Brochure (${brochureType}) sent to ${client.name} <${client.email}>`]
+      ).catch(() => {});
+
+      return { success: true, sent_to: client.email, client_name: client.name, brochure: brochureType };
     }
 
     case 'create_calendar_event': {
