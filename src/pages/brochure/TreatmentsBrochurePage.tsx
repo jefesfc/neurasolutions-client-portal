@@ -91,6 +91,8 @@ export default function TreatmentsBrochurePage() {
           @page { margin: 0; size: A4 portrait; }
           body { margin: 0 !important; }
           .page-break { page-break-before: always; break-before: page; }
+          .page-break-after { page-break-after: always; break-after: page; }
+          .no-break { page-break-inside: avoid; break-inside: avoid; }
         }
       `;
       document.head.appendChild(s);
@@ -114,7 +116,7 @@ export default function TreatmentsBrochurePage() {
       </div>
 
       {/* ── COVER ─────────────────────────────────────────────────────────── */}
-      <div style={{ background: 'linear-gradient(160deg, #080611 0%, #0f0c1e 45%, #0c1a2e 100%)', padding: '72px 64px 60px', position: 'relative', overflow: 'hidden' }}>
+      <div className="page-break-after" style={{ background: 'linear-gradient(160deg, #080611 0%, #0f0c1e 45%, #0c1a2e 100%)', padding: '72px 64px 60px', position: 'relative', overflow: 'hidden', minHeight: '297mm', boxSizing: 'border-box' }}>
         {/* Decorative rings */}
         <div style={{ position: 'absolute', top: '-80px', right: '-80px', width: '380px', height: '380px', borderRadius: '50%', border: '1px solid rgba(91,91,214,0.25)' }} />
         <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '260px', height: '260px', borderRadius: '50%', border: '1px solid rgba(91,91,214,0.15)' }} />
@@ -164,7 +166,7 @@ export default function TreatmentsBrochurePage() {
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '0 64px 80px' }}>
 
         {CATALOGUE.map((cat, catIdx) => (
-          <div key={cat.num} className={catIdx > 0 ? 'page-break' : ''} style={{ paddingTop: '56px' }}>
+          <div key={cat.num} className={catIdx > 0 ? 'page-break' : ''} style={{ paddingTop: '40px' }}>
 
             {/* Category header */}
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0', marginBottom: '4px', position: 'relative' }}>
@@ -193,10 +195,11 @@ export default function TreatmentsBrochurePage() {
               {cat.items.map(item => (
                 <div
                   key={item.name}
+                  className="no-break"
                   style={{
                     background: '#ffffff',
                     borderRadius: '12px',
-                    padding: '22px 24px 20px',
+                    padding: '18px 20px 16px',
                     border: '1px solid #ece9e0',
                     borderLeft: `3px solid ${cat.accent}`,
                     boxShadow: '0 1px 4px rgba(0,0,0,0.04)',

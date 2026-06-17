@@ -159,6 +159,8 @@ export default function MembershipBrochurePage() {
           @page { margin: 0; size: A4 portrait; }
           body { margin: 0 !important; }
           .page-break { page-break-before: always; break-before: page; }
+          .page-break-after { page-break-after: always; break-after: page; }
+          .no-break { page-break-inside: avoid; break-inside: avoid; }
         }
       `;
       document.head.appendChild(s);
@@ -182,7 +184,7 @@ export default function MembershipBrochurePage() {
       </div>
 
       {/* ── COVER ─────────────────────────────────────────────────────────── */}
-      <div style={{ background: 'linear-gradient(160deg, #080611 0%, #0f0c1e 45%, #150d2e 100%)', padding: '72px 64px 60px', position: 'relative', overflow: 'hidden' }}>
+      <div className="page-break-after" style={{ background: 'linear-gradient(160deg, #080611 0%, #0f0c1e 45%, #150d2e 100%)', padding: '72px 64px 60px', position: 'relative', overflow: 'hidden', minHeight: '297mm', boxSizing: 'border-box' }}>
         <div style={{ position: 'absolute', top: '-100px', right: '-100px', width: '420px', height: '420px', borderRadius: '50%', border: '1px solid rgba(167,139,250,0.2)' }} />
         <div style={{ position: 'absolute', top: '-60px', right: '-60px', width: '280px', height: '280px', borderRadius: '50%', border: '1px solid rgba(167,139,250,0.12)' }} />
         <div style={{ position: 'absolute', bottom: '20px', left: '15%', width: '180px', height: '180px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.03)' }} />
@@ -223,10 +225,11 @@ export default function MembershipBrochurePage() {
       </div>
 
       {/* ── TIER DETAIL CARDS ───────────────────────────────────────────────── */}
-      <div style={{ padding: '48px 48px 0', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', maxWidth: '1100px', margin: '0 auto' }}>
+      <div className="no-break" style={{ padding: '48px 48px 0', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', maxWidth: '1100px', margin: '0 auto' }}>
         {TIERS.map(tier => (
           <div
             key={tier.name}
+            className="no-break"
             style={{
               borderRadius: '16px',
               overflow: 'hidden',
