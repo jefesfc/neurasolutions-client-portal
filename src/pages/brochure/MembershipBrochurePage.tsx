@@ -272,7 +272,7 @@ export default function MembershipBrochurePage() {
                 <td style={{ padding: '13px 20px', fontSize: '13px', fontWeight: 500, color: '#334155', fontFamily: "'DM Sans', sans-serif" }}>
                   {row.feature}
                 </td>
-                <td style={{ padding: '13px 20px', textAlign: 'center', fontSize: '13px', color: i === 0 ? '#475569' : '#64748b', fontFamily: i === 0 ? "'Cormorant Garant', serif" : "'DM Sans', sans-serif", fontWeight: i === 0 ? 600 : 400, fontSize: i === 0 ? '16px' : '13px' }}>
+                <td style={{ padding: '13px 20px', textAlign: 'center', fontSize: i === 0 ? '16px' : '13px', color: i === 0 ? '#475569' : '#64748b', fontFamily: i === 0 ? "'Cormorant Garant', serif" : "'DM Sans', sans-serif", fontWeight: i === 0 ? 600 : 400 }}>
                   {row.silver}
                 </td>
                 <td style={{ padding: '13px 20px', textAlign: 'center', fontSize: i === 0 ? '16px' : '13px', color: i === 0 ? '#b45309' : '#64748b', fontFamily: i === 0 ? "'Cormorant Garant', serif" : "'DM Sans', sans-serif", fontWeight: i === 0 ? 600 : 400 }}>

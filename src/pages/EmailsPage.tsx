@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PenSquare, Mail, MailOpen, MailCheck, Send, FileText, ExternalLink } from 'lucide-react';
+import { PenSquare, Mail, MailOpen, MailCheck, Send, ExternalLink } from 'lucide-react';
 import { useQuery } from '../hooks/useQuery';
 import { postgrest } from '../lib/postgrest';
 import { PageTransition } from '../components/shared/PageTransition';
