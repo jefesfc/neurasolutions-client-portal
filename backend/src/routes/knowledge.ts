@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdfParse = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string }>;
@@ -10,15 +10,20 @@ import { db } from '../db';
 const router = Router();
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits:  { fileSize: 10 * 1024 * 1024 },
+  limits:  { fileSize: 20 * 1024 * 1024 }, // 20 MB
   fileFilter: (_req, file, cb) => {
-    const allowed = ['application/pdf', 'text/plain'];
-    cb(null, allowed.includes(file.mimetype));
+    const allowed = ['application/pdf', 'text/plain', 'application/octet-stream'];
+    if (allowed.includes(file.mimetype) || file.originalname.endsWith('.pdf') || file.originalname.endsWith('.txt')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF and TXT files are supported'));
+    }
   },
 });
 
-async function extractText(buffer: Buffer, mimetype: string): Promise<string> {
-  if (mimetype === 'application/pdf') {
+async function extractText(buffer: Buffer, mimetype: string, filename: string): Promise<string> {
+  const isPdf = mimetype === 'application/pdf' || filename.toLowerCase().endsWith('.pdf');
+  if (isPdf) {
     const data = await pdfParse(buffer);
     return data.text;
   }
@@ -39,29 +44,57 @@ router.get('/docs', requireAuth, async (req: Request, res: Response) => {
 });
 
 // POST /knowledge/upload — upload and index a document (admin only)
-router.post('/upload', requireAuth, upload.single('file'), async (req: Request, res: Response) => {
+router.post('/upload', requireAuth, (req: Request, res: Response, next: NextFunction) => {
+  upload.single('file')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      const msg = err.code === 'LIMIT_FILE_SIZE' ? 'File too large (max 20 MB)' : err.message;
+      res.status(400).json({ error: msg });
+      return;
+    }
+    if (err) {
+      res.status(400).json({ error: (err as Error).message ?? 'File rejected' });
+      return;
+    }
+    next();
+  });
+}, async (req: Request, res: Response) => {
   const user = (req as any).user;
   if (user.app_role !== 'admin') return res.status(403).json({ error: 'Admin only' });
-  if (!req.file) return res.status(400).json({ error: 'No file provided' });
+  if (!req.file) return res.status(400).json({ error: 'No file attached — select a PDF or TXT file' });
+
+  let text = '';
+  try {
+    text = await extractText(req.file.buffer, req.file.mimetype, req.file.originalname);
+  } catch (err) {
+    console.error('[knowledge/upload] PDF parse error:', err);
+    return res.status(400).json({ error: 'Could not read PDF — try saving as TXT instead' });
+  }
+
+  if (!text.trim()) {
+    return res.status(400).json({ error: 'No text found in file — PDF may be image-based, try TXT' });
+  }
+
+  const docId = uuidv4();
+  let chunkCount = 0;
+  try {
+    chunkCount = await upsertDocument(user.tenant_id, docId, req.file.originalname, text);
+  } catch (err) {
+    console.error('[knowledge/upload] Pinecone error:', err);
+    return res.status(500).json({ error: 'Indexing failed — Pinecone error' });
+  }
 
   try {
-    const text = await extractText(req.file.buffer, req.file.mimetype);
-    if (!text.trim()) return res.status(400).json({ error: 'Could not extract text from file' });
-
-    const docId      = uuidv4();
-    const chunkCount = await upsertDocument(user.tenant_id, docId, req.file.originalname, text);
-
     await db.query(
       `INSERT INTO aios.knowledge_docs (id, tenant_id, name, file_type, chunk_count)
        VALUES ($1, $2, $3, $4, $5)`,
       [docId, user.tenant_id, req.file.originalname, req.file.mimetype, chunkCount],
     );
-
-    res.json({ id: docId, name: req.file.originalname, chunk_count: chunkCount });
   } catch (err) {
-    console.error('[knowledge/upload]', err);
-    res.status(500).json({ error: 'Upload failed' });
+    console.error('[knowledge/upload] DB error:', err);
+    return res.status(500).json({ error: 'Database error after indexing' });
   }
+
+  res.json({ id: docId, name: req.file.originalname, chunk_count: chunkCount });
 });
 
 // DELETE /knowledge/docs/:id — remove document from Pinecone + DB (admin only)
