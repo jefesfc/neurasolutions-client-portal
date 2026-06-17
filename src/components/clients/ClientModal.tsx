@@ -22,6 +22,31 @@ export const NOOR_TREATMENTS = [
   { id: 'body-contouring', label: 'Non-Invasive Body Contouring', category: 'Body' },
   { id: 'thread-lift',    label: 'Thread Lift',                 category: 'Body' },
 ] as const;
+
+const TREATMENT_PRICES: Record<string, number> = {
+  'anti-wrinkle':    250,
+  'dermal-fillers':  350,
+  'lip-augmentation':299,
+  'jaw-slimming':    350,
+  'skin-booster':    450,
+  'prp':             400,
+  'co2-laser':       800,
+  'ipl':             350,
+  'laser-hair':      100,
+  'hydrafacial':     160,
+  'chemical-peel':   180,
+  'microneedling':   250,
+  'microneedling-prp':450,
+  'body-contouring': 300,
+  'thread-lift':     1200,
+};
+
+const MEMBERSHIP_PRICES: Record<string, number> = {
+  silver:   1500,
+  gold:     2800,
+  platinum: 5200,
+};
+
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -89,6 +114,7 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
   const [users, setUsers]         = useState<User[]>([]);
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState<string | null>(null);
+  const [autoCalc, setAutoCalc]   = useState(false);
   const [journeyOpen, setJourneyOpen] = useState(false);
   const [treatmentsOpen, setTreatmentsOpen] = useState(false);
   const toggleJourney = useCallback(() => setJourneyOpen(v => !v), []);
@@ -99,6 +125,19 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
       console.error('[ClientModal] failed to load users:', err);
     });
   }, []);
+
+  // Auto-calculate contract value from selected treatments + membership
+  useEffect(() => {
+    const treatmentSum = treatments.reduce((sum, id) => sum + (TREATMENT_PRICES[id] ?? 0), 0);
+    const membershipFee = membership ? (MEMBERSHIP_PRICES[membership] ?? 0) : 0;
+    const total = treatmentSum + membershipFee;
+    if (total > 0) {
+      setContractValue(String(total));
+      setAutoCalc(true);
+    } else {
+      setAutoCalc(false);
+    }
+  }, [treatments, membership]);
 
   useEffect(() => {
     if (convertingFromLead) {
@@ -132,6 +171,7 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
       setTreatments(initialData.treatments ?? []);
       setMembership(initialData.membership_tier ?? null);
       setCustomTreatment('');
+      setAutoCalc(false);
       setAdmissionDate(initialData.admission_date ?? '');
       setAdmissionNotes(initialData.admission_notes ?? '');
       setInvestigationDate(initialData.investigation_date ?? '');
@@ -257,8 +297,31 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>Contract Value (£)</label>
-            <Input type="number" min={0} step="0.01" value={contractValue} onChange={e => setContractValue(e.target.value)} placeholder="0.00" />
+            <div className="flex items-center justify-between mb-1">
+              <label className={labelCls} style={{ marginBottom: 0 }}>Contract Value (£)</label>
+              {autoCalc && (
+                <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  ✦ Auto-calculated
+                </span>
+              )}
+            </div>
+            <Input
+              type="number" min={0} step="0.01"
+              value={contractValue}
+              onChange={e => { setContractValue(e.target.value); setAutoCalc(false); }}
+              placeholder="0.00"
+            />
+            {autoCalc && (() => {
+              const treatmentSum = treatments.reduce((s, id) => s + (TREATMENT_PRICES[id] ?? 0), 0);
+              const membershipFee = membership ? (MEMBERSHIP_PRICES[membership] ?? 0) : 0;
+              return (
+                <p className="text-[10px] text-slate-400 mt-1">
+                  {treatmentSum > 0 && `Treatments £${treatmentSum.toLocaleString()}`}
+                  {treatmentSum > 0 && membershipFee > 0 && ' + '}
+                  {membershipFee > 0 && `${membership ? membership.charAt(0).toUpperCase() + membership.slice(1) : ''} membership £${membershipFee.toLocaleString()}`}
+                </p>
+              );
+            })()}
           </div>
           <div>
             <label className={labelCls}>Status</label>
