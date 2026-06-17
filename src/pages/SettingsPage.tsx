@@ -292,25 +292,46 @@ function EmailTab() {
   const T = useTranslations();
   const { token } = useAuthStore();
   const [labelFilter, setLabelFilter] = useState('');
+  const [smtpUser, setSmtpUser] = useState('');
+  const [smtpPass, setSmtpPass] = useState('');
+  const [smtpConfigured, setSmtpConfigured] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch(`${API_URL}/emails/status`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then((data: { label_filter?: string | null; smtp_user?: string | null; smtp_configured?: boolean }) => {
+        setLabelFilter(data.label_filter ?? '');
+        setSmtpUser(data.smtp_user ?? '');
+        setSmtpConfigured(data.smtp_configured ?? false);
+      })
+      .catch(() => {});
+  }, [token]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     setSaveError(null);
     try {
+      const body: Record<string, string | null> = {
+        label_filter: labelFilter.trim() || null,
+        smtp_user: smtpUser.trim() || null,
+      };
+      if (smtpPass.trim()) body.smtp_pass = smtpPass.trim();
+
       const res = await fetch(`${API_URL}/emails/settings`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ label_filter: labelFilter.trim() || null }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
-        const body = (await res.json()) as { error?: string };
-        throw new Error(body.error ?? 'Failed to save');
+        const d = (await res.json()) as { error?: string };
+        throw new Error(d.error ?? 'Failed to save');
       }
       setSaved(true);
+      if (smtpPass.trim()) { setSmtpPass(''); setSmtpConfigured(true); }
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to save');
@@ -323,6 +344,45 @@ function EmailTab() {
     <div className="max-w-lg space-y-5">
       <p className="text-sm text-slate-500">{T.settings.gmailDesc}</p>
       <form onSubmit={(e) => void handleSave(e)} className="space-y-4">
+
+        {/* Outbound SMTP */}
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-slate-700">Outbound Email (Gmail)</p>
+            {smtpConfigured && (
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                Configured
+              </span>
+            )}
+          </div>
+          <div>
+            <label className={labelCls}>Gmail Address</label>
+            <Input
+              type="email"
+              value={smtpUser}
+              onChange={(e) => setSmtpUser(e.target.value)}
+              placeholder="you@gmail.com"
+            />
+          </div>
+          <div>
+            <label className={labelCls}>
+              App Password{smtpConfigured ? ' (leave blank to keep current)' : ''}
+            </label>
+            <Input
+              type="password"
+              value={smtpPass}
+              onChange={(e) => setSmtpPass(e.target.value)}
+              placeholder={smtpConfigured ? '••••••••••••••••' : 'xxxx xxxx xxxx xxxx'}
+              autoComplete="new-password"
+            />
+            <p className="text-xs text-slate-400 mt-1">
+              Generate in Google Account → Security → 2-Step Verification → App passwords
+            </p>
+          </div>
+        </div>
+
+        {/* Gmail label filter */}
         <div>
           <label className={labelCls}>{T.settings.gmailLabelFilter}</label>
           <Input value={labelFilter} onChange={(e) => setLabelFilter(e.target.value)} placeholder={T.settings.gmailPh} />
@@ -332,6 +392,7 @@ function EmailTab() {
             <code className="bg-slate-100 px-1 rounded text-slate-700">Label_Clients</code>
           </p>
         </div>
+
         {saveError && <p className="text-sm text-danger">{saveError}</p>}
         {saved && <p className="text-sm text-positive">{T.settings.changesSaved}</p>}
         <div className="pt-1">

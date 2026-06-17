@@ -112,11 +112,13 @@ router.get('/status', requireAuth, async (req: Request, res: Response) => {
       [req.user!.tenant_id]
     );
     const settings = rows[0]?.settings as
-      | { email?: { enabled?: boolean; label_filter?: string } }
+      | { email?: { enabled?: boolean; label_filter?: string; smtp_user?: string; smtp_pass?: string } }
       | undefined;
     res.json({
       enabled: settings?.email?.enabled ?? false,
       label_filter: settings?.email?.label_filter ?? null,
+      smtp_user: settings?.email?.smtp_user ?? null,
+      smtp_configured: !!(settings?.email?.smtp_user && settings?.email?.smtp_pass),
     });
   } catch (err) {
     console.error('[emails/status]', err);
@@ -169,17 +171,41 @@ router.post('/activate', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-// PATCH /emails/settings — tenant admin updates label_filter
-// Uses nested jsonb_set path {email,label_filter} to preserve all other settings
+// PATCH /emails/settings — tenant admin updates label_filter, smtp_user, smtp_pass
+// Uses chained jsonb_set to preserve all other settings fields
 router.patch('/settings', requireAuth, async (req: Request, res: Response) => {
   if (req.user!.app_role !== 'admin') { res.status(403).json({ error: 'Admin role required' }); return; }
-  const { label_filter } = req.body as { label_filter: string | null };
+  const { label_filter, smtp_user, smtp_pass } = req.body as {
+    label_filter?: string | null;
+    smtp_user?: string | null;
+    smtp_pass?: string | null;
+  };
   try {
+    // Build chained jsonb_set for each provided field
+    let expr = 'COALESCE(settings, \'{}\')';
+    const params: (string | null)[] = [];
+    let idx = 1;
+
+    if (label_filter !== undefined) {
+      expr = `jsonb_set(${expr}, '{email,label_filter}', $${idx}::jsonb)`;
+      params.push(label_filter ? JSON.stringify(label_filter) : 'null');
+      idx++;
+    }
+    if (smtp_user !== undefined) {
+      expr = `jsonb_set(${expr}, '{email,smtp_user}', $${idx}::jsonb)`;
+      params.push(smtp_user ? JSON.stringify(smtp_user) : 'null');
+      idx++;
+    }
+    if (smtp_pass !== undefined) {
+      expr = `jsonb_set(${expr}, '{email,smtp_pass}', $${idx}::jsonb)`;
+      params.push(smtp_pass ? JSON.stringify(smtp_pass) : 'null');
+      idx++;
+    }
+
+    params.push(req.user!.tenant_id);
     await db.query(
-      `UPDATE aios.tenants
-       SET settings = jsonb_set(COALESCE(settings, '{}'), '{email,label_filter}', $1::jsonb)
-       WHERE id = $2`,
-      [label_filter ? JSON.stringify(label_filter) : 'null', req.user!.tenant_id]
+      `UPDATE aios.tenants SET settings = ${expr} WHERE id = $${idx}`,
+      params
     );
     res.json({ ok: true });
   } catch (err) {
@@ -208,17 +234,34 @@ router.post('/send', requireAuth, async (req: Request, res: Response) => {
     return;
   }
 
-  const gmailUser = process.env.GMAIL_USER;
-  const gmailPass = process.env.GMAIL_APP_PASSWORD;
-  if (!gmailUser || !gmailPass) {
-    res.status(500).json({ error: 'Email sending not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD.' });
+  // Resolve SMTP credentials: tenant settings take priority over env vars
+  let smtpUser: string | undefined;
+  let smtpPass: string | undefined;
+  try {
+    const { rows } = await db.query(
+      `SELECT settings FROM aios.tenants WHERE id = $1`,
+      [req.user!.tenant_id]
+    );
+    const s = rows[0]?.settings as { email?: { smtp_user?: string; smtp_pass?: string } } | undefined;
+    smtpUser = s?.email?.smtp_user || process.env.GMAIL_USER;
+    smtpPass = s?.email?.smtp_pass || process.env.GMAIL_APP_PASSWORD;
+  } catch {
+    smtpUser = process.env.GMAIL_USER;
+    smtpPass = process.env.GMAIL_APP_PASSWORD;
+  }
+
+  if (!smtpUser || !smtpPass) {
+    res.status(500).json({ error: 'Email sending not configured. Set SMTP credentials in Settings → Email.' });
     return;
   }
 
   try {
-    const transporter = createMailTransporter();
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: smtpUser, pass: smtpPass },
+    });
     await transporter.sendMail({
-      from: `AIOS <${gmailUser}>`,
+      from: `AIOS <${smtpUser}>`,
       to,
       subject,
       text: body,
