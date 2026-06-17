@@ -1,7 +1,9 @@
 import { X, ArrowRightLeft, User as UserIcon, Mail, Phone, Globe, MapPin, Calendar, PoundSterling, Tag, FileText, CheckCircle2, Sparkles, Crown } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
-import type { Client, ClientStage } from '../../types/aios';
+import { useEffect, useState } from 'react';
+import { postgrest } from '../../lib/postgrest';
+import type { Client, ClientStage, User } from '../../types/aios';
 import { NOOR_TREATMENTS } from './ClientModal';
 
 const STATUS_BADGE: Record<Client['status'], { variant: 'success' | 'warning' | 'danger'; label: string }> = {
@@ -39,6 +41,14 @@ interface Props {
 export function ClientDetailPanel({ client, canEdit, onEdit, onDelete, onClose }: Props) {
   const badge     = STATUS_BADGE[client.status];
   const stageCfg  = STAGE_CONFIG[client.stage ?? 'admission'];
+
+  const [users, setUsers] = useState<User[]>([]);
+  useEffect(() => {
+    postgrest.get<User>('users', { order: 'name.asc', limit: 200 }).then(setUsers).catch(() => {});
+  }, []);
+  const assignedName = client.assigned_to
+    ? (users.find(u => u.id === client.assigned_to)?.name ?? client.assigned_to)
+    : null;
 
   const journeyStages: { key: ClientStage; label: string; date: string | null; notes: string | null }[] = [
     { key: 'admission',     label: 'Admission',     date: client.admission_date,     notes: client.admission_notes     },
@@ -80,7 +90,7 @@ export function ClientDetailPanel({ client, canEdit, onEdit, onDelete, onClose }
           <Field icon={<Tag className="h-3.5 w-3.5" />}            label="Industry"       value={client.industry} />
           <Field icon={<PoundSterling className="h-3.5 w-3.5" />}  label="Contract Value" value={formatCurrency(client.contract_value)} />
           <Field icon={<Calendar className="h-3.5 w-3.5" />}       label="Next Renewal"   value={formatDate(client.next_renewal_at)} />
-          <Field icon={<UserIcon className="h-3.5 w-3.5" />}       label="Assigned To"    value={client.assigned_to} />
+          <Field icon={<UserIcon className="h-3.5 w-3.5" />}       label="Assigned To"    value={assignedName} />
           <div className="col-span-2">
             <Field icon={<MapPin className="h-3.5 w-3.5" />}       label="Address"        value={client.address} />
           </div>
