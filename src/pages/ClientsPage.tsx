@@ -221,103 +221,154 @@ export default function ClientsPage() {
           ) : filtered.length === 0 ? (
             <div className="p-12 text-center text-slate-400">{T.clients.notFound}</div>
           ) : (
-            <table className="w-full text-sm">
+            <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colCompany}</th>
-                  {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colName}</th>}
-                  {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colEmail}</th>}
-                  {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colPhone}</th>}
-                  <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colValue}</th>
-                  <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colStage}</th>
-                  {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colStatus}</th>}
-                  {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colRenewal}</th>}
-                  {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">Membership</th>}
-                  {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">Treatments</th>}
+                <tr className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                  <th className="text-left px-5 py-3.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Client</th>
+                  {!selectedClient && <th className="text-left px-5 py-3.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Contact</th>}
+                  <th className="text-left px-5 py-3.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Value</th>
+                  <th className="text-left px-5 py-3.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Stage</th>
+                  {!selectedClient && <th className="text-left px-5 py-3.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Status</th>}
+                  {!selectedClient && <th className="text-left px-5 py-3.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Renewal</th>}
+                  {!selectedClient && <th className="text-left px-5 py-3.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Membership</th>}
+                  {!selectedClient && <th className="text-left px-5 py-3.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Treatments</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filtered.map((client) => {
+              <tbody>
+                {filtered.map((client, idx) => {
                   const clientStage = (client.stage ?? 'admission') as ClientStage;
                   const stageCfg   = STAGE_TABS.find(s => s.key === clientStage);
                   const isSelected = selectedClient?.id === client.id;
+                  const initials = client.company.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+                  const avatarColors = [
+                    ['#6366f1','#eef2ff'], ['#d97706','#fffbeb'], ['#0891b2','#ecfeff'],
+                    ['#059669','#f0fdf4'], ['#7c3aed','#f5f3ff'], ['#db2777','#fdf2f8'],
+                  ];
+                  const [avatarColor, avatarBg] = avatarColors[idx % avatarColors.length];
+                  const tierCfg = client.membership_tier === 'platinum'
+                    ? { label: 'Platinum', bg: '#eef2ff', color: '#4338ca', border: '#c7d2fe' }
+                    : client.membership_tier === 'gold'
+                    ? { label: 'Gold', bg: '#fffbeb', color: '#b45309', border: '#fde68a' }
+                    : client.membership_tier === 'silver'
+                    ? { label: 'Silver', bg: '#f1f5f9', color: '#475569', border: '#cbd5e1' }
+                    : null;
+
                   return (
                     <tr
                       key={client.id}
                       onClick={() => setSelectedClient(isSelected ? null : client)}
-                      className={`cursor-pointer transition-colors ${isSelected ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}
+                      className={`cursor-pointer border-b border-slate-50 transition-all duration-150 ${
+                        isSelected
+                          ? 'bg-indigo-50/70 shadow-[inset_3px_0_0_#6366f1]'
+                          : 'hover:bg-slate-50/80'
+                      }`}
                     >
-                      <td className="px-4 py-3 font-medium text-slate-800">{client.company}</td>
-                      {!selectedClient && <td className="px-4 py-3 text-slate-600">{client.name}</td>}
-                      {!selectedClient && <td className="px-4 py-3 text-slate-500">{client.email}</td>}
-                      {!selectedClient && <td className="px-4 py-3 text-slate-500">{client.phone ?? '—'}</td>}
-                      <td className="px-4 py-3 text-slate-600">
-                        {client.contract_value != null
-                          ? `£${client.contract_value.toLocaleString('en-GB', { minimumFractionDigits: 0 })}`
-                          : '—'}
+                      {/* Client: avatar + company + name */}
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0"
+                            style={{ background: avatarBg, color: avatarColor }}
+                          >
+                            {initials}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-slate-800 leading-tight">{client.company}</p>
+                            {!selectedClient && <p className="text-xs text-slate-400 mt-0.5">{client.name}</p>}
+                          </div>
+                        </div>
                       </td>
-                      <td className="px-4 py-3">
+
+                      {/* Contact: email + phone */}
+                      {!selectedClient && (
+                        <td className="px-5 py-4">
+                          <p className="text-sm text-slate-600">{client.email}</p>
+                          {client.phone && <p className="text-xs text-slate-400 mt-0.5">{client.phone}</p>}
+                        </td>
+                      )}
+
+                      {/* Value */}
+                      <td className="px-5 py-4">
+                        <p className="text-sm font-bold text-slate-800">
+                          {client.contract_value != null
+                            ? `£${client.contract_value.toLocaleString('en-GB')}`
+                            : '—'}
+                        </p>
+                        <p className="text-[10px] text-slate-400 mt-0.5 uppercase tracking-wide">Annual</p>
+                      </td>
+
+                      {/* Stage */}
+                      <td className="px-5 py-4">
                         <span
-                          className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                          className="inline-flex items-center text-[11px] font-semibold px-2.5 py-1 rounded-full"
                           style={{
                             color:      stageCfg?.color ?? '#64748b',
-                            background: `${stageCfg?.color ?? '#64748b'}15`,
+                            background: `${stageCfg?.color ?? '#64748b'}18`,
                           }}
                         >
                           {STAGE_LABEL[clientStage]}
                         </span>
                       </td>
+
+                      {/* Status */}
                       {!selectedClient && (
-                        <td className="px-4 py-3">
-                          <Badge variant={STATUS_BADGE_VARIANT[client.status]} dot>{STATUS_BADGE_LABEL[client.status]}</Badge>
+                        <td className="px-5 py-4">
+                          <Badge variant={STATUS_BADGE_VARIANT[client.status]} dot>
+                            {STATUS_BADGE_LABEL[client.status]}
+                          </Badge>
                         </td>
                       )}
+
+                      {/* Renewal */}
                       {!selectedClient && (
-                        <td className="px-4 py-3 text-slate-400">
-                          {client.next_renewal_at
-                            ? new Date(`${client.next_renewal_at}T00:00:00`).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-                            : '—'}
+                        <td className="px-5 py-4">
+                          {client.next_renewal_at ? (
+                            <>
+                              <p className="text-sm text-slate-600">
+                                {new Date(`${client.next_renewal_at}T00:00:00`).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                              </p>
+                              <p className="text-[10px] text-slate-400 mt-0.5">
+                                {new Date(`${client.next_renewal_at}T00:00:00`).getFullYear()}
+                              </p>
+                            </>
+                          ) : <span className="text-slate-300 text-sm">—</span>}
                         </td>
                       )}
+
+                      {/* Membership */}
                       {!selectedClient && (
-                        <td className="px-4 py-3">
-                          {client.membership_tier ? (() => {
-                            const cfg = client.membership_tier === 'platinum'
-                              ? { label: 'Platinum', bg: '#eef2ff', color: '#4338ca' }
-                              : client.membership_tier === 'gold'
-                              ? { label: 'Gold', bg: '#fffbeb', color: '#92400e' }
-                              : { label: 'Silver', bg: '#f8fafc', color: '#64748b' };
-                            return (
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
-                                style={{ background: cfg.bg, color: cfg.color, borderColor: cfg.color + '40' }}>
-                                ✦ {cfg.label}
-                              </span>
-                            );
-                          })() : <span className="text-slate-300 text-xs">—</span>}
+                        <td className="px-5 py-4">
+                          {tierCfg ? (
+                            <span
+                              className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border"
+                              style={{ background: tierCfg.bg, color: tierCfg.color, borderColor: tierCfg.border }}
+                            >
+                              ✦ {tierCfg.label}
+                            </span>
+                          ) : <span className="text-slate-300 text-sm">—</span>}
                         </td>
                       )}
+
+                      {/* Treatments */}
                       {!selectedClient && (
-                        <td className="px-4 py-3">
+                        <td className="px-5 py-4">
                           {(client.treatments ?? []).length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex flex-wrap gap-1.5">
                               {(client.treatments ?? []).slice(0, 2).map(id => {
                                 const t = NOOR_TREATMENTS.find(x => x.id === id);
-                                const label = t ? t.label : id;
                                 return (
-                                  <span key={id} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100">
-                                    {label}
+                                  <span key={id} className="text-[10px] font-semibold px-2 py-1 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100">
+                                    {t ? t.label : id}
                                   </span>
                                 );
                               })}
                               {(client.treatments ?? []).length > 2 && (
-                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
-                                  +{(client.treatments ?? []).length - 2}
+                                <span className="text-[10px] font-semibold px-2 py-1 rounded-lg bg-slate-100 text-slate-500 border border-slate-200">
+                                  +{(client.treatments ?? []).length - 2} more
                                 </span>
                               )}
                             </div>
-                          ) : (
-                            <span className="text-slate-300 text-xs">—</span>
-                          )}
+                          ) : <span className="text-slate-300 text-sm">—</span>}
                         </td>
                       )}
                     </tr>
