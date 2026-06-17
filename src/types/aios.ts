@@ -51,6 +51,7 @@ export interface Client {
   discharge_date: string | null;
   discharge_notes: string | null;
   treatments: string[] | null;
+  membership_tier: 'silver' | 'gold' | 'platinum' | null;
   created_at: string;
   updated_at: string;
 }

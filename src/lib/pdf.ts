@@ -710,3 +710,288 @@ export async function generateTreatmentsBrochurePDF(): Promise<void> {
   addPageFooters(doc);
   doc.save(`noor-aesthetics-treatment-brochure-${new Date().toISOString().slice(0, 10)}.pdf`);
 }
+
+// ── Membership Brochure ────────────────────────────────────────────────────
+
+const MEMBERSHIP_TIERS = [
+  {
+    name: 'Platinum',
+    price: '£5,200',
+    period: 'per year',
+    color: [99, 102, 241] as [number, number, number],
+    hex: '#6366f1',
+    light: '#eef2ff',
+    border: '#c7d2fe',
+    tagline: 'Ultimate luxury care & unlimited access',
+    features: [
+      'Unlimited access to all 15 treatments',
+      'Dedicated personal coordinator',
+      '25% discount on all additional services',
+      'Monthly skin health review',
+      '2 complimentary premium treatments per year',
+      'Priority same-day booking',
+      'Exclusive member-only events & previews',
+      'Annual in-depth consultation with senior clinician',
+      'Birthday luxury treatment (value up to £500)',
+      'Personalised skincare regime & home products',
+    ],
+  },
+  {
+    name: 'Gold',
+    price: '£2,800',
+    period: 'per year',
+    color: [217, 119, 6] as [number, number, number],
+    hex: '#d97706',
+    light: '#fffbeb',
+    border: '#fde68a',
+    tagline: 'Premium treatments & priority access',
+    features: [
+      'Access to all injectable & laser treatments',
+      '15% discount on all additional services',
+      'Quarterly personalised skin review',
+      '1 complimentary treatment per year',
+      'Priority 24-hour booking guarantee',
+      'Dedicated WhatsApp support line',
+      'Birthday treatment gift (value up to £250)',
+      'Invitation to seasonal member events',
+      'Online treatment diary & progress tracking',
+    ],
+  },
+  {
+    name: 'Silver',
+    price: '£1,500',
+    period: 'per year',
+    color: [71, 85, 105] as [number, number, number],
+    hex: '#475569',
+    light: '#f8fafc',
+    border: '#cbd5e1',
+    tagline: 'Essential aesthetics & great value',
+    features: [
+      'Access to skin & body treatment range',
+      '10% discount on all services',
+      'Bi-annual skin consultation',
+      'Priority booking (48-hour guarantee)',
+      'Monthly wellness newsletter & tips',
+      'Referral reward programme',
+      'Birthday discount voucher (15% off)',
+    ],
+  },
+];
+
+export async function generateMembershipPDF(): Promise<void> {
+  const doc = new jsPDF();
+  const w = doc.internal.pageSize.getWidth();
+  const h = doc.internal.pageSize.getHeight();
+  const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+
+  // ── Cover page ─────────────────────────────────────────────────────────────
+  doc.setFillColor(15, 12, 41);
+  doc.rect(0, 0, w, h, 'F');
+
+  // Decorative circles
+  doc.setFillColor(67, 56, 202);
+  doc.circle(w + 10, -10, 60, 'F');
+  doc.setFillColor(30, 27, 75);
+  doc.circle(-10, h + 10, 50, 'F');
+  doc.setFillColor(99, 102, 241);
+  doc.circle(w / 2, h * 0.6, 90, 'F');
+  doc.setFillColor(15, 12, 41);
+  doc.circle(w / 2, h * 0.6, 76, 'F');
+
+  // Logo
+  const logo = await _logoImg;
+  if (logo.naturalWidth > 0) {
+    const lh = 22;
+    const lw = (logo.naturalWidth / logo.naturalHeight) * lh;
+    doc.addImage(logo, 'PNG', 14, 14, lw, lh);
+  }
+
+  // Accent line
+  doc.setFillColor(217, 119, 6);
+  doc.rect(14, 52, 30, 1.5, 'F');
+
+  // Title
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(32);
+  doc.setTextColor(255, 255, 255);
+  doc.text('Noor Aesthetics', 14, 72);
+  doc.setFontSize(22);
+  doc.setTextColor(253, 230, 138);
+  doc.text('Membership Packages', 14, 84);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(148, 163, 184);
+  doc.text('Exclusive membership tiers for premium aesthetic care', 14, 96);
+
+  // Date badge
+  doc.setFillColor(30, 27, 75);
+  doc.roundedRect(14, 106, 60, 9, 3, 3, 'F');
+  doc.setFontSize(8);
+  doc.setTextColor(253, 230, 138);
+  doc.text(today, 44, 112, { align: 'center' });
+
+  doc.setFontSize(9);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`${MEMBERSHIP_TIERS.length} tiers available  ·  Annual membership`, 14, 124);
+
+  // Tier preview strip
+  let stripX = 14;
+  for (const tier of MEMBERSHIP_TIERS) {
+    const stripW = (w - 28 - 8) / 3;
+    doc.setFillColor(...tier.color);
+    doc.roundedRect(stripX, h - 50, stripW, 30, 3, 3, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(255, 255, 255);
+    doc.text(`✦ ${tier.name}`, stripX + stripW / 2, h - 39, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text(tier.price, stripX + stripW / 2, h - 29, { align: 'center' });
+    stripX += stripW + 4;
+  }
+
+  // Bottom strip
+  doc.setFillColor(67, 56, 202);
+  doc.rect(0, h - 14, w, 14, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(255, 255, 255);
+  doc.text('CONFIDENTIAL — Noor Aesthetics Client Document', 14, h - 5);
+  doc.text('neurasolutions.cloud', w - 14, h - 5, { align: 'right' });
+
+  // ── Tier pages ─────────────────────────────────────────────────────────────
+  for (const tier of MEMBERSHIP_TIERS) {
+    doc.addPage();
+
+    // Header band
+    doc.setFillColor(...tier.color);
+    doc.rect(0, 0, w, 28, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.setTextColor(255, 255, 255);
+    doc.text(`✦ ${tier.name.toUpperCase()} MEMBERSHIP`, 14, 18);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text(tier.tagline, w - 14, 18, { align: 'right' });
+
+    // Price card
+    const priceCardY = 36;
+    doc.setFillColor(tier.light);
+    doc.roundedRect(14, priceCardY, w - 28, 28, 4, 4, 'F');
+    doc.setDrawColor(tier.border);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(14, priceCardY, w - 28, 28, 4, 4, 'S');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(28);
+    doc.setTextColor(tier.hex);
+    doc.text(tier.price, 22, priceCardY + 18);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139);
+    doc.text(tier.period, 22, priceCardY + 25);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(tier.hex);
+    doc.text('ANNUAL MEMBERSHIP', w - 22, priceCardY + 12, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`${tier.features.length} exclusive benefits included`, w - 22, priceCardY + 20, { align: 'right' });
+
+    // Features list
+    let fy = priceCardY + 38;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(15, 23, 42);
+    doc.text('What\'s included', 14, fy);
+    fy += 8;
+
+    for (const feature of tier.features) {
+      // Check mark circle
+      doc.setFillColor(...tier.color);
+      doc.circle(18, fy - 1.5, 2.5, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      doc.setTextColor(255, 255, 255);
+      doc.text('✓', 18, fy - 0.5, { align: 'center' });
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(51, 65, 85);
+      doc.text(feature, 24, fy);
+      fy += 8;
+    }
+
+    // Footer
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.3);
+    doc.line(14, h - 14, w - 14, h - 14);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(148, 163, 184);
+    doc.text('Noor Aesthetics — Confidential Membership Document', 14, h - 7);
+    doc.text(today, w - 14, h - 7, { align: 'right' });
+  }
+
+  // ── Comparison table page ──────────────────────────────────────────────────
+  doc.addPage();
+  await addPageHeader(doc, 'Membership Comparison', 'All tiers · ' + today);
+
+  const allFeatures = [...new Set(MEMBERSHIP_TIERS.flatMap(t => t.features))];
+  const compRows: string[][] = [];
+
+  // Price row
+  compRows.push(['Annual Price', '£1,500', '£2,800', '£5,200']);
+
+  // Feature rows
+  const featureMatrix = [
+    ['Treatments access',        'Skin & Body',    'Injectables + Laser', 'All 15 treatments'],
+    ['Service discount',         '10%',            '15%',                  '25%'],
+    ['Booking priority',         '48h guarantee',  '24h guarantee',        'Same-day'],
+    ['Skin consultations',       'Bi-annual',      'Quarterly',            'Monthly'],
+    ['Complimentary treatments', '—',              '1 per year',           '2 per year'],
+    ['Personal coordinator',     '—',              '—',                    '✓ Dedicated'],
+    ['Member events',            '—',              '✓ Seasonal',           '✓ Exclusive'],
+    ['Birthday benefit',         '15% discount',   'Treatment (£250)',     'Treatment (£500)'],
+  ];
+
+  autoTable(doc, {
+    startY: 56,
+    head: [['Feature', '✦ Silver', '✦ Gold', '✦ Platinum']],
+    body: featureMatrix,
+    headStyles: { fillColor: BRAND_RGB, textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' },
+    bodyStyles: { fontSize: 8.5, textColor: [15, 23, 42] },
+    alternateRowStyles: { fillColor: SURFACE_RGB },
+    columnStyles: {
+      0: { cellWidth: 55, fontStyle: 'bold' },
+      1: { cellWidth: 38, halign: 'center', textColor: [71, 85, 105] },
+      2: { cellWidth: 38, halign: 'center', textColor: [146, 64, 14] },
+      3: { cellWidth: 38, halign: 'center', textColor: [67, 56, 202], fontStyle: 'bold' },
+    },
+    margin: { left: 14, right: 14 },
+  });
+
+  // Price summary
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tableEndY: number = (doc as any).lastAutoTable.finalY + 12;
+  const tileW = (w - 28 - 8) / 3;
+  let tx = 14;
+  for (const tier of MEMBERSHIP_TIERS) {
+    doc.setFillColor(tier.light);
+    doc.roundedRect(tx, tableEndY, tileW, 22, 3, 3, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(tier.hex);
+    doc.text(`✦ ${tier.name}`, tx + tileW / 2, tableEndY + 8, { align: 'center' });
+    doc.setFontSize(13);
+    doc.text(tier.price, tx + tileW / 2, tableEndY + 17, { align: 'center' });
+    tx += tileW + 4;
+  }
+
+  addPageFooters(doc);
+  doc.save(`noor-aesthetics-membership-brochure-${new Date().toISOString().slice(0, 10)}.pdf`);
+}

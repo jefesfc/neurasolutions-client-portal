@@ -11,7 +11,7 @@ import { EmailList } from '../components/emails/EmailList';
 import { EmailPreview } from '../components/emails/EmailPreview';
 import { ComposeModal } from '../components/emails/ComposeModal';
 import { useAuthStore } from '../store/auth-store';
-import { generateTreatmentsBrochurePDF } from '../lib/pdf';
+import { generateTreatmentsBrochurePDF, generateMembershipPDF } from '../lib/pdf';
 import type { Email } from '../types/aios';
 
 type ComposeMode = 'compose' | 'reply' | 'client';
@@ -109,11 +109,18 @@ export default function EmailsPage() {
               />
             </div>
             <button
+              onClick={() => void generateMembershipPDF()}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-700 text-sm font-semibold transition-colors"
+            >
+              <FileText className="w-4 h-4" />
+              Membership PDF
+            </button>
+            <button
               onClick={() => void generateTreatmentsBrochurePDF()}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm font-semibold transition-colors"
             >
               <FileText className="w-4 h-4" />
-              Brochure PDF
+              Treatments PDF
             </button>
             {canCompose && (
               <button

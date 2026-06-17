@@ -1,4 +1,4 @@
-import { X, ArrowRightLeft, User as UserIcon, Mail, Phone, Globe, MapPin, Calendar, PoundSterling, Tag, FileText, CheckCircle2, Sparkles } from 'lucide-react';
+import { X, ArrowRightLeft, User as UserIcon, Mail, Phone, Globe, MapPin, Calendar, PoundSterling, Tag, FileText, CheckCircle2, Sparkles, Crown } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import type { Client, ClientStage } from '../../types/aios';
@@ -89,6 +89,21 @@ export function ClientDetailPanel({ client, canEdit, onEdit, onDelete, onClose }
           </div>
         </div>
 
+        {/* ── Membership ── */}
+        {client.membership_tier && (() => {
+          const cfg = client.membership_tier === 'platinum'
+            ? { label: 'Platinum Member', bg: '#eef2ff', color: '#4338ca', border: '#c7d2fe' }
+            : client.membership_tier === 'gold'
+            ? { label: 'Gold Member', bg: '#fffbeb', color: '#92400e', border: '#fde68a' }
+            : { label: 'Silver Member', bg: '#f8fafc', color: '#475569', border: '#cbd5e1' };
+          return (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl border w-fit" style={{ background: cfg.bg, borderColor: cfg.border }}>
+              <Crown className="w-3.5 h-3.5" style={{ color: cfg.color }} />
+              <span className="text-xs font-bold" style={{ color: cfg.color }}>{cfg.label}</span>
+            </div>
+          );
+        })()}
+
         {/* ── Treatments ── */}
         {(client.treatments ?? []).length > 0 && (
           <div>
@@ -103,14 +118,17 @@ export function ClientDetailPanel({ client, canEdit, onEdit, onDelete, onClose }
             <div className="flex flex-wrap gap-1.5">
               {(client.treatments ?? []).map(id => {
                 const t = NOOR_TREATMENTS.find(x => x.id === id);
-                if (!t) return null;
+                const label = t ? t.label : id;
+                const isCustom = !t;
                 return (
                   <span
                     key={id}
                     className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold"
-                    style={{ background: '#eef2ff', color: '#4338ca', border: '1px solid #c7d2fe' }}
+                    style={isCustom
+                      ? { background: '#f5f3ff', color: '#6d28d9', border: '1px solid #ddd6fe' }
+                      : { background: '#eef2ff', color: '#4338ca', border: '1px solid #c7d2fe' }}
                   >
-                    ✦ {t.label}
+                    ✦ {label}
                   </span>
                 );
               })}

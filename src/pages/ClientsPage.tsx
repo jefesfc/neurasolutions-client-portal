@@ -10,7 +10,7 @@ import { Button } from '../components/ui/Button';
 import { Skeleton } from '../components/ui/Skeleton';
 import { SearchInput } from '../components/shared/SearchInput';
 import { ClientDetailPanel } from '../components/clients/ClientDetailPanel';
-import { ClientModal } from '../components/clients/ClientModal';
+import { ClientModal, NOOR_TREATMENTS } from '../components/clients/ClientModal';
 import { downloadClientsPDF } from '../lib/pdf';
 import type { Client, ClientStage } from '../types/aios';
 
@@ -232,6 +232,7 @@ export default function ClientsPage() {
                   <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colStage}</th>
                   {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colStatus}</th>}
                   {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">{T.clients.colRenewal}</th>}
+                  {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">Membership</th>}
                   {!selectedClient && <th className="text-left px-4 py-3 font-medium text-slate-500">Treatments</th>}
                 </tr>
               </thead>
@@ -280,13 +281,34 @@ export default function ClientsPage() {
                       )}
                       {!selectedClient && (
                         <td className="px-4 py-3">
+                          {client.membership_tier ? (() => {
+                            const cfg = client.membership_tier === 'platinum'
+                              ? { label: 'Platinum', bg: '#eef2ff', color: '#4338ca' }
+                              : client.membership_tier === 'gold'
+                              ? { label: 'Gold', bg: '#fffbeb', color: '#92400e' }
+                              : { label: 'Silver', bg: '#f8fafc', color: '#64748b' };
+                            return (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
+                                style={{ background: cfg.bg, color: cfg.color, borderColor: cfg.color + '40' }}>
+                                ✦ {cfg.label}
+                              </span>
+                            );
+                          })() : <span className="text-slate-300 text-xs">—</span>}
+                        </td>
+                      )}
+                      {!selectedClient && (
+                        <td className="px-4 py-3">
                           {(client.treatments ?? []).length > 0 ? (
                             <div className="flex flex-wrap gap-1">
-                              {(client.treatments ?? []).slice(0, 2).map(id => (
-                                <span key={id} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100">
-                                  {id.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
-                                </span>
-                              ))}
+                              {(client.treatments ?? []).slice(0, 2).map(id => {
+                                const t = NOOR_TREATMENTS.find(x => x.id === id);
+                                const label = t ? t.label : id;
+                                return (
+                                  <span key={id} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100">
+                                    {label}
+                                  </span>
+                                );
+                              })}
                               {(client.treatments ?? []).length > 2 && (
                                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
                                   +{(client.treatments ?? []).length - 2}

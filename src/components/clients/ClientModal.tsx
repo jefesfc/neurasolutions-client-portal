@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { ChevronDown, ChevronUp, Sparkles, Plus, X as XIcon } from 'lucide-react';
 
 export const NOOR_TREATMENTS = [
   // Injectable
@@ -83,6 +83,8 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
   const [dischargeNotes, setDischargeNotes]         = useState('');
 
   const [treatments, setTreatments] = useState<string[]>([]);
+  const [membership, setMembership] = useState<'silver' | 'gold' | 'platinum' | null>(null);
+  const [customTreatment, setCustomTreatment] = useState('');
 
   const [users, setUsers]         = useState<User[]>([]);
   const [saving, setSaving]       = useState(false);
@@ -108,7 +110,7 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
       setAddress(''); setNextRenewalAt('');
       setAssignedTo(convertingFromLead.assigned_to ?? '');
       setNotes(convertingFromLead.notes ?? '');
-      setTreatments([]);
+      setTreatments([]); setMembership(null); setCustomTreatment('');
       setAdmissionDate(''); setAdmissionNotes('');
       setInvestigationDate(''); setInvestigationNotes('');
       setFollowUpDate(''); setFollowUpNotes('');
@@ -128,6 +130,8 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
       setAssignedTo(initialData.assigned_to ?? '');
       setNotes(initialData.notes ?? '');
       setTreatments(initialData.treatments ?? []);
+      setMembership(initialData.membership_tier ?? null);
+      setCustomTreatment('');
       setAdmissionDate(initialData.admission_date ?? '');
       setAdmissionNotes(initialData.admission_notes ?? '');
       setInvestigationDate(initialData.investigation_date ?? '');
@@ -141,7 +145,7 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
       setIndustry(''); setWebsite(''); setContractValue('');
       setStatus('active'); setStage('admission');
       setAddress(''); setNextRenewalAt(''); setAssignedTo(''); setNotes('');
-      setTreatments([]);
+      setTreatments([]); setMembership(null); setCustomTreatment('');
       setAdmissionDate(''); setAdmissionNotes('');
       setInvestigationDate(''); setInvestigationNotes('');
       setFollowUpDate(''); setFollowUpNotes('');
@@ -170,6 +174,7 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
       assigned_to:          assignedTo || null,
       notes:                notes.trim() || null,
       treatments,
+      membership_tier:      membership,
       admission_date:       admissionDate || null,
       admission_notes:      admissionNotes.trim() || null,
       investigation_date:   investigationDate || null,
@@ -289,6 +294,38 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
           <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} placeholder="General notes…" />
         </div>
 
+        {/* ── Membership ── */}
+        <div>
+          <label className={labelCls}>Membership Tier</label>
+          <div className="flex gap-2 mt-1">
+            {([null, 'silver', 'gold', 'platinum'] as const).map(tier => {
+              const cfg = tier === null
+                ? { label: 'None', bg: '#f1f5f9', color: '#94a3b8', border: '#e2e8f0', selBg: '#e2e8f0', selColor: '#64748b' }
+                : tier === 'silver'
+                ? { label: '✦ Silver', bg: '#f8fafc', color: '#64748b', border: '#cbd5e1', selBg: '#475569', selColor: '#fff' }
+                : tier === 'gold'
+                ? { label: '✦ Gold', bg: '#fffbeb', color: '#92400e', border: '#fde68a', selBg: '#d97706', selColor: '#fff' }
+                : { label: '✦ Platinum', bg: '#eef2ff', color: '#4338ca', border: '#c7d2fe', selBg: '#6366f1', selColor: '#fff' };
+              const selected = membership === tier;
+              return (
+                <button
+                  key={String(tier)}
+                  type="button"
+                  onClick={() => setMembership(selected ? null : tier)}
+                  className="flex-1 px-3 py-2 rounded-xl text-xs font-bold border transition-all"
+                  style={{
+                    background:  selected ? cfg.selBg : cfg.bg,
+                    color:       selected ? cfg.selColor : cfg.color,
+                    borderColor: selected ? cfg.selBg : cfg.border,
+                  }}
+                >
+                  {cfg.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* ── Treatments ── */}
         <div>
           <button type="button" onClick={toggleTreatments} className="w-full flex items-center gap-3 py-2 group">
@@ -307,6 +344,8 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
           </button>
 
           {treatmentsOpen && (() => {
+            const knownIds = new Set(NOOR_TREATMENTS.map(t => t.id));
+            const customOnes = treatments.filter(id => !knownIds.has(id as never));
             const categories = [...new Set(NOOR_TREATMENTS.map(t => t.category))];
             return (
               <div className="mt-2 space-y-3">
@@ -337,6 +376,54 @@ export function ClientModal({ isOpen, initialData, convertingFromLead, onSuccess
                     </div>
                   </div>
                 ))}
+
+                {/* Custom treatments */}
+                {customOnes.length > 0 && (
+                  <div>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Custom</p>
+                    <div className="flex flex-wrap gap-2">
+                      {customOnes.map(name => (
+                        <span key={name} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-violet-50 text-violet-700 border border-violet-200">
+                          {name}
+                          <button type="button" onClick={() => setTreatments(prev => prev.filter(x => x !== name))}>
+                            <XIcon className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Add custom treatment */}
+                <div className="flex gap-2 mt-1">
+                  <input
+                    type="text"
+                    value={customTreatment}
+                    onChange={e => setCustomTreatment(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const v = customTreatment.trim();
+                        if (v && !treatments.includes(v)) setTreatments(prev => [...prev, v]);
+                        setCustomTreatment('');
+                      }
+                    }}
+                    placeholder="Add custom treatment…"
+                    className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const v = customTreatment.trim();
+                      if (v && !treatments.includes(v)) setTreatments(prev => [...prev, v]);
+                      setCustomTreatment('');
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 flex items-center gap-1"
+                  >
+                    <Plus className="w-3 h-3" />
+                    Add
+                  </button>
+                </div>
               </div>
             );
           })()}

@@ -96,6 +96,7 @@ router.post('/', requireAuth, requireAdminOrManager, async (req: Request, res: R
       follow_up_date, follow_up_notes,
       discharge_date, discharge_notes,
       treatments,
+      membership_tier,
     } = req.body as Record<string, unknown>;
     const tenantId = req.user!.tenant_id;
 
@@ -112,8 +113,8 @@ router.post('/', requireAuth, requireAdminOrManager, async (req: Request, res: R
          investigation_date, investigation_notes,
          follow_up_date, follow_up_notes,
          discharge_date, discharge_notes,
-         treatments)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)
+         treatments, membership_tier)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)
       RETURNING *
     `, [
       tenantId, name, email, company,
@@ -126,6 +127,7 @@ router.post('/', requireAuth, requireAdminOrManager, async (req: Request, res: R
       follow_up_date ?? null, follow_up_notes ?? null,
       discharge_date ?? null, discharge_notes ?? null,
       Array.isArray(treatments) ? treatments : [],
+      membership_tier ?? null,
     ]);
 
     res.status(201).json(result.rows[0]);
@@ -193,6 +195,7 @@ router.patch('/:id', requireAuth, requireAdminOrManager, async (req: Request, re
       params.push(Array.isArray(body.treatments) ? body.treatments : []);
       setClauses.push(`treatments = $${params.length}`);
     }
+    addDirect('membership_tier', 'membership_tier');
 
     if (setClauses.length === 0) {
       res.status(400).json({ error: 'No fields to update' });
