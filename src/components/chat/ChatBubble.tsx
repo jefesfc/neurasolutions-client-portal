@@ -6,11 +6,27 @@ import { cn } from "../../lib/cn";
 import { ReportMessage } from "./ReportMessage";
 
 function renderInline(text: string): React.ReactNode[] {
+  // Split on **bold** patterns
   return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
     part.startsWith("**") && part.endsWith("**")
       ? <strong key={i} className="font-semibold text-slate-900">{part.slice(2, -2)}</strong>
       : <span key={i}>{part}</span>
   );
+}
+
+// Detect "**Label:** value" pattern — renders label in indigo, value in slate
+function renderLabelValue(text: string): React.ReactNode {
+  const match = text.match(/^\*\*(.+?):\*\*\s*(.*)$/);
+  if (match) {
+    return (
+      <>
+        <span className="font-semibold text-indigo-600">{match[1]}</span>
+        <span className="text-slate-500 font-normal">: </span>
+        <span className="text-slate-800">{match[2]}</span>
+      </>
+    );
+  }
+  return <>{renderInline(text)}</>;
 }
 
 function MarkdownMessage({ content }: { content: string }) {
@@ -22,7 +38,7 @@ function MarkdownMessage({ content }: { content: string }) {
   const flushList = () => {
     if (listItems.length > 0) {
       nodes.push(
-        <ul key={key++} className="space-y-1 my-2">
+        <ul key={key++} className="space-y-1.5 my-2 pl-0.5">
           {listItems.splice(0)}
         </ul>
       );
@@ -32,26 +48,37 @@ function MarkdownMessage({ content }: { content: string }) {
   for (const line of lines) {
     const isHeader = /^#{1,3}\s/.test(line);
     const isBullet = /^[-•]\s/.test(line);
+    // Line that is ONLY **bold** — treat as a name/title heading
+    const isBoldTitle = /^\*\*[^*]+\*\*$/.test(line.trim());
 
-    if (isHeader) {
+    if (isBoldTitle) {
+      flushList();
+      const name = line.trim().slice(2, -2);
+      nodes.push(
+        <p key={key++} className="text-[14px] font-bold text-slate-900 leading-tight mb-0.5">
+          {name}
+        </p>
+      );
+    } else if (isHeader) {
       flushList();
       const text = line.replace(/^#{1,3}\s/, "");
       nodes.push(
-        <p key={key++} className="text-[11px] font-semibold text-indigo-600 uppercase tracking-wide mt-3 mb-0.5 first:mt-0">
+        <p key={key++} className="text-[10.5px] font-semibold text-indigo-500 uppercase tracking-wider mt-3 mb-1 first:mt-0">
           {text}
         </p>
       );
     } else if (isBullet) {
+      const inner = line.replace(/^[-•]\s/, "");
       listItems.push(
-        <li key={key++} className="flex items-start gap-2">
-          <span className="mt-[5px] h-1 w-1 rounded-full bg-indigo-400 flex-shrink-0" />
-          <span className="leading-relaxed text-slate-700 text-[13px]">{renderInline(line.replace(/^[-•]\s/, ""))}</span>
+        <li key={key++} className="flex items-start gap-2.5">
+          <span className="mt-[6px] h-1 w-1 rounded-full bg-indigo-400 flex-shrink-0" />
+          <span className="leading-relaxed text-[13px]">{renderLabelValue(inner)}</span>
         </li>
       );
     } else {
       flushList();
       if (line.trim() === "") {
-        nodes.push(<div key={key++} className="h-1" />);
+        nodes.push(<div key={key++} className="h-1.5" />);
       } else {
         nodes.push(
           <p key={key++} className="leading-relaxed text-slate-700 text-[13px]">
