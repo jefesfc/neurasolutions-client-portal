@@ -3,7 +3,26 @@ import Stripe from 'stripe';
 import { db } from '../db';
 import { queryKnowledge } from './pinecone';
 import { buildEmailHtml } from './emailBuilder';
+import { generateBrochurePDF } from './pdfBrochures';
 import type OpenAI from 'openai';
+
+const TREATMENT_LABELS: Record<string, string> = {
+  'anti-wrinkle':      'Anti-Wrinkle Injections',
+  'dermal-fillers':    'Dermal Fillers',
+  'lip-augmentation':  'Lip Augmentation',
+  'jaw-slimming':      'Jaw / Face Slimming',
+  'skin-booster':      'Skin Boosters (Profhilo)',
+  'prp':               'PRP Therapy',
+  'co2-laser':         'CO2 Laser Resurfacing',
+  'ipl':               'IPL Photofacial',
+  'laser-hair':        'Laser Hair Removal',
+  'hydrafacial':       'HydraFacial',
+  'chemical-peel':     'Chemical Peel',
+  'microneedling':     'Microneedling',
+  'microneedling-prp': 'Microneedling + PRP',
+  'body-contouring':   'Non-Invasive Body Contouring',
+  'thread-lift':       'Thread Lift',
+};
 
 const BROCHURE_TREATMENTS_BODY = `We're delighted to share our complete treatment menu with you.
 
@@ -147,7 +166,7 @@ export const toolDefinitions: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     type: 'function',
     function: {
       name: 'query_clients',
-      description: 'Get company clients list. Filter by status (active/inactive/churned) or search by name/company. Returns contract values and renewal dates.',
+      description: 'Get company clients. Filter by status or search by name/company. Returns full client profile: contract value, renewal dates, membership tier (Silver/Gold/Platinum), treatments received, clinical stage, and full clinical journey (admission, investigation, follow-up, discharge dates and notes).',
       parameters: {
         type: 'object',
         properties: {
@@ -488,7 +507,13 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
       const status = args.status as string | undefined;
       const limit = Math.min(+(args.limit ?? 10), 50);
       const search = args.search as string | undefined;
-      let q = `SELECT name, email, phone, company, industry, status, contract_value, next_renewal_at, created_at
+      let q = `SELECT name, email, phone, company, industry, status, contract_value, next_renewal_at,
+                      membership_tier, treatments, stage, notes,
+                      admission_date, admission_notes,
+                      investigation_date, investigation_notes,
+                      follow_up_date, follow_up_notes,
+                      discharge_date, discharge_notes,
+                      created_at
                FROM aios.clients WHERE tenant_id = $1`;
       const params: unknown[] = [tenantId];
       if (status) { params.push(status); q += ` AND status = $${params.length}`; }
@@ -511,7 +536,13 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
       params.push(limit);
       q += ` ORDER BY created_at DESC LIMIT $${params.length}`;
       const res = await db.query(q, params);
-      return { count: res.rowCount, clients: res.rows };
+      const clients = (res.rows as Array<Record<string, unknown>>).map(c => ({
+        ...c,
+        treatments: Array.isArray(c.treatments)
+          ? (c.treatments as string[]).map(id => TREATMENT_LABELS[id] ?? id)
+          : [],
+      }));
+      return { count: res.rowCount, clients };
     }
 
     case 'get_security_overview': {
@@ -642,6 +673,11 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
       const gmailPass = process.env.GMAIL_APP_PASSWORD;
       if (!gmailUser || !gmailPass) return { error: 'Email not configured on the server' };
 
+      const [treatmentsPdf, membershipPdf] = await Promise.all([
+        generateBrochurePDF('treatments'),
+        generateBrochurePDF('membership'),
+      ]);
+
       const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: gmailUser, pass: gmailPass } });
       await transporter.sendMail({
         from: `Noor Aesthetics <${gmailUser}>`,
@@ -649,6 +685,10 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
         subject,
         text: body,
         html: buildEmailHtml(body, gmailUser),
+        attachments: [
+          { filename: 'Noor-Aesthetics-Treatment-Menu.pdf',      content: treatmentsPdf, contentType: 'application/pdf' },
+          { filename: 'Noor-Aesthetics-Membership-Packages.pdf', content: membershipPdf, contentType: 'application/pdf' },
+        ],
       });
 
       db.query(
@@ -860,18 +900,27 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
       if (clientRes.rows.length === 0) return { error: `No client found matching "${clientName}"` };
 
       const client = clientRes.rows[0] as { name: string; email: string; company: string };
+      const [treatmentsPdf, membershipPdf] = await Promise.all([
+        generateBrochurePDF('treatments'),
+        generateBrochurePDF('membership'),
+      ]);
+
       const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: { user: gmailUser, pass: gmailPass },
       });
       await transporter.sendMail({
-        from: `AIOS <${gmailUser}>`,
+        from: `Noor Aesthetics <${gmailUser}>`,
         to: client.email,
         subject,
         html: buildEmailHtml(body, gmailUser),
         text: body,
+        attachments: [
+          { filename: 'Noor-Aesthetics-Treatment-Menu.pdf',      content: treatmentsPdf, contentType: 'application/pdf' },
+          { filename: 'Noor-Aesthetics-Membership-Packages.pdf', content: membershipPdf, contentType: 'application/pdf' },
+        ],
       });
-      return { success: true, message: `Email sent to ${client.name} (${client.email})` };
+      return { success: true, message: `Email sent to ${client.name} (${client.email}) with treatment menu and membership brochures attached` };
     }
 
     case 'search_knowledge_base': {

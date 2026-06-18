@@ -87,6 +87,14 @@ export function buildEmailHtml(body: string, senderEmail: string): string {
   closeList();
   closeTierCard();
 
+  const signatureHtml = `
+    <div style="margin-top:28px;padding-top:18px;border-top:1px solid #e2e8f0;">
+      <p style="margin:0 0 2px;color:#1e293b;font-size:14px;line-height:1.6;">Kind regards,</p>
+      <p style="margin:0 0 1px;color:#1e293b;font-size:14px;font-weight:700;">Noor Aesthetics</p>
+      <p style="margin:0 0 1px;color:#475569;font-size:13px;">Ingrid Banegas&nbsp;&nbsp;/&nbsp;&nbsp;Client Relationship Manager</p>
+      <p style="margin:0;color:#6366f1;font-size:13px;font-weight:600;">+44 7519685477</p>
+    </div>`;
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
@@ -121,6 +129,7 @@ export function buildEmailHtml(body: string, senderEmail: string): string {
   <!-- Body -->
   <tr><td style="background:#ffffff;padding:36px 36px 28px;">
     ${html}
+    ${signatureHtml}
   </td></tr>
 
   <!-- Footer -->

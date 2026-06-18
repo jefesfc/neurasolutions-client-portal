@@ -19,7 +19,7 @@ TOOL USAGE RULES (mandatory):
 - "invoicing" / "invoice report" / "revenue" / "payments": call get_invoicing_summary
 - "leads" / "pipeline" / "sales report": call get_business_stats + query_leads
 - "clients" / "client report" / "all clients" / "client list": call query_clients
-- ANY question about a specific client by name — "who is [name]" / "find client [name]" / "does [name] exist" / "show me [name]" / "is [name] a client" / "details on [name]": ALWAYS call query_clients with search=[name] — NEVER answer from memory
+- ANY question about a specific client by name — "who is [name]" / "find client [name]" / "does [name] exist" / "show me [name]" / "is [name] a client" / "details on [name]" / "treatments for [name]" / "what treatments does [name] have" / "membership of [name]" / "clinical journey [name]": ALWAYS call query_clients with search=[name] — NEVER answer from memory
 - "calendar" / "events" / "meetings" / "schedule": call query_calendar_events
 - "security" / "threats" / "security report": call get_security_overview
 - "emails" / "inbox": call get_recent_emails
@@ -28,7 +28,7 @@ TOOL USAGE RULES (mandatory):
 - "support" / "tickets" / "issues" / "complaints": call get_support_tickets
 - "add lead" / "new lead" / "create lead": call create_lead with name, email, source
 - "add client" / "create client" / "new client" / "añadir cliente": call create_client with name and email
-- "send email to [client]" / "email [name]" / "write to [client]" / "mandar email a": call send_email_to_client with the client name, subject, and body
+- "send email to [client]" / "email [name]" / "write to [client]" / "mandar email a": call send_email_to_client with the client name, subject, and body. Do NOT include a signature in the body — the email template adds it automatically.
 - "send brochure to [client]" / "manda brochure a" / "enviar brochure" / "envía el precio a" / "send price list to": call send_brochure with client_name and brochure_type (treatments or membership)
 - Any question about numbers, stats, or data: always call the relevant tool — never answer from memory
 - Every structured report response automatically includes a downloadable CSV with all metrics
@@ -95,15 +95,18 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
       content: r.content as string,
     }));
 
-    // RAG: retrieve relevant knowledge base context
+    // RAG: retrieve relevant knowledge base context (skip for very short/greeting messages)
     let ragBlock = '';
-    try {
-      const ragResults = await queryKnowledge(tenantId, message);
-      if (ragResults.length > 0) {
-        ragBlock = '\n\n## COMPANY KNOWLEDGE BASE\nThe following is from official company documents. Use this information to answer accurately and specifically:\n\n' +
-          ragResults.map(r => `[Source: ${r.docName}]\n${r.text}`).join('\n\n---\n\n');
-      }
-    } catch { /* silent — RAG failure should not block chat */ }
+    const isSubstantialQuery = message.trim().split(/\s+/).length >= 4;
+    if (isSubstantialQuery) {
+      try {
+        const ragResults = await queryKnowledge(tenantId, message);
+        if (ragResults.length > 0) {
+          ragBlock = '\n\n## COMPANY KNOWLEDGE BASE\nThe following is from official company documents. Use this information to answer accurately and specifically:\n\n' +
+            ragResults.map(r => `[Source: ${r.docName}]\n${r.text}`).join('\n\n---\n\n');
+        }
+      } catch { /* silent — RAG failure should not block chat */ }
+    }
 
     const LANGUAGE_RULE = `\n\nLANGUAGE RULE (mandatory — highest priority): Detect the language of the user's last message and reply in that EXACT same language. Examples: user writes in English → reply in English. User writes in Spanish → reply in Spanish. User writes in Arabic → reply in Arabic. NEVER respond in a different language than the one the user used. This overrides everything else.`;
 
@@ -120,13 +123,18 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
     let totalTokensOut = 0;
     let assistantReply = '';
 
-    // Agentic loop — up to 5 iterations for tool calls
-    for (let i = 0; i < 5; i++) {
+    // Use gpt-4o for full reports, gpt-4o-mini for everything else (3-5x faster)
+    const needsFullPower = /full report|monthly report|business overview|how is the company|financial summary/i.test(message);
+    const model = needsFullPower ? 'gpt-4o' : 'gpt-4o-mini';
+
+    // Agentic loop — up to 3 iterations for tool calls
+    for (let i = 0; i < 3; i++) {
       const response = await openai.chat.completions.create({
-        model: 'gpt-4o',
+        model,
         messages,
         tools: toolDefinitions,
         tool_choice: 'auto',
+        max_tokens: 1200,
       });
 
       const choice = response.choices[0];
@@ -182,8 +190,8 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
     const cost = totalTokensIn * COST_PER_INPUT_TOKEN + totalTokensOut * COST_PER_OUTPUT_TOKEN;
     await db.query(
       `INSERT INTO aios.token_usage (id, tenant_id, agent_name, tokens_in, tokens_out, model, cost)
-       VALUES ($1,$2,'aios-chat',$3,$4,'gpt-4o',$5)`,
-      [uuidv4(), tenantId, totalTokensIn, totalTokensOut, cost]
+       VALUES ($1,$2,'aios-chat',$3,$4,$5,$6)`,
+      [uuidv4(), tenantId, totalTokensIn, totalTokensOut, model, cost]
     );
 
     res.json({
