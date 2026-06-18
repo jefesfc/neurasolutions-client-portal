@@ -1,6 +1,13 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
 import { toFile } from 'openai';
+import {
+  extractMentioned,
+  findTreatment,
+  findMembership,
+  formatTreatmentHTML,
+  formatMembershipHTML,
+} from '../lib/treatmentData';
 
 const TELEGRAM_NS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
 import { requireAuth } from '../middleware/requireAuth';
@@ -128,6 +135,11 @@ interface TelegramUpdate {
     text?: string;
     voice?: { file_id: string; duration: number; mime_type?: string };
   };
+  callback_query?: {
+    id: string;
+    from: { id: number };
+    data?: string;
+  };
 }
 
 interface TenantSettings {
@@ -179,7 +191,7 @@ router.post('/activate', requireAuth, async (req: Request, res: Response) => {
     const webhookUrl = `${BACKEND_URL}/telegram/webhook/${tenant_id}`;
     const tgRes = await callTelegram(bot_token, 'setWebhook', {
       url: webhookUrl,
-      allowed_updates: ['message'],  // 'message' already includes voice, text, etc.
+      allowed_updates: ['message', 'callback_query'],
       drop_pending_updates: true,
     });
     if (!tgRes.ok) {
@@ -283,6 +295,43 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
 
   // Always respond 200 immediately — Telegram retries if it doesn't get a 2xx
   res.sendStatus(200);
+
+  // Handle inline button taps (treatment/membership detail cards)
+  if (update.callback_query) {
+    const cb = update.callback_query;
+    const chatId = cb.from.id;
+    const data = cb.data ?? '';
+
+    try {
+      const tenantRes = await db.query(`SELECT settings FROM aios.tenants WHERE id = $1`, [tenantId]);
+      const settings = tenantRes.rows[0]?.settings as TenantSettings | undefined;
+      const botToken = settings?.telegram?.bot_token;
+      if (!botToken || !settings?.telegram?.enabled) return;
+
+      // Acknowledge the button tap immediately
+      await callTelegram(botToken, 'answerCallbackQuery', { callback_query_id: cb.id });
+
+      let detail: string | null = null;
+      if (data.startsWith('t:')) {
+        const t = findTreatment(data.slice(2));
+        if (t) detail = formatTreatmentHTML(t);
+      } else if (data.startsWith('m:')) {
+        const m = findMembership(data.slice(2));
+        if (m) detail = formatMembershipHTML(m);
+      }
+
+      if (detail) {
+        await callTelegram(botToken, 'sendMessage', {
+          chat_id: chatId,
+          text: detail,
+          parse_mode: 'HTML',
+        });
+      }
+    } catch (err) {
+      console.error('[telegram/callback]', err);
+    }
+    return;
+  }
 
   const message = update.message;
   if (!message?.text && !message?.voice) return;
@@ -498,6 +547,26 @@ Ignore conversation history language. Only the CURRENT message determines the la
       [uuidv4(), tenantId, totalTokensIn, totalTokensOut, model, cost]
     );
 
+    // Build inline keyboard for any treatment/membership names mentioned
+    const mentioned = extractMentioned(replyText);
+    let replyMarkup: Record<string, unknown> | undefined;
+    if (mentioned.length > 0) {
+      // Group buttons in rows of 2
+      const buttons = mentioned.map(name => {
+        const t = findTreatment(name);
+        const m = findMembership(name);
+        if (t) return { text: `${t.emoji} ${t.name}`, callback_data: `t:${t.name}` };
+        if (m) return { text: `${m.emoji} ${m.tier} Membership`, callback_data: `m:${m.tier}` };
+        return null;
+      }).filter(Boolean) as Array<{ text: string; callback_data: string }>;
+
+      const rows: Array<typeof buttons> = [];
+      for (let i = 0; i < buttons.length; i += 2) {
+        rows.push(buttons.slice(i, i + 2));
+      }
+      replyMarkup = { inline_keyboard: rows };
+    }
+
     if (isVoiceInput) {
       try {
         const tts = await openai.audio.speech.create({
@@ -519,10 +588,16 @@ Ignore conversation history language. Only the CURRENT message determines the la
       } catch (err) {
         console.error('[telegram/tts]', err);
         // Fallback: send text so the bot never goes silent
-        await callTelegram(botToken, 'sendMessage', { chat_id: chatId, text: replyText, parse_mode: 'HTML' });
+        await callTelegram(botToken, 'sendMessage', {
+          chat_id: chatId, text: replyText, parse_mode: 'HTML',
+          ...(replyMarkup && { reply_markup: replyMarkup }),
+        });
       }
     } else {
-      await callTelegram(botToken, 'sendMessage', { chat_id: chatId, text: replyText, parse_mode: 'HTML' });
+      await callTelegram(botToken, 'sendMessage', {
+        chat_id: chatId, text: replyText, parse_mode: 'HTML',
+        ...(replyMarkup && { reply_markup: replyMarkup }),
+      });
     }
 
     // Auto-attach CSV for every report response
