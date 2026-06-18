@@ -681,10 +681,10 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
       const gmailPass = process.env.GMAIL_APP_PASSWORD;
       if (!gmailUser || !gmailPass) return { error: 'Email not configured on the server' };
 
-      const [treatmentsPdf, membershipPdf] = await Promise.all([
-        readBrochurePDF('treatments'),
-        readBrochurePDF('membership'),
-      ]);
+      const pdfBuffer = readBrochurePDF(brochureType);
+      const pdfFilename = brochureType === 'treatments'
+        ? 'Noor-Aesthetics-Treatment-Menu.pdf'
+        : 'Noor-Aesthetics-Membership-Packages.pdf';
 
       const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: gmailUser, pass: gmailPass } });
       await transporter.sendMail({
@@ -694,8 +694,7 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
         text: body,
         html: buildEmailHtml(body, gmailUser),
         attachments: [
-          { filename: 'Noor-Aesthetics-Treatment-Menu.pdf',      content: treatmentsPdf, contentType: 'application/pdf' },
-          { filename: 'Noor-Aesthetics-Membership-Packages.pdf', content: membershipPdf, contentType: 'application/pdf' },
+          { filename: pdfFilename, content: pdfBuffer, contentType: 'application/pdf' },
         ],
       });
 
@@ -901,17 +900,13 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
       }
       const clientRes = await db.query(
         `SELECT name, email, company FROM aios.clients
-         WHERE tenant_id = $1 AND (${eConds.join(' OR ')})
+         WHERE tenant_id = $1 AND status = 'active' AND (${eConds.join(' OR ')})
          ORDER BY created_at DESC LIMIT 1`,
         eParams
       );
-      if (clientRes.rows.length === 0) return { error: `No client found matching "${clientName}"` };
+      if (clientRes.rows.length === 0) return { error: `No active client found matching "${clientName}"` };
 
       const client = clientRes.rows[0] as { name: string; email: string; company: string };
-      const [treatmentsPdf, membershipPdf] = await Promise.all([
-        readBrochurePDF('treatments'),
-        readBrochurePDF('membership'),
-      ]);
 
       const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -923,12 +918,8 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
         subject,
         html: buildEmailHtml(body, gmailUser),
         text: body,
-        attachments: [
-          { filename: 'Noor-Aesthetics-Treatment-Menu.pdf',      content: treatmentsPdf, contentType: 'application/pdf' },
-          { filename: 'Noor-Aesthetics-Membership-Packages.pdf', content: membershipPdf, contentType: 'application/pdf' },
-        ],
       });
-      return { success: true, message: `Email sent to ${client.name} (${client.email}) with treatment menu and membership brochures attached` };
+      return { success: true, message: `Email sent to ${client.name} (${client.email})` };
     }
 
     case 'search_knowledge_base': {

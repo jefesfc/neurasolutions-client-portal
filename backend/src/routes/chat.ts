@@ -124,9 +124,10 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
       } catch { /* silent — RAG failure should not block chat */ }
     }
 
-    const LANGUAGE_RULE = `\n\nLANGUAGE RULE (mandatory — absolute highest priority): This platform supports ONLY English and Arabic.
+    const LANGUAGE_RULE = `\n\nLANGUAGE RULE (mandatory — absolute highest priority): This platform supports English (default), Spanish, and Arabic.
 - If the user's current message is in Arabic → respond in Arabic.
-- For ANY other language (including Spanish, French, Portuguese, etc.) → respond in English.
+- If the user's current message is in Spanish → respond in Spanish.
+- For ANY other language (including French, Portuguese, etc.) → respond in English.
 - Default language: English.
 Ignore conversation history language. Only the CURRENT message determines the language.`;
 
@@ -135,7 +136,7 @@ Ignore conversation history language. Only the CURRENT message determines the la
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       { role: 'system', content: systemPrompt },
       ...history,
-      { role: 'system', content: `LANGUAGE OVERRIDE: Respond in English unless the CURRENT user message (below) is written in Arabic — in that case respond in Arabic. Any other language including Spanish or Portuguese → English. This takes priority over all conversation history.` },
+      { role: 'system', content: `LANGUAGE OVERRIDE: Respond in English by default. If the CURRENT user message (below) is in Spanish → Spanish. If in Arabic → Arabic. Any other language including Portuguese → English. Ignore previous conversation language.` },
       { role: 'user', content: message },
     ];
 
