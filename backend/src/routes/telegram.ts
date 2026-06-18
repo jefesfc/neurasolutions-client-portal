@@ -586,6 +586,7 @@ Ignore conversation history language. Only the CURRENT message determines the la
           model: 'tts-1',
           voice: 'alloy',
           input: replyText,
+          speed: 0.85,
         });
         const audioBuffer = Buffer.from(await tts.arrayBuffer());
 
