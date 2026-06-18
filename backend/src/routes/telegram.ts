@@ -104,6 +104,8 @@ TOOL USAGE RULES (mandatory):
 - "send email to [client]" / "email [name]" / "write to [client]" / "mandar email a": call send_email_to_client with client_name, subject, and body. Do NOT include a signature in the body — the email template adds it automatically.
 - "send brochure to [client]" / "manda brochure a" / "enviar brochure" / "envía el precio a" / "send price list to": call send_brochure with client_name and brochure_type (treatments or membership)
 
+RESPONSE FOCUS RULE: Only return the information that was specifically asked for. If the user asks about "treatments" or "membership" of a client, return ONLY those fields — do NOT include email, phone, company, contract value, or other unrelated fields unless explicitly requested.
+
 REPORT FORMAT (mandatory when your response contains structured data — metrics, KPIs, tables, lists with numbers, financial summaries, or business reports):
 Return ONLY a valid JSON object — no markdown code fences, no extra text before or after the JSON:
 {"type":"report","title":"<concise title>","subtitle":"<e.g. June 2026, optional>","intro":"<1 sentence intro, optional>","sections":[{"label":"<section name>","icon":"<1 emoji>","color":"<hex color>","items":[{"label":"<metric name>","value":"<formatted value>","highlight":"positive|negative (optional)","sub":[{"label":"<sub-label>","value":"<sub-value>","highlight":"positive|negative (optional)"}]}]}]}
@@ -395,14 +397,19 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
       } catch { /* silent */ }
     }
 
-    const LANGUAGE_RULE = `\n\nLANGUAGE RULE (mandatory — highest priority): Detect the language of the user's last message (text or transcribed voice) and reply in that EXACT same language. Examples: user writes in English → reply in English. User writes in Spanish → reply in Spanish. User writes in Arabic → reply in Arabic. NEVER respond in a different language than the one the user used. This overrides everything else.`;
+    const LANGUAGE_RULE = `\n\nLANGUAGE RULE (mandatory — absolute highest priority): This bot supports English (default), Spanish, and Arabic.
+- If the user's current message is in Arabic → respond in Arabic.
+- If the user's current message is in Spanish → respond in Spanish.
+- For ANY other language (including Portuguese, French, etc.) → respond in English.
+- Default language: English.
+Ignore conversation history language. Only the CURRENT message determines the language.`;
 
     const systemWithRag = SYSTEM_PROMPT.replace(/Today's date: \d{4}-\d{2}-\d{2}/, `Today's date: ${new Date().toISOString().split('T')[0]}`) + ragBlock + LANGUAGE_RULE;
 
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       { role: 'system', content: systemWithRag },
       ...history,
-      { role: 'system', content: `LANGUAGE OVERRIDE: The user's current message is written in a specific language. Detect it from the next message and respond ONLY in that exact language. Ignore any previous language patterns in this conversation.` },
+      { role: 'system', content: `LANGUAGE OVERRIDE: Respond in English by default. If the CURRENT user message (below) is in Spanish → Spanish. If in Arabic → Arabic. Any other language including Portuguese → English. Ignore previous conversation language.` },
       { role: 'user', content: text },
     ];
 

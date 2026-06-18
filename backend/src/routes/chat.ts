@@ -33,6 +33,8 @@ TOOL USAGE RULES (mandatory):
 - Any question about numbers, stats, or data: always call the relevant tool — never answer from memory
 - Every structured report response automatically includes a downloadable CSV with all metrics
 
+RESPONSE FOCUS RULE: Only return the information that was specifically asked for. If the user asks about "treatments" or "membership" of a client, return ONLY those fields — do NOT include email, phone, company, contract value, or other unrelated fields unless explicitly requested.
+
 REPORT FORMAT (mandatory when your response contains structured data — metrics, KPIs, tables, lists with numbers, financial summaries, or business reports):
 Return ONLY a valid JSON object — no markdown code fences, no extra text before or after the JSON:
 {"type":"report","title":"<concise title>","subtitle":"<e.g. June 2026, optional>","intro":"<1 sentence intro, optional>","sections":[{"label":"<section name>","icon":"<1 emoji>","color":"<hex color>","items":[{"label":"<metric name>","value":"<formatted value>","highlight":"positive|negative (optional)","sub":[{"label":"<sub-label>","value":"<sub-value>","highlight":"positive|negative (optional)"}]}]}]}
@@ -108,14 +110,18 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
       } catch { /* silent — RAG failure should not block chat */ }
     }
 
-    const LANGUAGE_RULE = `\n\nLANGUAGE RULE (mandatory — highest priority): Detect the language of the user's last message and reply in that EXACT same language. Examples: user writes in English → reply in English. User writes in Spanish → reply in Spanish. User writes in Arabic → reply in Arabic. NEVER respond in a different language than the one the user used. This overrides everything else.`;
+    const LANGUAGE_RULE = `\n\nLANGUAGE RULE (mandatory — absolute highest priority): This platform supports ONLY English and Arabic.
+- If the user's current message is in Arabic → respond in Arabic.
+- For ANY other language (including Spanish, French, Portuguese, etc.) → respond in English.
+- Default language: English.
+Ignore conversation history language. Only the CURRENT message determines the language.`;
 
     const systemPrompt = SYSTEM_PROMPT_BASE + ragBlock + `\nToday's date: ${new Date().toISOString().split('T')[0]}.` + LANGUAGE_RULE;
 
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       { role: 'system', content: systemPrompt },
       ...history,
-      { role: 'system', content: `LANGUAGE OVERRIDE: The user's current message is written in a specific language. Detect it from the next message and respond ONLY in that exact language. Ignore any previous language patterns in this conversation.` },
+      { role: 'system', content: `LANGUAGE OVERRIDE: Respond in English unless the CURRENT user message (below) is written in Arabic — in that case respond in Arabic. Any other language including Spanish or Portuguese → English. This takes priority over all conversation history.` },
       { role: 'user', content: message },
     ];
 
