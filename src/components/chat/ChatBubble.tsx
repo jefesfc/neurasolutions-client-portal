@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, Plus, User, X, Maximize2, Minimize2 } from "lucide-react";
+import { Send, Bot, Plus, User, X, Maximize2, Minimize2, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChat } from "../../hooks/useChat";
 import { cn } from "../../lib/cn";
@@ -8,7 +8,7 @@ import { ReportMessage } from "./ReportMessage";
 function renderInline(text: string): React.ReactNode[] {
   return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
     part.startsWith("**") && part.endsWith("**")
-      ? <strong key={i} className="font-semibold text-slate-900">{part.slice(2, -2)}</strong>
+      ? <strong key={i} className="font-semibold text-white">{part.slice(2, -2)}</strong>
       : <span key={i}>{part}</span>
   );
 }
@@ -22,7 +22,7 @@ function MarkdownMessage({ content }: { content: string }) {
   const flushList = () => {
     if (listItems.length > 0) {
       nodes.push(
-        <ul key={key++} className="space-y-1.5 my-1">
+        <ul key={key++} className="space-y-1.5 my-2 pl-1">
           {listItems.splice(0)}
         </ul>
       );
@@ -34,8 +34,8 @@ function MarkdownMessage({ content }: { content: string }) {
     if (isBullet) {
       listItems.push(
         <li key={key++} className="flex items-start gap-2">
-          <span className="mt-[5px] h-1.5 w-1.5 rounded-full bg-brand-400 flex-shrink-0" />
-          <span className="leading-relaxed">{renderInline(line.replace(/^[-•]\s/, ""))}</span>
+          <span className="mt-[6px] h-1 w-1 rounded-full bg-indigo-400 flex-shrink-0" />
+          <span className="leading-relaxed text-slate-200">{renderInline(line.replace(/^[-•]\s/, ""))}</span>
         </li>
       );
     } else {
@@ -44,7 +44,7 @@ function MarkdownMessage({ content }: { content: string }) {
         nodes.push(<div key={key++} className="h-1.5" />);
       } else {
         nodes.push(
-          <p key={key++} className="leading-relaxed">
+          <p key={key++} className="leading-relaxed text-slate-200">
             {renderInline(line)}
           </p>
         );
@@ -53,7 +53,7 @@ function MarkdownMessage({ content }: { content: string }) {
   }
   flushList();
 
-  return <div className="space-y-0.5 text-[12.5px]">{nodes}</div>;
+  return <div className="space-y-0.5 text-[13px]">{nodes}</div>;
 }
 
 const SUGGESTIONS = [
@@ -64,16 +64,16 @@ const SUGGESTIONS = [
 
 function TypingIndicator() {
   return (
-    <div className="flex items-end gap-2">
-      <div className="h-7 w-7 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0">
-        <Bot className="h-3.5 w-3.5 text-brand-600" />
+    <div className="flex items-end gap-2.5">
+      <div className="h-7 w-7 rounded-full bg-indigo-900 border border-indigo-700 flex items-center justify-center flex-shrink-0">
+        <Bot className="h-3.5 w-3.5 text-indigo-300" />
       </div>
-      <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-sm px-3 py-2.5 shadow-sm">
-        <div className="flex items-center gap-1 h-3.5">
+      <div className="bg-slate-800 border border-slate-700 rounded-2xl rounded-bl-sm px-4 py-3">
+        <div className="flex items-center gap-1.5 h-3.5">
           {[0, 1, 2].map((i) => (
             <span
               key={i}
-              className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-bounce"
+              className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-bounce"
               style={{ animationDelay: `${i * 150}ms` }}
             />
           ))}
@@ -124,72 +124,75 @@ export function ChatBubble() {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 8 }}
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 8 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
             style={fullscreen ? {
               position: 'fixed', bottom: 0, right: 0, top: 0, left: 0,
               width: '100vw', height: '100vh', zIndex: 9999,
               borderRadius: 0,
             } : { transformOrigin: "bottom right" }}
             className={fullscreen
-              ? "bg-white flex flex-col overflow-hidden"
-              : "fixed bottom-20 right-6 z-50 w-[380px] h-[520px] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden"
+              ? "bg-slate-950 flex flex-col overflow-hidden"
+              : "fixed bottom-20 right-6 z-50 w-[400px] h-[560px] bg-slate-950 rounded-2xl shadow-[0_20px_60px_-10px_rgba(0,0,0,0.6)] border border-slate-800 flex flex-col overflow-hidden"
             }
           >
             {/* Header */}
-            <div className="flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-brand-600 to-brand-500 flex-shrink-0">
-              <div className="h-7 w-7 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
-                <Bot className="h-4 w-4 text-white" />
+            <div className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-800 flex-shrink-0 bg-slate-900">
+              <div className="h-8 w-8 rounded-xl bg-indigo-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-900/50">
+                <Bot className="h-4.5 w-4.5 text-white" style={{ height: 18, width: 18 }} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white leading-none">AIOS</p>
-                <p className="text-[11px] text-white/70 mt-0.5">AI Business Assistant</p>
+                <p className="text-sm font-semibold text-white leading-none tracking-tight">AIOS</p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <p className="text-[11px] text-slate-400">AI Chief of Staff · live data</p>
+                </div>
               </div>
               <button
                 onClick={clearChat}
                 aria-label="New conversation"
-                className="h-7 w-7 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors"
+                className="h-7 w-7 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors text-slate-400 hover:text-slate-200"
               >
-                <Plus className="h-3.5 w-3.5 text-white" />
+                <Plus className="h-3.5 w-3.5" />
               </button>
               <button
                 onClick={() => setFullscreen(v => !v)}
                 aria-label={fullscreen ? "Exit fullscreen" : "Fullscreen"}
-                className="h-7 w-7 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors"
+                className="h-7 w-7 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors text-slate-400 hover:text-slate-200"
               >
-                {fullscreen ? <Minimize2 className="h-3.5 w-3.5 text-white" /> : <Maximize2 className="h-3.5 w-3.5 text-white" />}
+                {fullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
               </button>
               <button
                 onClick={() => setOpen(false)}
                 aria-label="Close"
-                className="h-7 w-7 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors"
+                className="h-7 w-7 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors text-slate-400 hover:text-slate-200"
               >
-                <X className="h-3.5 w-3.5 text-white" />
+                <X className="h-3.5 w-3.5" />
               </button>
             </div>
 
             {/* Messages */}
-            <div className={cn("flex-1 overflow-y-auto", fullscreen && "flex flex-col items-center")}>
+            <div className={cn("flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent", fullscreen && "flex flex-col items-center")}>
               <div className={cn("p-4 space-y-4 w-full", fullscreen && "max-w-3xl")}>
                 {isEmpty ? (
-                  <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
-                    <div className="h-12 w-12 rounded-xl bg-brand-50 flex items-center justify-center">
-                      <Bot className="h-6 w-6 text-brand-500" />
+                  <div className="flex flex-col items-center justify-center h-full gap-5 text-center pt-8">
+                    <div className="h-14 w-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center">
+                      <Sparkles className="h-7 w-7 text-indigo-400" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-semibold text-slate-800 mb-1">How can I help you?</h3>
-                      <p className="text-xs text-slate-400">
-                        Ask about leads, clients, calendar, or metrics.
+                      <h3 className="text-sm font-semibold text-white mb-1">How can I help you?</h3>
+                      <p className="text-xs text-slate-500">
+                        Ask about clients, calendar, revenue, or anything.
                       </p>
                     </div>
-                    <div className="flex flex-col gap-1.5 w-full">
+                    <div className="flex flex-col gap-2 w-full">
                       {SUGGESTIONS.map((s) => (
                         <button
                           key={s}
                           onClick={() => { setInput(s); inputRef.current?.focus(); }}
-                          className="text-xs px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 hover:bg-brand-50 hover:border-brand-200 hover:text-brand-700 transition-colors text-left"
+                          className="text-xs px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:bg-slate-800 hover:border-indigo-600/40 hover:text-slate-200 transition-all text-left"
                         >
                           {s}
                         </button>
@@ -203,27 +206,31 @@ export function ChatBubble() {
                       return (
                         <div
                           key={msg.id}
-                          className={cn("flex items-end gap-2", msg.role === "user" && "flex-row-reverse")}
+                          className={cn("flex items-end gap-2.5", msg.role === "user" && "flex-row-reverse")}
                         >
+                          {/* Avatar */}
                           <div className={cn(
-                            "h-7 w-7 rounded-full flex items-center justify-center flex-shrink-0",
-                            msg.role === "user" ? "bg-brand-500" : "bg-brand-100"
+                            "h-7 w-7 rounded-full flex items-center justify-center flex-shrink-0 shadow-md",
+                            msg.role === "user"
+                              ? "bg-gradient-to-br from-indigo-500 to-indigo-700"
+                              : "bg-indigo-900 border border-indigo-700"
                           )}>
                             {msg.role === "user"
                               ? <User className="h-3.5 w-3.5 text-white" />
-                              : <Bot className="h-3.5 w-3.5 text-brand-600" />
+                              : <Bot className="h-3.5 w-3.5 text-indigo-300" />
                             }
                           </div>
+
                           {isReport ? (
                             <div className="max-w-[95%]">
                               <ReportMessage report={msg.report_data!} />
                             </div>
                           ) : msg.role === "user" ? (
-                            <div className="max-w-[80%] px-3.5 py-2.5 rounded-2xl rounded-br-sm text-xs leading-relaxed whitespace-pre-wrap shadow-sm bg-brand-500 text-white">
+                            <div className="max-w-[80%] px-4 py-2.5 rounded-2xl rounded-br-sm text-[13px] leading-relaxed whitespace-pre-wrap shadow-lg bg-gradient-to-br from-indigo-600 to-indigo-700 text-white">
                               {msg.content}
                             </div>
                           ) : (
-                            <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm bg-white border border-slate-100 text-slate-700">
+                            <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-bl-sm shadow-md bg-slate-800 border border-slate-700/60">
                               <MarkdownMessage content={msg.content} />
                             </div>
                           )}
@@ -233,7 +240,7 @@ export function ChatBubble() {
                     {loading && <TypingIndicator />}
                     {error && (
                       <div className="flex justify-center">
-                        <span className="text-xs text-danger bg-red-50 border border-red-100 rounded-lg px-3 py-1.5">
+                        <span className="text-xs text-red-300 bg-red-950/50 border border-red-900 rounded-lg px-3 py-1.5">
                           {error}
                         </span>
                       </div>
@@ -245,7 +252,7 @@ export function ChatBubble() {
             </div>
 
             {/* Input */}
-            <div className={cn("border-t border-slate-100 flex-shrink-0", fullscreen && "flex justify-center")}>
+            <div className={cn("border-t border-slate-800 flex-shrink-0 bg-slate-900", fullscreen && "flex justify-center")}>
               <div className={cn("p-3 w-full", fullscreen && "max-w-3xl")}>
                 <div className="flex items-end gap-2">
                   <textarea
@@ -255,23 +262,23 @@ export function ChatBubble() {
                     onKeyDown={handleKeyDown}
                     placeholder="Ask anything..."
                     rows={1}
-                    className="flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-colors max-h-24 overflow-y-auto"
+                    className="flex-1 resize-none rounded-xl border border-slate-700 bg-slate-800 px-3.5 py-2.5 text-[13px] text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/60 transition-all max-h-24 overflow-y-auto"
                     style={{ fieldSizing: "content" } as React.CSSProperties}
                   />
                   <button
                     onClick={() => void handleSend()}
                     disabled={!input.trim() || loading}
                     className={cn(
-                      "h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors",
+                      "h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all",
                       input.trim() && !loading
-                        ? "bg-brand-500 hover:bg-brand-600 text-white"
-                        : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                        ? "bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/50"
+                        : "bg-slate-800 text-slate-600 cursor-not-allowed"
                     )}
                   >
                     <Send className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1.5 pl-0.5">
+                <p className="text-[10px] text-slate-600 mt-1.5 pl-0.5">
                   Shift+Enter for new line · real-time data
                 </p>
               </div>
@@ -283,17 +290,17 @@ export function ChatBubble() {
       {/* Bubble button */}
       <div className="fixed bottom-6 right-6 z-50">
         {!open && (
-          <span className="absolute inset-0 rounded-full bg-brand-400 animate-ping opacity-30" />
+          <span className="absolute inset-0 rounded-full bg-indigo-500 animate-ping opacity-25" />
         )}
         <button
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? "Close AI assistant" : "Open AI assistant"}
           style={{ height: 52, width: 52 }}
           className={cn(
-            "relative rounded-full flex items-center justify-center shadow-lg transition-all duration-200",
+            "relative rounded-full flex items-center justify-center shadow-xl transition-all duration-200",
             open
-              ? "bg-slate-700 hover:bg-slate-600"
-              : "bg-brand-500 hover:bg-brand-600"
+              ? "bg-slate-800 hover:bg-slate-700 shadow-slate-900/50"
+              : "bg-indigo-600 hover:bg-indigo-500 shadow-indigo-900/60"
           )}
         >
           <AnimatePresence mode="wait">
