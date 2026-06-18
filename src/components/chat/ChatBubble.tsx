@@ -4,32 +4,75 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useChat } from "../../hooks/useChat";
 import { cn } from "../../lib/cn";
 import { ReportMessage } from "./ReportMessage";
+import { TreatmentCard } from "./TreatmentCard";
+import { TREATMENTS, MEMBERSHIPS, findTreatment, findMembership } from "./treatmentData";
+import type { TreatmentInfo, MembershipInfo } from "./treatmentData";
 
-function renderInline(text: string): React.ReactNode[] {
-  // Split on **bold** patterns
-  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
-    part.startsWith("**") && part.endsWith("**")
-      ? <strong key={i} className="font-semibold text-slate-900">{part.slice(2, -2)}</strong>
-      : <span key={i}>{part}</span>
-  );
+// Build a regex that matches any known treatment or membership name
+const ALL_NAMES = [
+  ...TREATMENTS.map(t => t.name),
+  ...MEMBERSHIPS.map(m => m.tier),
+].sort((a, b) => b.length - a.length); // longest first to avoid partial matches
+
+const NAMES_REGEX = new RegExp(
+  `(${ALL_NAMES.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`,
+  'gi'
+);
+
+function renderInline(
+  text: string,
+  onLink: (name: string) => void
+): React.ReactNode[] {
+  // First split on **bold**, then scan each plain segment for treatment names
+  const boldParts = text.split(/(\*\*[^*]+\*\*)/g);
+  const result: React.ReactNode[] = [];
+  let idx = 0;
+
+  for (const part of boldParts) {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      const inner = part.slice(2, -2);
+      result.push(<strong key={idx++} className="font-semibold text-slate-900">{inner}</strong>);
+    } else {
+      // Scan for treatment/membership names within plain text
+      const segments = part.split(NAMES_REGEX);
+      for (const seg of segments) {
+        if (!seg) continue;
+        const t = findTreatment(seg);
+        const m = findMembership(seg);
+        if (t || m) {
+          result.push(
+            <button
+              key={idx++}
+              onClick={() => onLink(seg)}
+              className="inline text-indigo-600 font-medium underline decoration-dotted underline-offset-2 hover:text-indigo-800 hover:decoration-solid transition-colors cursor-pointer"
+            >
+              {seg}
+            </button>
+          );
+        } else {
+          result.push(<span key={idx++}>{seg}</span>);
+        }
+      }
+    }
+  }
+  return result;
 }
 
-// Detect "**Label:** value" pattern — renders label in indigo, value in slate
-function renderLabelValue(text: string): React.ReactNode {
+function renderLabelValue(text: string, onLink: (name: string) => void): React.ReactNode {
   const match = text.match(/^\*\*(.+?):\*\*\s*(.*)$/);
   if (match) {
     return (
       <>
         <span className="font-semibold text-indigo-600">{match[1]}</span>
         <span className="text-slate-500 font-normal">: </span>
-        <span className="text-slate-800">{match[2]}</span>
+        <span className="text-slate-800">{renderInline(match[2], onLink)}</span>
       </>
     );
   }
-  return <>{renderInline(text)}</>;
+  return <>{renderInline(text, onLink)}</>;
 }
 
-function MarkdownMessage({ content }: { content: string }) {
+function MarkdownMessage({ content, onLink }: { content: string; onLink: (name: string) => void }) {
   const lines = content.split("\n");
   const nodes: React.ReactNode[] = [];
   let key = 0;
@@ -48,7 +91,6 @@ function MarkdownMessage({ content }: { content: string }) {
   for (const line of lines) {
     const isHeader = /^#{1,3}\s/.test(line);
     const isBullet = /^[-•]\s/.test(line);
-    // Line that is ONLY **bold** — treat as a name/title heading
     const isBoldTitle = /^\*\*[^*]+\*\*$/.test(line.trim());
 
     if (isBoldTitle) {
@@ -72,7 +114,7 @@ function MarkdownMessage({ content }: { content: string }) {
       listItems.push(
         <li key={key++} className="flex items-start gap-2.5">
           <span className="mt-[6px] h-1 w-1 rounded-full bg-indigo-400 flex-shrink-0" />
-          <span className="leading-relaxed text-[13px]">{renderLabelValue(inner)}</span>
+          <span className="leading-relaxed text-[13px]">{renderLabelValue(inner, onLink)}</span>
         </li>
       );
     } else {
@@ -82,7 +124,7 @@ function MarkdownMessage({ content }: { content: string }) {
       } else {
         nodes.push(
           <p key={key++} className="leading-relaxed text-slate-700 text-[13px]">
-            {renderInline(line)}
+            {renderInline(line, onLink)}
           </p>
         );
       }
@@ -125,8 +167,15 @@ export function ChatBubble() {
   const [fullscreen, setFullscreen] = useState(false);
   const { messages, loading, error, sendMessage, clearChat } = useChat();
   const [input, setInput] = useState("");
+  const [activeCard, setActiveCard] = useState<TreatmentInfo | MembershipInfo | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleLink = (name: string) => {
+    const t = findTreatment(name);
+    const m = findMembership(name);
+    setActiveCard(t ?? m ?? null);
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -249,7 +298,7 @@ export function ChatBubble() {
                             </div>
                           ) : (
                             <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-bl-sm bg-white border border-slate-200/80 shadow-sm">
-                              <MarkdownMessage content={msg.content} />
+                              <MarkdownMessage content={msg.content} onLink={handleLink} />
                             </div>
                           )}
                         </div>
@@ -304,6 +353,8 @@ export function ChatBubble() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <TreatmentCard item={activeCard} onClose={() => setActiveCard(null)} />
 
       {/* Bubble button */}
       <div className="fixed bottom-6 right-6 z-50">
