@@ -4,6 +4,7 @@
 
 ### Enterprise AI Platform for Business Operations
 
+[![CI](https://github.com/jefesfc/neurasolutions-client-portal/actions/workflows/ci.yml/badge.svg)](https://github.com/jefesfc/neurasolutions-client-portal/actions/workflows/ci.yml)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-ios.neurasolutions.cloud-00D4FF?style=for-the-badge&logo=vercel)](https://ios.neurasolutions.cloud)
 [![Tech](https://img.shields.io/badge/Stack-React%20%7C%20Node.js%20%7C%20GPT--4o-7C3AED?style=for-the-badge)](https://ios.neurasolutions.cloud)
 [![Status](https://img.shields.io/badge/Status-Production-10b981?style=for-the-badge)](https://ios.neurasolutions.cloud)
