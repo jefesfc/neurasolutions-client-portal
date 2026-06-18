@@ -36,13 +36,13 @@ function formatReportForTelegram(r: TgReport): string {
   return lines.join('\n');
 }
 
-function stripMarkdown(text: string): string {
+function prepareForTelegram(text: string): string {
   return text
-    .replace(/\*\*(.+?)\*\*/g, '$1')
-    .replace(/\*(.+?)\*/g, '$1')
-    .replace(/`(.+?)`/g, '$1')
-    .replace(/^#{1,3}\s+/gm, '')
-    .replace(/^[-*]\s+/gm, '• ')
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+    .replace(/\*(.+?)\*/g, '<i>$1</i>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+    .replace(/^#{1,3}\s+(.+)$/gm, '<b>$1</b>')
+    .replace(/^[-•]\s+/gm, '• ')
     .trim();
 }
 
@@ -104,14 +104,17 @@ TOOL USAGE RULES (mandatory):
 - "send email to [client]" / "email [name]" / "write to [client]" / "mandar email a": call send_email_to_client with client_name, subject, and body. Do NOT include a signature in the body — the email template adds it automatically.
 - "send brochure to [client]" / "manda brochure a" / "enviar brochure" / "envía el precio a" / "send price list to": call send_brochure with client_name and brochure_type (treatments or membership)
 
-TONE RULE (mandatory): Be direct and professional. Never add filler closings like "If you need more information, feel free to ask", "I hope this helps", "Let me know if you need anything else", or similar. Get straight to the answer.
-
 RESPONSE FOCUS RULE: Only mention the information that was specifically asked for. If the user asks about "treatments" or "membership" of a client, discuss ONLY those fields — do NOT mention email, phone, company, contract value, or other unrelated fields unless explicitly requested. Always respond in natural conversational prose — NEVER return a raw JSON object for client field queries. Raw JSON is only for the REPORT FORMAT.
 
 PLAIN TEXT EXAMPLES (correct):
 - "What are Sarah's treatments?" → "Sarah has had HydraFacial and Anti-Wrinkle Injections."
 - "Membership of David?" → "David is on the Silver membership tier."
 - "Treatments and membership of Ana?" → "Ana is on the Gold membership and has had: HydraFacial, Chemical Peel."
+
+FORMATTING RULE: Use HTML formatting for structured replies to make them visually clear. Allowed tags: <b>bold</b> for names, labels and headers; <i>italic</i> for notes or secondary info. Example for client query:
+<b>David Romero</b>
+🏷 Membership: <b>Silver</b>
+💆 Treatments: HydraFacial · Anti-Wrinkle Injections
 
 REPORT FORMAT (mandatory when your response contains structured data — metrics, KPIs, tables, lists with numbers, financial summaries, or business reports):
 Return ONLY a valid JSON object — no markdown code fences, no extra text before or after the JSON:
@@ -473,10 +476,10 @@ Ignore conversation history language. Only the CURRENT message determines the la
         parsedReport = parsed;
         replyText = formatReportForTelegram(parsed);
       } else {
-        replyText = stripMarkdown(assistantReply);
+        replyText = prepareForTelegram(assistantReply);
       }
     } catch {
-      replyText = stripMarkdown(assistantReply);
+      replyText = prepareForTelegram(assistantReply);
     }
 
     // Persist conversation
@@ -516,10 +519,10 @@ Ignore conversation history language. Only the CURRENT message determines the la
       } catch (err) {
         console.error('[telegram/tts]', err);
         // Fallback: send text so the bot never goes silent
-        await callTelegram(botToken, 'sendMessage', { chat_id: chatId, text: replyText });
+        await callTelegram(botToken, 'sendMessage', { chat_id: chatId, text: replyText, parse_mode: 'HTML' });
       }
     } else {
-      await callTelegram(botToken, 'sendMessage', { chat_id: chatId, text: replyText });
+      await callTelegram(botToken, 'sendMessage', { chat_id: chatId, text: replyText, parse_mode: 'HTML' });
     }
 
     // Auto-attach CSV for every report response
