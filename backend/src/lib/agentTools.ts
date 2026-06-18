@@ -1,10 +1,18 @@
 import nodemailer from 'nodemailer';
 import Stripe from 'stripe';
+import fs from 'fs';
+import path from 'path';
 import { db } from '../db';
 import { queryKnowledge } from './pinecone';
 import { buildEmailHtml } from './emailBuilder';
-import { generateBrochurePDF } from './pdfBrochures';
 import type OpenAI from 'openai';
+
+const BROCHURE_DIR = path.join(process.cwd(), 'data', 'brochures');
+
+function readBrochurePDF(type: 'treatments' | 'membership'): Buffer {
+  const filename = type === 'treatments' ? 'treatment-menu.pdf' : 'membership-packages.pdf';
+  return fs.readFileSync(path.join(BROCHURE_DIR, filename));
+}
 
 const TREATMENT_LABELS: Record<string, string> = {
   'anti-wrinkle':      'Anti-Wrinkle Injections',
@@ -674,8 +682,8 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
       if (!gmailUser || !gmailPass) return { error: 'Email not configured on the server' };
 
       const [treatmentsPdf, membershipPdf] = await Promise.all([
-        generateBrochurePDF('treatments'),
-        generateBrochurePDF('membership'),
+        readBrochurePDF('treatments'),
+        readBrochurePDF('membership'),
       ]);
 
       const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: gmailUser, pass: gmailPass } });
@@ -901,8 +909,8 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
 
       const client = clientRes.rows[0] as { name: string; email: string; company: string };
       const [treatmentsPdf, membershipPdf] = await Promise.all([
-        generateBrochurePDF('treatments'),
-        generateBrochurePDF('membership'),
+        readBrochurePDF('treatments'),
+        readBrochurePDF('membership'),
       ]);
 
       const transporter = nodemailer.createTransport({
