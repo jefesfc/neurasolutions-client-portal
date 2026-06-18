@@ -288,6 +288,9 @@ router.delete('/link', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
+// Track which tenants have had their webhook updated to include callback_query
+const webhookUpdated = new Set<string>();
+
 // POST /telegram/webhook/:tenantId — Telegram calls this on every message (no JWT auth)
 router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
   const tenantId = req.params.tenantId as string;
@@ -349,6 +352,16 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
     const settings = tenantRes.rows[0]?.settings as TenantSettings | undefined;
     botToken = settings?.telegram?.bot_token;
     if (!botToken || !settings?.telegram?.enabled) return;
+
+    // Auto-update webhook to include callback_query if not done yet this session
+    if (!webhookUpdated.has(tenantId)) {
+      webhookUpdated.add(tenantId);
+      callTelegram(botToken, 'setWebhook', {
+        url: `${BACKEND_URL}/telegram/webhook/${tenantId}`,
+        allowed_updates: ['message', 'callback_query'],
+        drop_pending_updates: false,
+      }).catch(() => {});
+    }
 
     // Resolve text: transcribe voice if needed
     let text: string;
