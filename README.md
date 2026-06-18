@@ -10,7 +10,7 @@
 
 **An AI-powered operating system for modern businesses** — unified platform combining CRM, AI orchestration, invoicing, security monitoring, knowledge base, and multi-channel communication (web + Telegram + voice).
 
-[**→ Live Demo**](https://ios.neurasolutions.cloud) · [**Demo credentials below**](#-live-demo)
+[**→ Request Demo Access**](mailto:neurasolutionscloud@gmail.com) · [**Live App**](https://ios.neurasolutions.cloud)
 
 </div>
 
@@ -36,15 +36,13 @@
 
 ---
 
-## 🔑 Live Demo
+## 🔑 Request a Demo
 
-```
-URL:      https://ios.neurasolutions.cloud
-Email:    ldmrukuae@gmail.com
-Password: Sevilla1@@@
-```
+Interested in seeing AIOS live? Get in touch and we'll set up a guided walkthrough or send you temporary access credentials.
 
-> Full admin access — explore all 18 modules, send messages to the AI Chief of Staff, trigger Stripe checkout, query the knowledge base.
+**📩 [neurasolutionscloud@gmail.com](mailto:neurasolutionscloud@gmail.com)**
+
+> Full admin access includes all 18 modules, AI Chief of Staff, Stripe payments, Telegram bot, and the RAG knowledge base.
 
 ---
 
