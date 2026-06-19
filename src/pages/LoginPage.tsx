@@ -58,7 +58,7 @@ export default function LoginPage() {
 
         {reason === 'inactivity' && (
           <div className="mb-4 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-700 text-center">
-            You were logged out after 30 minutes of inactivity.
+            Demo session ended after 1 hour of inactivity.
           </div>
         )}
         {reason === 'expired' && (

@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Shield, LogOut, RefreshCw } from 'lucide-react';
 import { useAuthStore } from '../../store/auth-store';
 
-const INACTIVITY_MS    = 30 * 60 * 1000; // 30 min
-const WARNING_MS       = 25 * 60 * 1000; // warn at 25 min
+const INACTIVITY_MS    = 60 * 60 * 1000; // 60 min
+const WARNING_MS       = 55 * 60 * 1000; // warn at 55 min
 const COUNTDOWN_SEC    = 5 * 60;         // 5 min countdown
 
 function parseJwtExp(token: string): number | null {
