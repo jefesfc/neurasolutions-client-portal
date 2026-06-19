@@ -88,11 +88,19 @@ export function buildEmailHtml(body: string, senderEmail: string): string {
   closeTierCard();
 
   const signatureHtml = `
-    <div style="margin-top:28px;padding-top:18px;border-top:1px solid #e2e8f0;">
-      <p style="margin:0 0 2px;color:#1e293b;font-size:14px;line-height:1.6;">Kind regards,</p>
-      <p style="margin:0 0 1px;color:#1e293b;font-size:14px;font-weight:700;">Noor Aesthetics</p>
-      <p style="margin:0 0 1px;color:#475569;font-size:13px;">Ingrid Banegas&nbsp;&nbsp;/&nbsp;&nbsp;Client Relationship Manager</p>
-      <p style="margin:0;color:#6366f1;font-size:13px;font-weight:600;">+44 7519685477</p>
+    <div style="margin-top:32px;padding-top:20px;border-top:2px solid #e2e8f0;">
+      <div style="display:flex;align-items:stretch;gap:0;">
+        <div style="width:3px;background:linear-gradient(180deg,#6366f1 0%,#818cf8 100%);border-radius:3px;flex-shrink:0;"></div>
+        <div style="padding-left:16px;">
+          <div style="color:#1e1b4b;font-size:15px;font-weight:800;letter-spacing:-0.3px;margin-bottom:4px;">Noor Aesthetics</div>
+          <div style="color:#334155;font-size:13px;font-weight:600;margin-bottom:1px;">Ingrid Banegas</div>
+          <div style="color:#64748b;font-size:12px;letter-spacing:0.3px;margin-bottom:10px;text-transform:uppercase;font-weight:500;">Client Relationship Manager</div>
+          <div style="display:inline-flex;align-items:center;gap:6px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:20px;padding:4px 14px;">
+            <span style="font-size:11px;">📞</span>
+            <span style="color:#6366f1;font-size:12px;font-weight:700;letter-spacing:0.3px;">+44 7519685477</span>
+          </div>
+        </div>
+      </div>
     </div>`;
 
   return `<!DOCTYPE html>

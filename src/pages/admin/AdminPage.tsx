@@ -4,7 +4,7 @@ import { PageHeader } from '../../components/layout/PageHeader';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { useAuthStore } from '../../store/auth-store';
-import { Building2, Users, Zap, MessageCircle, Mail } from 'lucide-react';
+import { Building2, Users, Zap, MessageCircle, Mail, Copy, Check } from 'lucide-react';
 
 const API_URL =
   (window as Window & { __env__?: { API_URL?: string } }).__env__?.API_URL ??
@@ -33,6 +33,13 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
 
   const [expandedTenantId, setExpandedTenantId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  function copyId(id: string) {
+    void navigator.clipboard.writeText(id);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 1500);
+  }
   const [botTokens, setBotTokens] = useState<Record<string, string>>({});
   const [tgStatus, setTgStatus] = useState<Record<string, boolean>>({});
   const [tgLoading, setTgLoading] = useState<Record<string, boolean>>({});
@@ -158,8 +165,18 @@ export default function AdminPage() {
                     <Building2 className="w-5 h-5 text-brand-600" />
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-800">{tenant.name}</p>
-                    <p className="text-xs text-slate-400">{tenant.subdomain}</p>
+                    <p className="font-semibold text-slate-800">
+                      {tenant.name || <span className="text-slate-400 italic">No name</span>}
+                    </p>
+                    <p className="text-xs text-slate-400">{tenant.subdomain || '—'}</p>
+                    <button
+                      onClick={() => copyId(tenant.id)}
+                      className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-brand-600 mt-0.5 font-mono"
+                    >
+                      {copiedId === tenant.id
+                        ? <><Check className="w-2.5 h-2.5 text-positive" /><span className="text-positive">Copied!</span></>
+                        : <><Copy className="w-2.5 h-2.5" />{tenant.id.slice(0, 8)}…</>}
+                    </button>
                   </div>
                 </div>
                 <Badge variant={planVariant[tenant.plan] ?? 'neutral'}>
