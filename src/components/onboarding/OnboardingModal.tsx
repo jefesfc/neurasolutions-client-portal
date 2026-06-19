@@ -234,7 +234,7 @@ function StepCompanyProfile({ onNext, onSkip }: StepProps) {
         >
           {uploading
             ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Uploading to AI…</>
-            : filled ? <><Upload className="w-4 h-4" /> Save & continue</> : <>Skip <ChevronRight className="w-4 h-4" /></>}
+            : filled ? <><Upload className="w-4 h-4" /> Save & continue</> : <>Continue <ChevronRight className="w-4 h-4" /></>}
         </button>
         <button onClick={onSkip} className="text-xs text-slate-400 hover:text-slate-600 transition-colors block mx-auto">Skip for now</button>
       </div>
