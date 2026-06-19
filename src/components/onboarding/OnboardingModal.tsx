@@ -6,6 +6,7 @@ import {
   Calendar, Mail, Zap, CheckCircle2, ChevronRight, X, Send,
   Brain, Sparkles, MessageSquare, ArrowRight, Building2, Upload,
 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { useAuthStore } from '../../store/auth-store';
 
 const API_URL =
@@ -380,18 +381,24 @@ function StepTelegram({ onNext, onSkip }: StepProps) {
 
       <div className="px-6 py-5">
         {telegramUrl ? (
-          <a
-            href={telegramUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-semibold transition-colors mb-4"
-          >
-            <Send className="w-4 h-4" />
-            Open @{botUsername} in Telegram
-          </a>
+          <div className="flex flex-col items-center mb-5">
+            <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-sm mb-3">
+              <QRCodeSVG
+                value={telegramUrl}
+                size={148}
+                fgColor="#0ea5e9"
+                bgColor="#ffffff"
+                level="M"
+              />
+            </div>
+            <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Scan to open in Telegram</p>
+            {botUsername && (
+              <p className="text-xs text-slate-400 mt-0.5 font-mono">@{botUsername}</p>
+            )}
+          </div>
         ) : (
-          <div className="w-full py-3 rounded-xl bg-sky-100 text-sky-400 text-sm font-medium text-center mb-4">
-            Loading bot…
+          <div className="flex items-center justify-center h-[180px] mb-5">
+            <span className="w-6 h-6 border-2 border-sky-300 border-t-sky-500 rounded-full animate-spin" />
           </div>
         )}
 
@@ -399,8 +406,8 @@ function StepTelegram({ onNext, onSkip }: StepProps) {
           <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-3">How to connect</p>
           <ol className="space-y-2.5">
             {[
-              'Tap the button above to open your AIOS bot',
-              'Send /start to activate',
+              'Scan the QR code with your phone camera',
+              'Send /start to activate your AI bot',
               'Ask anything — "Show me today\'s pipeline"',
             ].map((step, i) => (
               <li key={i} className="flex items-start gap-2.5">
