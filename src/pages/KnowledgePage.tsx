@@ -121,6 +121,18 @@ const CATEGORIES: Category[] = [
     color: '#e11d48', bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-700', badge: 'bg-rose-100 text-rose-700 border-rose-200',
     keywords: ['payment', 'currency', 'currencies', 'finance', 'price', 'pricing', 'gbp', 'usd', 'aed', 'usdt', 'crypto'],
   },
+  {
+    key: 'other',
+    label: 'Other Documents',
+    description: 'General documents and custom knowledge files',
+    Icon: ({ size = 18, className }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
+      </svg>
+    ),
+    color: '#64748b', bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-500', badge: 'bg-slate-100 text-slate-500 border-slate-200',
+    keywords: [],
+  },
 ];
 
 interface DocMeta {
@@ -563,8 +575,8 @@ export default function KnowledgePage() {
 
   async function handleUpload(file: File) {
     if (!file) return;
-    const allowed = ['application/pdf', 'text/plain'];
-    if (!allowed.includes(file.type)) { setError('Only PDF and TXT files are supported'); return; }
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    if (ext !== 'pdf' && ext !== 'txt') { setError('Only PDF and TXT files are supported'); return; }
     setError(null);
     setUploading(true);
     try {
