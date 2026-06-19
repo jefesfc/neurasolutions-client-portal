@@ -235,14 +235,14 @@ function TelegramTab() {
   useEffect(() => {
     fetch(`${API_URL}/telegram/status`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.json())
-      .then((data) => setStatus(data as { linked: boolean; chat_id: string | null }))
+      .then((data) => setStatus(data as { linked: boolean; chat_id: string | null; bot_username: string | null }))
       .finally(() => setLoading(false));
   }, [token]);
 
   async function handleDisconnect() {
     setDisconnecting(true);
     await fetch(`${API_URL}/telegram/link`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
-    setStatus({ linked: false, chat_id: null });
+    setStatus({ linked: false, chat_id: null, bot_username: status?.bot_username ?? null });
     setDisconnecting(false);
   }
 

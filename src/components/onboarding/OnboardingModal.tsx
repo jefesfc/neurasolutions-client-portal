@@ -316,7 +316,7 @@ function StepDone({ onFinish }: { onFinish: () => void }) {
       <div className="px-6 py-5">
         <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-3">Jump to</p>
         <div className="space-y-2 mb-5">
-          {actions.map(({ label, route, desc, color }) => (
+          {actions.map(({ label, route, desc }) => (
             <button
               key={route}
               onClick={() => { onFinish(); navigate(route); }}
