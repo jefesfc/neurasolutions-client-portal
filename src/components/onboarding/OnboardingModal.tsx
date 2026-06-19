@@ -373,13 +373,13 @@ function StepTelegram({ onNext, onSkip }: StepProps) {
           </div>
           <h2 className="text-2xl font-bold text-white mb-1">Connect Telegram</h2>
           <p className="text-slate-300 text-sm max-w-xs leading-relaxed">
-            Talk to your AI Chief of Staff on the go — text or voice messages.
+            Talk to your AI Chief of Staff on the go — text or voice messages, anytime.
           </p>
         </div>
       </div>
 
       <div className="px-6 py-5">
-        {telegramUrl && (
+        {telegramUrl ? (
           <a
             href={telegramUrl}
             target="_blank"
@@ -389,13 +389,17 @@ function StepTelegram({ onNext, onSkip }: StepProps) {
             <Send className="w-4 h-4" />
             Open @{botUsername} in Telegram
           </a>
+        ) : (
+          <div className="w-full py-3 rounded-xl bg-sky-100 text-sky-400 text-sm font-medium text-center mb-4">
+            Loading bot…
+          </div>
         )}
 
         <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-5">
           <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-3">How to connect</p>
           <ol className="space-y-2.5">
             {[
-              telegramUrl ? `Tap the button above to open @${botUsername}` : "Open Telegram and find your company's AIOS bot",
+              'Tap the button above to open your AIOS bot',
               'Send /start to activate',
               'Ask anything — "Show me today\'s pipeline"',
             ].map((step, i) => (
