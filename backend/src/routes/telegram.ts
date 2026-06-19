@@ -143,20 +143,20 @@ interface TelegramUpdate {
 }
 
 interface TenantSettings {
-  telegram?: { bot_token: string; enabled: boolean };
+  telegram?: { bot_token: string; enabled: boolean; bot_username?: string };
 }
 
 async function callTelegram(
   botToken: string,
   method: string,
   body: Record<string, unknown>
-): Promise<{ ok: boolean; description?: string }> {
+): Promise<{ ok: boolean; description?: string; result?: { username?: string } }> {
   const res = await fetch(`https://api.telegram.org/bot${botToken}/${method}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-  return res.json() as Promise<{ ok: boolean; description?: string }>;
+  return res.json() as Promise<{ ok: boolean; description?: string; result?: { username?: string } }>;
 }
 
 async function sendVoiceTelegram(
@@ -189,22 +189,26 @@ router.post('/activate', requireAuth, async (req: Request, res: Response) => {
   }
   try {
     const webhookUrl = `${BACKEND_URL}/telegram/webhook/${tenant_id}`;
-    const tgRes = await callTelegram(bot_token, 'setWebhook', {
-      url: webhookUrl,
-      allowed_updates: ['message', 'callback_query'],
-      drop_pending_updates: true,
-    });
-    if (!tgRes.ok) {
-      res.status(400).json({ error: `Telegram error: ${tgRes.description ?? 'unknown'}` });
+    const [webhookRes, meRes] = await Promise.all([
+      callTelegram(bot_token, 'setWebhook', {
+        url: webhookUrl,
+        allowed_updates: ['message', 'callback_query'],
+        drop_pending_updates: true,
+      }),
+      fetch(`https://api.telegram.org/bot${bot_token}/getMe`).then(r => r.json()) as Promise<{ ok: boolean; result?: { username?: string } }>,
+    ]);
+    if (!webhookRes.ok) {
+      res.status(400).json({ error: `Telegram error: ${webhookRes.description ?? 'unknown'}` });
       return;
     }
+    const bot_username = meRes.ok ? (meRes.result?.username ?? null) : null;
     await db.query(
       `UPDATE aios.tenants
        SET settings = jsonb_set(COALESCE(settings, '{}'), '{telegram}', $1::jsonb)
        WHERE id = $2`,
-      [JSON.stringify({ bot_token, enabled: true }), tenant_id]
+      [JSON.stringify({ bot_token, enabled: true, bot_username }), tenant_id]
     );
-    res.json({ ok: true, webhook_url: webhookUrl });
+    res.json({ ok: true, webhook_url: webhookUrl, bot_username });
   } catch (err) {
     console.error('[telegram/activate]', err);
     res.status(500).json({ error: 'Server error' });
@@ -260,13 +264,34 @@ router.delete('/activate/:tenantId', requireAuth, async (req: Request, res: Resp
 // GET /telegram/status — tenant admin checks their own link status
 router.get('/status', requireAuth, async (req: Request, res: Response) => {
   try {
-    const { rows } = await db.query(
-      `SELECT telegram_user_id FROM aios.users WHERE id = $1`,
-      [req.user!.user_id]
-    );
+    const [userRes, tenantRes] = await Promise.all([
+      db.query(`SELECT telegram_user_id FROM aios.users WHERE id = $1`, [req.user!.user_id]),
+      db.query(`SELECT settings FROM aios.tenants WHERE id = $1`, [req.user!.tenant_id]),
+    ]);
+    const settings = tenantRes.rows[0]?.settings as TenantSettings | undefined;
+    let bot_username = settings?.telegram?.bot_username ?? null;
+
+    // Auto-populate bot_username for tenants that were activated before this field existed
+    if (!bot_username && settings?.telegram?.bot_token) {
+      try {
+        const meRes = await fetch(`https://api.telegram.org/bot${settings.telegram.bot_token}/getMe`);
+        const meData = (await meRes.json()) as { ok: boolean; result?: { username?: string } };
+        if (meData.ok && meData.result?.username) {
+          bot_username = meData.result.username;
+          await db.query(
+            `UPDATE aios.tenants
+             SET settings = jsonb_set(settings, '{telegram,bot_username}', $1::jsonb)
+             WHERE id = $2`,
+            [JSON.stringify(bot_username), req.user!.tenant_id]
+          );
+        }
+      } catch { /* non-critical — bot_username stays null */ }
+    }
+
     res.json({
-      linked: !!rows[0]?.telegram_user_id,
-      chat_id: (rows[0]?.telegram_user_id as string | null) ?? null,
+      linked: !!userRes.rows[0]?.telegram_user_id,
+      chat_id: (userRes.rows[0]?.telegram_user_id as string | null) ?? null,
+      bot_username,
     });
   } catch (err) {
     console.error('[telegram/status]', err);

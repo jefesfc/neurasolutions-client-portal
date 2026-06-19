@@ -228,7 +228,7 @@ function SecurityTab() {
 function TelegramTab() {
   const T = useTranslations();
   const { token } = useAuthStore();
-  const [status, setStatus] = useState<{ linked: boolean; chat_id: string | null } | null>(null);
+  const [status, setStatus] = useState<{ linked: boolean; chat_id: string | null; bot_username: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [disconnecting, setDisconnecting] = useState(false);
 
@@ -265,14 +265,37 @@ function TelegramTab() {
     );
   }
 
+  const botUsername = status?.bot_username ?? null;
+  const telegramUrl = botUsername ? `https://t.me/${botUsername}` : null;
+
   return (
     <div className="max-w-lg space-y-5">
       <p className="text-sm text-slate-500">
         {T.settings.telegramDesc}
       </p>
+
+      {botUsername && (
+        <div className="flex items-center justify-between p-4 rounded-xl bg-sky-50 border border-sky-200">
+          <div>
+            <p className="text-xs font-semibold text-sky-600 uppercase tracking-wide mb-1">Your AIOS Bot</p>
+            <p className="font-mono text-sm font-bold text-sky-800">@{botUsername}</p>
+          </div>
+          <a
+            href={telegramUrl!}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-sm font-semibold transition-colors"
+          >
+            Open in Telegram →
+          </a>
+        </div>
+      )}
+
       <ol className="space-y-4">
         {[
-          T.settings.telegramStep1,
+          botUsername
+            ? <span key="1">Click <strong>Open in Telegram</strong> above or search for <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs font-mono text-slate-700">@{botUsername}</code></span>
+            : T.settings.telegramStep1,
           <span key="2">Send the message <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs font-mono text-slate-700">/start</code></span>,
           T.settings.telegramStep3,
         ].map((step, i) => (

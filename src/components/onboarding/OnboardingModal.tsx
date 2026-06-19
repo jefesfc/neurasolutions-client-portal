@@ -7,6 +7,11 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth-store';
 
+const API_URL =
+  (window as Window & { __env__?: { API_URL?: string } }).__env__?.API_URL ??
+  import.meta.env.VITE_API_URL ??
+  'http://localhost:3001';
+
 const STORAGE_KEY = (userId: string) => `aios_onboarded_${userId}`;
 
 const FEATURES = [
@@ -92,6 +97,19 @@ function StepFeatures({ onNext, onSkip }: StepProps) {
 }
 
 function StepTelegram({ onNext, onSkip }: StepProps) {
+  const { token } = useAuthStore();
+  const [botUsername, setBotUsername] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!token) return;
+    fetch(`${API_URL}/telegram/status`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then((d: { bot_username?: string | null }) => setBotUsername(d.bot_username ?? null))
+      .catch(() => {});
+  }, [token]);
+
+  const telegramUrl = botUsername ? `https://t.me/${botUsername}` : null;
+
   return (
     <div className="flex flex-col items-center text-center px-4 py-6">
       <div className="w-20 h-20 rounded-2xl bg-sky-500 flex items-center justify-center mb-5 shadow-lg">
@@ -101,11 +119,26 @@ function StepTelegram({ onNext, onSkip }: StepProps) {
       <p className="text-slate-500 text-[14px] max-w-sm leading-relaxed mb-5">
         Talk to your AI Chief of Staff anytime from Telegram — text or voice. Get briefings, reports, and manage your business on the go.
       </p>
+
+      {telegramUrl && (
+        <a
+          href={telegramUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-sky-500 hover:bg-sky-600 text-white font-semibold transition-colors shadow-sm mb-4"
+        >
+          <Send className="w-4 h-4" />
+          Open @{botUsername} in Telegram
+        </a>
+      )}
+
       <div className="w-full bg-sky-50 border border-sky-200 rounded-2xl p-4 mb-5 text-left">
         <p className="text-xs font-semibold text-sky-700 uppercase tracking-wide mb-3">How to connect</p>
         <ol className="space-y-2">
           {[
-            'Open Telegram and search for @Neura_AIOS_demo_bot',
+            telegramUrl
+              ? `Click the button above to open @${botUsername}`
+              : 'Open Telegram and find your company\'s AIOS bot',
             'Send /start to activate the bot',
             'Ask anything: "Show me today\'s pipeline"',
           ].map((step, i) => (
@@ -118,10 +151,14 @@ function StepTelegram({ onNext, onSkip }: StepProps) {
           ))}
         </ol>
       </div>
-      <div className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mb-5">
-        <p className="text-xs text-slate-500 mb-1">Bot username</p>
-        <p className="font-mono text-sm font-bold text-sky-700">@Neura_AIOS_demo_bot</p>
-      </div>
+
+      {botUsername && (
+        <div className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mb-5">
+          <p className="text-xs text-slate-500 mb-1">Bot username</p>
+          <p className="font-mono text-sm font-bold text-sky-700">@{botUsername}</p>
+        </div>
+      )}
+
       <button
         onClick={onNext}
         className="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors shadow-sm flex items-center justify-center gap-2"
