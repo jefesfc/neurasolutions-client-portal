@@ -107,6 +107,7 @@ TOOL USAGE RULES (mandatory):
 - Any question about numbers, stats, or data: always call the relevant tool — never answer from memory
 - Every report response automatically includes a downloadable CSV file attachment with all metrics
 - "add client" / "create client" / "new client" / "añadir cliente": call create_client with name and email (ask for them if not provided)
+- "import clients from knowledge" / "add clients from document" / "create clients from knowledge" / "import my clients" / "add all clients from the file" / any request to bulk-add clients from an uploaded document or knowledge base: (1) call search_knowledge_base with query "clients contact list" — (2) extract EVERY individual client entry from the results — (3) call create_client once per client using all available fields — (4) report total created
 - "schedule meeting" / "add event" / "create event" / "add to calendar" / "agenda": call create_calendar_event with title, start_at, and category
 - "send email to [client]" / "email [name]" / "write to [client]" / "mandar email a": call send_email_to_client with client_name, subject, and body. Do NOT include a signature in the body — the email template adds it automatically.
 - "send brochure to [client]" / "manda brochure a" / "enviar brochure" / "envía el precio a" / "send price list to": call send_brochure with client_name and brochure_type (treatments or membership)

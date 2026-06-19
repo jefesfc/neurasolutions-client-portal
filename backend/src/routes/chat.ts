@@ -28,6 +28,7 @@ TOOL USAGE RULES (mandatory):
 - "support" / "tickets" / "issues" / "complaints": call get_support_tickets
 - "add lead" / "new lead" / "create lead": call create_lead with name, email, source
 - "add client" / "create client" / "new client" / "añadir cliente": call create_client with name and email
+- "import clients from knowledge" / "add clients from document" / "create clients from knowledge" / "import my clients" / "add all clients from the file" / any request to bulk-add clients from an uploaded document or knowledge base: (1) call search_knowledge_base with query "clients contact list" — (2) extract EVERY individual client entry from the results — (3) call create_client once per client using all available fields (name, email, phone, company, industry, notes) — (4) report total created. If you find more clients than one search returns, call search_knowledge_base again with "clients page 2" or a different query to find more.
 - "send email to [client]" / "email [name]" / "write to [client]" / "mandar email a": call send_email_to_client with the client name, subject, and body. Do NOT include a signature in the body — the email template adds it automatically.
 - "send brochure to [client]" / "manda brochure a" / "enviar brochure" / "envía el precio a" / "send price list to": call send_brochure with client_name and brochure_type (treatments or membership)
 - Any question about numbers, stats, or data: always call the relevant tool — never answer from memory
