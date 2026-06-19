@@ -109,7 +109,7 @@ function StepWelcome({ user, onNext, onSkip }: StepProps) {
 /* ── Step 2: Company Profile ─────────────────────────────────── */
 interface CompanyData {
   name: string; industry: string; headquarters: string;
-  revenue: string; clients: string; services: string;
+  revenue: string; services: string;
 }
 
 function buildKnowledgeText(d: CompanyData): string {
@@ -120,9 +120,6 @@ Headquarters: ${d.headquarters}
 
 FINANCIALS
 Annual Revenue: ${d.revenue}
-
-CLIENTS
-Total Active Clients: ${d.clients}
 
 CORE SERVICES
 ${d.services}
@@ -138,7 +135,7 @@ AI SYSTEMS IN USE (powered by AIOS)
 function StepCompanyProfile({ onNext, onSkip }: StepProps) {
   const { token } = useAuthStore();
   const [form, setForm] = useState<CompanyData>({
-    name: '', industry: '', headquarters: '', revenue: '', clients: '', services: '',
+    name: '', industry: '', headquarters: '', revenue: '', services: '',
   });
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
@@ -216,10 +213,6 @@ function StepCompanyProfile({ onNext, onSkip }: StepProps) {
             <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide block mb-1">Annual Revenue</label>
             <input className={inputCls} placeholder="e.g. £2,000,000" value={form.revenue} onChange={set('revenue')} />
           </div>
-        </div>
-        <div>
-          <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide block mb-1">Active Clients</label>
-          <input className={inputCls} placeholder="e.g. 12" value={form.clients} onChange={set('clients')} />
         </div>
         <div>
           <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide block mb-1">Core Services</label>
