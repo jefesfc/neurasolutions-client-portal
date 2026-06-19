@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { useAuthStore } from '../store/auth-store';
@@ -11,6 +11,8 @@ const API_URL = window.__env__?.API_URL ?? import.meta.env.VITE_API_URL ?? 'http
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const reason = searchParams.get('reason');
   const login = useAuthStore((s) => s.login);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -53,6 +55,17 @@ export default function LoginPage() {
           <img src={logoBlack} className="h-12 w-auto object-contain mx-auto mb-4" alt="NeuraSolutions" />
           <p className="text-slate-500 mt-1 text-sm">Sign in to your workspace</p>
         </div>
+
+        {reason === 'inactivity' && (
+          <div className="mb-4 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-700 text-center">
+            You were logged out after 30 minutes of inactivity.
+          </div>
+        )}
+        {reason === 'expired' && (
+          <div className="mb-4 px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-sm text-slate-600 text-center">
+            Your session has expired. Please sign in again.
+          </div>
+        )}
 
         <form
           onSubmit={handleSubmit}
