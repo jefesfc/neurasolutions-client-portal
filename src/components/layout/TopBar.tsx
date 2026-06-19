@@ -1,8 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, MessageSquare, Search, Menu, LogOut, User, CheckCheck, AlertCircle, Info, CheckCircle, XCircle, ArrowRight, Languages } from "lucide-react";
+import { Bell, MessageSquare, Search, Menu, LogOut, User, CheckCheck, AlertCircle, Info, CheckCircle, XCircle, ArrowRight, Languages, ShieldAlert } from "lucide-react";
 import { ROUTES } from "../../config/routes";
 import { useNotificationStore } from "../../store/notification-store";
 import { useAuthStore } from "../../store/auth-store";
+import type { AuthUser } from "../../store/auth-store";
 import { useSidebarStore } from "../../store/sidebar-store";
 import { useLanguageStore } from "../../store/language-store";
 import { useT } from "../../i18n/useT";
@@ -107,6 +108,7 @@ export function TopBar() {
   const t = useT();
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const user = useAuthStore((s) => s.user);
+  const login = useAuthStore((s) => s.login);
   const logout = useAuthStore((s) => s.logout);
   const setMobileOpen = useSidebarStore((s) => s.setMobileOpen);
   const { lang, setLang } = useLanguageStore();
@@ -117,6 +119,18 @@ export function TopBar() {
   const [notifOpen, setNotifOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
+
+  const adminSession = (() => {
+    try { return JSON.parse(localStorage.getItem('aios_admin_session') ?? 'null') as { token: string; user: AuthUser } | null; }
+    catch { return null; }
+  })();
+
+  function exitImpersonation() {
+    if (!adminSession) return;
+    login(adminSession.token, adminSession.user);
+    localStorage.removeItem('aios_admin_session');
+    navigate('/admin');
+  }
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -134,6 +148,20 @@ export function TopBar() {
 
   return (
     <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-slate-200">
+      {adminSession && (
+        <div className="flex items-center justify-between px-4 py-1.5 bg-amber-50 border-b border-amber-200 text-xs">
+          <div className="flex items-center gap-2 text-amber-700">
+            <ShieldAlert className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>Viewing as <strong>{user?.name ?? user?.email}</strong> — {user?.tenant_id?.slice(0, 8)}…</span>
+          </div>
+          <button
+            onClick={exitImpersonation}
+            className="flex items-center gap-1 font-semibold text-amber-700 hover:text-amber-900 bg-amber-100 hover:bg-amber-200 px-2.5 py-0.5 rounded-full transition-colors"
+          >
+            ← Exit to Admin
+          </button>
+        </div>
+      )}
       <div className={cn("flex items-center justify-between h-16 px-4 lg:px-6", isRTL && "flex-row-reverse")}>
         <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
           <button onClick={() => setMobileOpen(true)} className="lg:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-500">

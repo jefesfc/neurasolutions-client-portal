@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PageTransition } from '../../components/shared/PageTransition';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { useAuthStore } from '../../store/auth-store';
-import { Building2, Users, Zap, MessageCircle, Mail, Copy, Check } from 'lucide-react';
+import type { AuthUser } from '../../store/auth-store';
+import { Building2, Users, Zap, MessageCircle, Mail, Copy, Check, LogIn } from 'lucide-react';
 
 const API_URL =
   (window as Window & { __env__?: { API_URL?: string } }).__env__?.API_URL ??
@@ -29,8 +31,12 @@ const planVariant: Record<string, 'success' | 'warning' | 'info'> = {
 
 export default function AdminPage() {
   const token = useAuthStore((s) => s.token);
+  const user = useAuthStore((s) => s.user);
+  const login = useAuthStore((s) => s.login);
+  const navigate = useNavigate();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [impersonating, setImpersonating] = useState<string | null>(null);
 
   const [expandedTenantId, setExpandedTenantId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -146,6 +152,25 @@ export default function AdminPage() {
     }
   }
 
+  async function enterTenant(tenantId: string) {
+    setImpersonating(tenantId);
+    try {
+      const r = await fetch(`${API_URL}/admin/impersonate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ tenant_id: tenantId }),
+      });
+      const data = (await r.json()) as { token?: string; user?: AuthUser; error?: string };
+      if (!data.token || !data.user) { alert(data.error ?? 'Failed'); return; }
+      // Save original admin session so TopBar can restore it
+      localStorage.setItem('aios_admin_session', JSON.stringify({ token, user }));
+      login(data.token, data.user);
+      navigate('/');
+    } finally {
+      setImpersonating(null);
+    }
+  }
+
   return (
     <PageTransition>
       <PageHeader
@@ -247,6 +272,18 @@ export default function AdminPage() {
                     )}
                   </div>
                 )}
+              </div>
+
+              {/* Enter tenant dashboard */}
+              <div className="mt-3 pt-3 border-t border-slate-100">
+                <button
+                  onClick={() => void enterTenant(tenant.id)}
+                  disabled={impersonating === tenant.id || !tenant.user_count}
+                  className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  {impersonating === tenant.id ? 'Entering…' : 'Enter Dashboard'}
+                </button>
               </div>
 
               {/* Gmail / Emails section */}
