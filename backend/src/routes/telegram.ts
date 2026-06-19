@@ -430,41 +430,49 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
         [String(chatId), tenantId]
       );
       if (!updateRes.rowCount) {
-        // Check if already linked to this chat_id
         const existing = await db.query(
-          `SELECT telegram_user_id FROM aios.users
-           WHERE tenant_id = $1 AND role = 'admin'`,
+          `SELECT telegram_user_id FROM aios.users WHERE tenant_id = $1 AND role = 'admin'`,
           [tenantId]
         );
         const alreadyThis = existing.rows[0]?.telegram_user_id === String(chatId);
         await callTelegram(botToken, 'sendMessage', {
           chat_id: chatId,
           text: alreadyThis
-            ? '✅ You are already connected to AIOS. You can ask me about your leads, clients, calendar, and metrics.'
-            : '❌ Could not link the account. The admin is already linked or please contact support.',
+            ? '✅ You are already connected to AIOS. Ask me anything — leads, clients, calendar, metrics.'
+            : '👋 Welcome to AIOS! This is a live demo — you can ask me about the business data. Try: "Show me the pipeline" or "How many clients do we have?"',
         });
         return;
       }
       await callTelegram(botToken, 'sendMessage', {
         chat_id: chatId,
-        text: '✅ Connected. You can ask me about your leads, clients, calendar events, emails, and business metrics.',
+        text: '✅ Connected to AIOS. Ask me anything — leads, clients, calendar events, emails, and business metrics.',
       });
       return;
     }
 
-    // Only process messages from the linked admin
+    // Resolve userId: linked user preferred, fallback to tenant admin for demo guests
     const userRes = await db.query(
       `SELECT id FROM aios.users WHERE tenant_id = $1 AND telegram_user_id = $2`,
       [tenantId, String(chatId)]
     );
-    if (!userRes.rows.length) {
-      await callTelegram(botToken, 'sendMessage', {
-        chat_id: chatId,
-        text: '⚠️ Your Telegram account is not linked. Send /start to connect.',
-      });
-      return;
+    let userId: string;
+    if (userRes.rows.length) {
+      userId = userRes.rows[0].id as string;
+    } else {
+      // Demo guest — use tenant admin's user ID so queries work
+      const adminRes = await db.query(
+        `SELECT id FROM aios.users WHERE tenant_id = $1 AND role = 'admin' LIMIT 1`,
+        [tenantId]
+      );
+      if (!adminRes.rows.length) {
+        await callTelegram(botToken, 'sendMessage', {
+          chat_id: chatId,
+          text: '⚠️ Send /start first to activate the bot.',
+        });
+        return;
+      }
+      userId = adminRes.rows[0].id as string;
     }
-    const userId = userRes.rows[0].id as string;
 
     // Typing indicator
     await callTelegram(botToken, 'sendChatAction', { chat_id: chatId, action: 'typing' });
