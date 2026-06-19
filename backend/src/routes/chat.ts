@@ -26,6 +26,7 @@ TOOL USAGE RULES (mandatory):
 - "team" / "members" / "staff": call get_team_members
 - "AI usage" / "AI cost" / "tokens": included in get_business_stats
 - "support" / "tickets" / "issues" / "complaints": call get_support_tickets
+- "delete client [name]" / "remove client [name]" / "borrar cliente [name]": call delete_client with client_name
 - "add lead" / "new lead" / "create lead": call create_lead with name, email, source
 - "add client" / "create client" / "new client" / "añadir cliente": call create_client with name and email
 - "import clients from knowledge" / "add clients from document" / "create clients from knowledge" / "import my clients" / "add all clients from the file" / any request to bulk-add clients from an uploaded document or knowledge base: (1) call search_knowledge_base with query "clients contact list" — (2) extract EVERY individual client entry from the results — (3) call create_client once per client using all available fields (name, email, phone, company, industry, notes) — (4) report total created. If you find more clients than one search returns, call search_knowledge_base again with "clients page 2" or a different query to find more.

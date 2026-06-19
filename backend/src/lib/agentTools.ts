@@ -230,17 +230,34 @@ export const toolDefinitions: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     type: 'function',
     function: {
       name: 'create_client',
-      description: 'Create a new client in the CRM. Use when the CEO wants to add a client directly from Telegram.',
+      description: 'Create a new client in the CRM. Use when the CEO wants to add a client, or when importing clients from a knowledge base document.',
       parameters: {
         type: 'object',
         properties: {
-          name: { type: 'string', description: 'Full name of the client.' },
-          email: { type: 'string', description: 'Client email address.' },
-          phone: { type: 'string', description: 'Phone number (optional).' },
-          company: { type: 'string', description: 'Company or organisation name (optional).' },
+          name:           { type: 'string', description: 'Full name of the client.' },
+          email:          { type: 'string', description: 'Client email address.' },
+          phone:          { type: 'string', description: 'Phone number (optional).' },
+          company:        { type: 'string', description: 'Company or organisation name (optional).' },
+          industry:       { type: 'string', description: 'Industry sector (optional).' },
+          status:         { type: 'string', enum: ['active', 'inactive', 'churned'], description: 'Client status (default: active).' },
+          notes:          { type: 'string', description: 'Any notes about the client (optional).' },
           contract_value: { type: 'number', description: 'Contract value in GBP (optional).' },
         },
         required: ['name', 'email'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'delete_client',
+      description: 'Delete a client from the CRM by name. Use when the CEO asks to remove or delete a client.',
+      parameters: {
+        type: 'object',
+        properties: {
+          client_name: { type: 'string', description: 'Name of the client to delete.' },
+        },
+        required: ['client_name'],
       },
     },
   },
@@ -637,14 +654,42 @@ export async function executeTool(name: string, args: Record<string, unknown>, t
       if (!name || !email) return { error: 'name and email are required' };
       const phone = (args.phone as string | undefined) ?? null;
       const company = (args.company as string | undefined) ?? '';
+      const industry = (args.industry as string | undefined) ?? null;
+      const status = (args.status as string | undefined) ?? 'active';
+      const notes = (args.notes as string | undefined) ?? null;
       const contractValue = args.contract_value != null ? +(args.contract_value as number) : null;
       const res = await db.query(
-        `INSERT INTO aios.clients (id, tenant_id, name, email, phone, company, contract_value)
-         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6)
-         RETURNING id, name, email, company, status, created_at`,
-        [tenantId, name, email, phone, company, contractValue]
+        `INSERT INTO aios.clients (id, tenant_id, name, email, phone, company, industry, status, notes, contract_value)
+         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9)
+         RETURNING id, name, email, company, industry, status, created_at`,
+        [tenantId, name, email, phone, company, industry, status, notes, contractValue]
       );
       return { success: true, client: res.rows[0] };
+    }
+
+    case 'delete_client': {
+      const clientName = args.client_name as string;
+      if (!clientName) return { error: 'client_name is required' };
+      const dTerm = clientName.toLowerCase().trim();
+      const dWords = dTerm.split(/[\s\-,]+/).filter((w) => w.length > 1);
+      const dConds: string[] = [];
+      const dParams: unknown[] = [tenantId];
+      dParams.push(`%${dTerm}%`);
+      dConds.push(`LOWER(name) LIKE $${dParams.length}`, `LOWER(COALESCE(company,'')) LIKE $${dParams.length}`);
+      for (const w of dWords) {
+        if (w !== dTerm) {
+          dParams.push(`%${w}%`);
+          dConds.push(`LOWER(name) LIKE $${dParams.length}`, `LOWER(COALESCE(company,'')) LIKE $${dParams.length}`);
+        }
+      }
+      const findRes = await db.query(
+        `SELECT id, name, company FROM aios.clients WHERE tenant_id = $1 AND (${dConds.join(' OR ')}) LIMIT 1`,
+        dParams
+      );
+      if (!findRes.rows[0]) return { error: `No client found matching "${clientName}"` };
+      const found = findRes.rows[0] as { id: string; name: string; company: string };
+      await db.query(`DELETE FROM aios.clients WHERE id = $1 AND tenant_id = $2`, [found.id, tenantId]);
+      return { success: true, deleted: { id: found.id, name: found.name, company: found.company } };
     }
 
     case 'send_brochure': {
