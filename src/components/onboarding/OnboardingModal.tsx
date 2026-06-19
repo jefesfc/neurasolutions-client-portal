@@ -428,9 +428,10 @@ function StepDone({ onFinish }: { onFinish: () => void }) {
   const navigate = useNavigate();
 
   const actions: { label: string; route?: string; desc: string; action?: string }[] = [
-    { label: 'Go to Dashboard',    route: '/',          desc: 'Live KPIs & business overview' },
-    { label: 'Try AI Chat',        action: 'open-chat', desc: 'Ask your AI Chief of Staff anything' },
-    { label: 'Upload a document',  route: '/knowledge', desc: 'Power the AI with your company docs' },
+    { label: 'Go to Dashboard',          route: '/',          desc: 'Live KPIs & business overview' },
+    { label: 'Try AI Chat',              action: 'open-chat', desc: 'Ask your AI Chief of Staff anything' },
+    { label: 'Add your first client',    route: '/clients',   desc: 'Start building your CRM pipeline' },
+    { label: 'Email a client',           action: 'open-chat', desc: 'Say "send email to [name]" in chat or Telegram' },
   ];
 
   return (
