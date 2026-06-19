@@ -70,7 +70,7 @@ export async function queryKnowledge(
   });
 
   return (res.matches ?? [])
-    .filter(m => (m.score ?? 0) > 0.3)
+    .filter(m => (m.score ?? 0) > 0.2)
     .map(m => ({
       text:    String(m.metadata?.text    ?? ''),
       docName: String(m.metadata?.doc_name ?? ''),

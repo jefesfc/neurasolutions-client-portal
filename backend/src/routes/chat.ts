@@ -33,6 +33,8 @@ TOOL USAGE RULES (mandatory):
 - Any question about numbers, stats, or data: always call the relevant tool — never answer from memory
 - Every structured report response automatically includes a downloadable CSV with all metrics
 
+KNOWLEDGE BASE PRIORITY RULE: If a COMPANY KNOWLEDGE BASE section is present in this prompt, it means the user has uploaded their company profile. Questions like "[company name] info", "what is [company]", "tell me about our company", "our revenue", "our services", "our headquarters" MUST be answered from the KNOWLEDGE BASE — do NOT call query_clients for these; the knowledge base IS the company profile.
+
 RESPONSE FOCUS RULE: Only mention the information that was specifically asked for. If the user asks about "treatments" or "membership" of a client, discuss ONLY those fields — do NOT mention email, phone, company, contract value, or other unrelated fields unless explicitly requested. NEVER return a raw JSON object for individual client field lookups.
 
 CONVERSATIONAL FORMATTING RULE: For all non-report replies, use markdown to structure the response visually:
@@ -111,22 +113,19 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
       content: r.content as string,
     }));
 
-    // RAG: retrieve relevant knowledge base context (skip for very short/greeting messages)
+    // RAG: always query knowledge base (company profile + docs always relevant)
     let ragBlock = '';
-    const isSubstantialQuery = message.trim().split(/\s+/).length >= 4;
-    if (isSubstantialQuery) {
-      try {
-        const ragResults = await queryKnowledge(tenantId, message);
-        if (ragResults.length > 0) {
-          ragBlock = '\n\n## COMPANY KNOWLEDGE BASE (PRIMARY SOURCE)\n' +
-            'The following content comes from the company\'s official documents. ' +
-            'For ANY question about company-specific data (financials, clients, services, team, goals, FAQs), ' +
-            'you MUST answer exclusively from this content. Do NOT supplement with general knowledge or invented figures. ' +
-            'If the answer is not in these documents, say: "I don\'t have that information in the current knowledge base."\n\n' +
-            ragResults.map(r => `[Source: ${r.docName}]\n${r.text}`).join('\n\n---\n\n');
-        }
-      } catch { /* silent — RAG failure should not block chat */ }
-    }
+    try {
+      const ragResults = await queryKnowledge(tenantId, message);
+      if (ragResults.length > 0) {
+        ragBlock = '\n\n## COMPANY KNOWLEDGE BASE (PRIMARY SOURCE)\n' +
+          'The following content comes from the company\'s official documents. ' +
+          'For ANY question about company-specific data (financials, clients, services, team, goals, FAQs), ' +
+          'you MUST answer exclusively from this content. Do NOT supplement with general knowledge or invented figures. ' +
+          'If the answer is not in these documents, say: "I don\'t have that information in the current knowledge base."\n\n' +
+          ragResults.map(r => `[Source: ${r.docName}]\n${r.text}`).join('\n\n---\n\n');
+      }
+    } catch { /* silent — RAG failure should not block chat */ }
 
     const LANGUAGE_RULE = `\n\nLANGUAGE RULE (mandatory — absolute highest priority): This platform supports English (default), Spanish, and Arabic.
 - If the user's current message is in Arabic → respond in Arabic.
