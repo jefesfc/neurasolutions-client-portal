@@ -481,18 +481,19 @@ router.post('/webhook/:tenantId', async (req: Request, res: Response) => {
       content: r.content as string,
     }));
 
-    // RAG: retrieve relevant knowledge base context (skip for very short/greeting messages)
+    // RAG: always query knowledge base (company profile + docs always relevant)
     let ragBlock = '';
-    const isSubstantialQuery = text.trim().split(/\s+/).length >= 4;
-    if (isSubstantialQuery) {
-      try {
-        const ragResults = await queryKnowledge(tenantId, text);
-        if (ragResults.length > 0) {
-          ragBlock = '\n\n## COMPANY KNOWLEDGE BASE\nThe following is from official company documents. Use this information to answer accurately and specifically:\n\n' +
-            ragResults.map(r => `[Source: ${r.docName}]\n${r.text}`).join('\n\n---\n\n');
-        }
-      } catch { /* silent */ }
-    }
+    try {
+      const ragResults = await queryKnowledge(tenantId, text);
+      if (ragResults.length > 0) {
+        ragBlock = '\n\n## COMPANY KNOWLEDGE BASE (PRIMARY SOURCE)\n' +
+          'The following content comes from the company\'s official documents. ' +
+          'For ANY question about company-specific data (name, financials, services, headquarters, team, goals), ' +
+          'you MUST answer from this content — do NOT call query_clients or other tools for company profile questions. ' +
+          'If the answer is not here, say: "I don\'t have that information in the knowledge base."\n\n' +
+          ragResults.map(r => `[Source: ${r.docName}]\n${r.text}`).join('\n\n---\n\n');
+      }
+    } catch { /* silent */ }
 
     const LANGUAGE_RULE = `\n\nLANGUAGE RULE (mandatory — absolute highest priority): This bot supports English (default), Spanish, and Arabic.
 - If the user's current message is in Arabic → respond in Arabic.
