@@ -24,12 +24,11 @@ export function Sidebar() {
     if (!item.permission) return true;
     return user?.role === 'admin' || (user?.section_permissions ?? []).includes(item.permission);
   });
-  const visibleBottomNavItems = bottomNavItems.filter(
-    (item) =>
-      !item.permission ||
-      user?.role === 'admin' ||
-      (user?.section_permissions ?? []).includes(item.permission)
-  );
+  const visibleBottomNavItems = bottomNavItems.filter((item) => {
+    if (item.platformAdminOnly) return user?.is_platform_admin === true;
+    if (!item.permission) return true;
+    return user?.role === 'admin' || (user?.section_permissions ?? []).includes(item.permission);
+  });
 
   const hoverTimeout = useRef<ReturnType<typeof setTimeout>>(null!);
   const [hoverExpanded, setHoverExpanded] = useState(false);

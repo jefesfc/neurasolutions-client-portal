@@ -16,6 +16,7 @@ import {
   Receipt,
   Bell,
   Brain,
+  ServerCog,
   type LucideIcon,
 } from "lucide-react";
 import { ROUTES } from "./routes";
@@ -27,6 +28,7 @@ export interface NavItem {
   icon: LucideIcon;
   permission?: string;
   adminOnly?: boolean;
+  platformAdminOnly?: boolean;
 }
 
 export interface NavSection {
@@ -53,6 +55,7 @@ export const mainNavItems: NavItem[] = [
 ];
 
 export const bottomNavItems: NavItem[] = [
-  { label: "Billing",  labelKey: "nav.billing",  path: ROUTES.Billing,  icon: CreditCard, permission: "billing" },
-  { label: "Settings", labelKey: "nav.settings", path: ROUTES.Settings, icon: Settings   },
+  { label: "Billing",         labelKey: "nav.billing",  path: ROUTES.Billing,  icon: CreditCard, permission: "billing" },
+  { label: "Settings",        labelKey: "nav.settings", path: ROUTES.Settings, icon: Settings   },
+  { label: "Platform Admin",  labelKey: "nav.admin",    path: ROUTES.Admin,    icon: ServerCog,  platformAdminOnly: true },
 ];

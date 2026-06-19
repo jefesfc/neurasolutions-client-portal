@@ -21,6 +21,7 @@ const en = {
     notifications:  'Notifications',
     billing:        'Billing',
     settings:       'Settings',
+    admin:          'Platform Admin',
   },
   sidebar: {
     main:    'Main',
@@ -672,6 +673,7 @@ const ar: Translations = {
     notifications:  'الإشعارات',
     billing:        'الفوترة',
     settings:       'الإعدادات',
+    admin:          'مدير المنصة',
   },
   sidebar: {
     main:    'الرئيسية',
