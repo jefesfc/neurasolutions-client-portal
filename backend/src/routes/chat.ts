@@ -118,7 +118,11 @@ router.post('/', requireAuth, async (req: Request, res: Response) => {
       try {
         const ragResults = await queryKnowledge(tenantId, message);
         if (ragResults.length > 0) {
-          ragBlock = '\n\n## COMPANY KNOWLEDGE BASE\nThe following is from official company documents. Use this information to answer accurately and specifically:\n\n' +
+          ragBlock = '\n\n## COMPANY KNOWLEDGE BASE (PRIMARY SOURCE)\n' +
+            'The following content comes from the company\'s official documents. ' +
+            'For ANY question about company-specific data (financials, clients, services, team, goals, FAQs), ' +
+            'you MUST answer exclusively from this content. Do NOT supplement with general knowledge or invented figures. ' +
+            'If the answer is not in these documents, say: "I don\'t have that information in the current knowledge base."\n\n' +
             ragResults.map(r => `[Source: ${r.docName}]\n${r.text}`).join('\n\n---\n\n');
         }
       } catch { /* silent — RAG failure should not block chat */ }

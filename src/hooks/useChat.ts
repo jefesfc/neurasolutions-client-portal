@@ -64,5 +64,11 @@ export function useChat() {
     conversationId.current = undefined;
   };
 
-  return { messages, loading, error, sendMessage, clearChat };
+  const restoreConversation = (msgs: ChatMessage[], convId: string | undefined) => {
+    setMessages(msgs);
+    setError('');
+    conversationId.current = convId;
+  };
+
+  return { messages, loading, error, sendMessage, clearChat, restoreConversation, conversationId };
 }

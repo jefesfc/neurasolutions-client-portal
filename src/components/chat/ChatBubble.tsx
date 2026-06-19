@@ -162,10 +162,17 @@ function TypingIndicator() {
   );
 }
 
+interface SavedConv {
+  messages: ReturnType<typeof useChat>['messages'];
+  convId: string | undefined;
+}
+
 export function ChatBubble() {
   const [open, setOpen] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
-  const { messages, loading, error, sendMessage, clearChat } = useChat();
+  const { messages, loading, error, sendMessage, clearChat, restoreConversation, conversationId } = useChat();
+  const [saved, setSaved] = useState<SavedConv | null>(null); // tab 0 (older)
+  const [activeTab, setActiveTab] = useState<0 | 1>(1); // 0=saved, 1=current
   const [input, setInput] = useState("");
   const [activeCard, setActiveCard] = useState<TreatmentInfo | MembershipInfo | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -188,6 +195,46 @@ export function ChatBubble() {
     return () => clearTimeout(id);
   }, [open]);
 
+  useEffect(() => {
+    function onOpen() { setOpen(true); }
+    window.addEventListener('aios:open-chat', onOpen);
+    return () => window.removeEventListener('aios:open-chat', onOpen);
+  }, []);
+
+  function handleClose() {
+    clearChat();
+    setSaved(null);
+    setActiveTab(1);
+    setInput('');
+    setOpen(false);
+  }
+
+  function handleNewConversation() {
+    // Save current as the "older" slot (replacing any previous saved)
+    setSaved({ messages: [...messages], convId: conversationId.current });
+    clearChat();
+    setActiveTab(1);
+    setInput('');
+  }
+
+  function switchToTab(tab: 0 | 1) {
+    if (tab === activeTab) return;
+    if (tab === 0 && saved) {
+      // Save current → restore saved
+      const cur: SavedConv = { messages: [...messages], convId: conversationId.current };
+      restoreConversation(saved.messages, saved.convId);
+      setSaved(cur);
+      setActiveTab(0);
+    } else if (tab === 1) {
+      // Save current (which is tab 0) → restore saved (tab 1)
+      const cur: SavedConv = { messages: [...messages], convId: conversationId.current };
+      restoreConversation(saved!.messages, saved!.convId);
+      setSaved(cur);
+      setActiveTab(1);
+    }
+    setInput('');
+  }
+
   const handleSend = async () => {
     const text = input.trim();
     if (!text || loading) return;
@@ -203,6 +250,7 @@ export function ChatBubble() {
   };
 
   const isEmpty = messages.length === 0;
+  const tabCount = saved ? 2 : 1;
 
   return (
     <>
@@ -224,29 +272,52 @@ export function ChatBubble() {
             }
           >
             {/* Header */}
-            <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-indigo-600 to-indigo-500 flex-shrink-0">
-              <div className="h-8 w-8 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-                <Bot className="h-4 w-4 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white leading-none">AIOS</p>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 animate-pulse" />
-                  <p className="text-[11px] text-white/70">AI Chief of Staff · live data</p>
+            <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 flex-shrink-0">
+              <div className="flex items-center gap-3 px-4 py-3">
+                <div className="h-8 w-8 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <Bot className="h-4 w-4 text-white" />
                 </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-white leading-none">AIOS</p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 animate-pulse" />
+                    <p className="text-[11px] text-white/70">AI Chief of Staff · live data</p>
+                  </div>
+                </div>
+                <button onClick={handleNewConversation} aria-label="New conversation"
+                  className="h-7 w-7 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors"
+                  title="New conversation">
+                  <Plus className="h-3.5 w-3.5 text-white" />
+                </button>
+                <button onClick={() => setFullscreen(v => !v)} aria-label={fullscreen ? "Exit fullscreen" : "Fullscreen"}
+                  className="h-7 w-7 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors">
+                  {fullscreen ? <Minimize2 className="h-3.5 w-3.5 text-white" /> : <Maximize2 className="h-3.5 w-3.5 text-white" />}
+                </button>
+                <button onClick={handleClose} aria-label="Close"
+                  className="h-7 w-7 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors">
+                  <X className="h-3.5 w-3.5 text-white" />
+                </button>
               </div>
-              <button onClick={clearChat} aria-label="New conversation"
-                className="h-7 w-7 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors">
-                <Plus className="h-3.5 w-3.5 text-white" />
-              </button>
-              <button onClick={() => setFullscreen(v => !v)} aria-label={fullscreen ? "Exit fullscreen" : "Fullscreen"}
-                className="h-7 w-7 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors">
-                {fullscreen ? <Minimize2 className="h-3.5 w-3.5 text-white" /> : <Maximize2 className="h-3.5 w-3.5 text-white" />}
-              </button>
-              <button onClick={() => setOpen(false)} aria-label="Close"
-                className="h-7 w-7 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors">
-                <X className="h-3.5 w-3.5 text-white" />
-              </button>
+
+              {/* Conversation tabs — shown only when 2 conversations exist */}
+              {tabCount === 2 && (
+                <div className="flex gap-1 px-4 pb-2">
+                  {[0, 1].map(t => (
+                    <button
+                      key={t}
+                      onClick={() => switchToTab(t as 0 | 1)}
+                      className={cn(
+                        "text-[11px] font-medium px-3 py-1 rounded-full transition-colors",
+                        (t === 0 ? activeTab === 0 : activeTab === 1)
+                          ? "bg-white/30 text-white"
+                          : "bg-white/10 text-white/60 hover:bg-white/20"
+                      )}
+                    >
+                      Chat {t + 1}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Messages */}
