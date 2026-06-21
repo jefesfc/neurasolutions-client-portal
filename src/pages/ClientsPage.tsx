@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, Plus } from 'lucide-react';
+import { Download, Plus, Trash2 } from 'lucide-react';
 import { useQuery } from '../hooks/useQuery';
 import { useAuthStore } from '../store/auth-store';
 import { PageTransition } from '../components/shared/PageTransition';
@@ -78,8 +78,36 @@ export default function ClientsPage() {
   const [selectedClient, setSelectedClient]     = useState<Client | null>(null);
   const [modalOpen, setModalOpen]               = useState(false);
   const [modalData, setModalData]               = useState<Partial<Client> | undefined>(undefined);
+  const [selectedIds, setSelectedIds]           = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting]         = useState(false);
 
   const canEdit = user?.role !== 'user';
+
+  function toggleSelect(id: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    setSelectedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  }
+
+  function toggleSelectAll(e: React.MouseEvent) {
+    e.stopPropagation();
+    setSelectedIds(selectedIds.size === filtered.length && filtered.length > 0 ? new Set() : new Set(filtered.map(c => c.id)));
+  }
+
+  async function handleBulkDelete() {
+    if (selectedIds.size === 0) return;
+    if (!window.confirm(`Delete ${selectedIds.size} client${selectedIds.size > 1 ? 's' : ''}? This cannot be undone.`)) return;
+    setBulkDeleting(true);
+    try {
+      await Promise.all([...selectedIds].map(id =>
+        fetch(`${API_URL}/clients/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
+      ));
+      setSelectedIds(new Set());
+      setSelectedClient(null);
+      refetch();
+    } finally {
+      setBulkDeleting(false);
+    }
+  }
 
   const filtered = clients.filter((c) => {
     const matchStatus = activeStatus === 'all' || c.status === activeStatus;
@@ -133,6 +161,18 @@ export default function ClientsPage() {
         description={t('pages.clients.desc')}
         actions={
           <div className="flex gap-2">
+            {selectedIds.size > 0 && canEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void handleBulkDelete()}
+                disabled={bulkDeleting}
+                className="border-red-200 text-red-600 hover:bg-red-50"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                {bulkDeleting ? 'Deleting…' : `Delete (${selectedIds.size})`}
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -224,6 +264,17 @@ export default function ClientsPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                  {!selectedClient && canEdit && (
+                    <th className="px-4 py-3.5 w-10" onClick={toggleSelectAll}>
+                      <input
+                        type="checkbox"
+                        readOnly
+                        checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                        ref={el => { if (el) el.indeterminate = selectedIds.size > 0 && selectedIds.size < filtered.length; }}
+                        className="w-4 h-4 rounded border-slate-300 accent-indigo-600 cursor-pointer"
+                      />
+                    </th>
+                  )}
                   <th className="text-left px-5 py-3.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Client</th>
                   {!selectedClient && <th className="text-left px-5 py-3.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Contact</th>}
                   <th className="text-left px-5 py-3.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Value</th>
@@ -260,9 +311,22 @@ export default function ClientsPage() {
                       className={`cursor-pointer border-b border-slate-50 transition-all duration-150 ${
                         isSelected
                           ? 'bg-indigo-50/70 shadow-[inset_3px_0_0_#6366f1]'
+                          : selectedIds.has(client.id)
+                          ? 'bg-red-50/40'
                           : 'hover:bg-slate-50/80'
                       }`}
                     >
+                      {/* Bulk-select checkbox */}
+                      {!selectedClient && canEdit && (
+                        <td className="px-4 py-4 w-10" onClick={e => toggleSelect(client.id, e)}>
+                          <input
+                            type="checkbox"
+                            readOnly
+                            checked={selectedIds.has(client.id)}
+                            className="w-4 h-4 rounded border-slate-300 accent-indigo-600 cursor-pointer"
+                          />
+                        </td>
+                      )}
                       {/* Client: avatar + company + name */}
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
