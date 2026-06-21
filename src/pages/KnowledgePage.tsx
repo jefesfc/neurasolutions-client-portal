@@ -598,7 +598,7 @@ export default function KnowledgePage() {
   }
 
   async function handleDelete(id: string, name: string) {
-    if (!confirm(`Remove "${name}" from the knowledge base?`)) return;
+    if (!confirm(`Remove "${name}" from the knowledge base?\n\nNote: any client records created from this document will NOT be deleted — manage them in the Clients module.`)) return;
     try {
       const r = await fetch(`${API_URL}/knowledge/docs/${id}`, {
         method: 'DELETE', headers: { Authorization: `Bearer ${token}` },

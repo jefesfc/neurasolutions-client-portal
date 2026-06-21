@@ -393,8 +393,19 @@ function AICostCard({ totalCost, agentList, maxAgentCost }: {
 function ActiveSystemsStrip({ secSummary }: { secSummary: SecuritySummary | null }) {
   const navigate = useNavigate();
   const T = useTranslations();
+  const { token } = useAuthStore();
   const highAlerts = parseInt(secSummary?.high_unresolved ?? '0', 10);
   const secStatus  = secSummary === null ? 'connecting' : highAlerts > 0 ? 'alert' : 'online';
+  const [ragChunks, setRagChunks] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch(`${API_URL}/knowledge/docs`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : [])
+      .then((docs: { chunk_count: number }[]) => {
+        setRagChunks(docs.reduce((s, d) => s + (d.chunk_count ?? 0), 0));
+      })
+      .catch(() => setRagChunks(0));
+  }, [token]);
 
   const TAG: Record<string, { label: string; color: string; bg: string; border: string }> = {
     online:     { label: T.dashboard.online,     color: '#10b981', bg: '#f0fdf4', border: '#bbf7d0' },
@@ -403,14 +414,17 @@ function ActiveSystemsStrip({ secSummary }: { secSummary: SecuritySummary | null
     connecting: { label: T.dashboard.connecting, color: '#94a3b8', bg: '#f8fafc', border: '#e2e8f0' },
   };
 
+  const ragLabel = ragChunks === null ? 'Pinecone' : ragChunks > 0 ? `Pinecone · ${ragChunks}` : 'Pinecone';
+  const ragStatus = ragChunks === null ? 'connecting' : ragChunks > 0 ? 'online' : 'warning';
+
   const SYSTEMS = [
-    { emoji: '🤖', name: 'Chief of Staff', type: 'AI Agent',       status: 'online'      as const, route: '/systems'   },
-    { emoji: '📡', name: 'Telegram Bot',   type: 'Messenger',      status: 'online'      as const, route: '/systems'   },
-    { emoji: '📚', name: 'RAG Knowledge',  type: 'Pinecone · 147', status: 'online'      as const, route: '/knowledge' },
-    { emoji: '📧', name: 'Gmail OAuth',    type: 'Email',          status: 'online'      as const, route: '/systems'   },
-    { emoji: '🛡️', name: 'Security Agent', type: 'GPT-4o · RLS',   status: secStatus,             route: '/security'  },
-    { emoji: '⚙️', name: 'n8n Workflows',  type: '3 running',      status: 'online'      as const, route: '/systems'   },
-  ] as const;
+    { emoji: '🤖', name: 'Chief of Staff', type: 'AI Agent',    status: 'online'   as const, route: '/systems'   },
+    { emoji: '📡', name: 'Telegram Bot',   type: 'Messenger',   status: 'online'   as const, route: '/systems'   },
+    { emoji: '📚', name: 'RAG Knowledge',  type: ragLabel,      status: ragStatus  as 'online' | 'warning' | 'connecting', route: '/knowledge' },
+    { emoji: '📧', name: 'Gmail OAuth',    type: 'Email',       status: 'online'   as const, route: '/systems'   },
+    { emoji: '🛡️', name: 'Security Agent', type: 'GPT-4o · RLS', status: secStatus,          route: '/security'  },
+    { emoji: '⚙️', name: 'n8n Workflows',  type: '3 running',   status: 'online'   as const, route: '/systems'   },
+  ];
 
   const DOT: Record<string, string> = { online: '#10b981', warning: '#f59e0b', alert: '#ef4444', connecting: '#94a3b8' };
 
