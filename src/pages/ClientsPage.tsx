@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Download, Plus, Trash2 } from 'lucide-react';
 import { useQuery } from '../hooks/useQuery';
 import { useAuthStore } from '../store/auth-store';
@@ -83,12 +83,15 @@ export default function ClientsPage() {
 
   const canEdit = user?.role !== 'user';
 
-  function toggleSelect(id: string, e: React.MouseEvent) {
+  // Clear selection when filters change to avoid deleting invisible items
+  useEffect(() => { setSelectedIds(new Set()); }, [activeStatus, activeStage, search]);
+
+  function toggleSelect(id: string, e: React.MouseEvent<HTMLTableCellElement>) {
     e.stopPropagation();
     setSelectedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   }
 
-  function toggleSelectAll(e: React.MouseEvent) {
+  function toggleSelectAll(e: React.MouseEvent<HTMLTableCellElement>) {
     e.stopPropagation();
     setSelectedIds(selectedIds.size === filtered.length && filtered.length > 0 ? new Set() : new Set(filtered.map(c => c.id)));
   }
@@ -98,14 +101,14 @@ export default function ClientsPage() {
     if (!window.confirm(`Delete ${selectedIds.size} client${selectedIds.size > 1 ? 's' : ''}? This cannot be undone.`)) return;
     setBulkDeleting(true);
     try {
-      await Promise.all([...selectedIds].map(id =>
+      await Promise.allSettled([...selectedIds].map(id =>
         fetch(`${API_URL}/clients/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
       ));
       setSelectedIds(new Set());
       setSelectedClient(null);
-      refetch();
     } finally {
       setBulkDeleting(false);
+      refetch(); // always refresh, even on partial failure
     }
   }
 
