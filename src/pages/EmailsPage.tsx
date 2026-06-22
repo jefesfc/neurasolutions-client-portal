@@ -1,6 +1,9 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PenSquare, Mail, MailOpen, MailCheck, Send, ExternalLink } from 'lucide-react';
+import {
+  PenSquare, Mail, Send, ExternalLink,
+  CheckCircle2, Inbox, ArrowUpRight,
+} from 'lucide-react';
 import { useQuery } from '../hooks/useQuery';
 import { postgrest } from '../lib/postgrest';
 import { PageTransition } from '../components/shared/PageTransition';
@@ -10,6 +13,8 @@ import { SearchInput } from '../components/shared/SearchInput';
 import { Skeleton } from '../components/ui/Skeleton';
 import { EmailList } from '../components/emails/EmailList';
 import { EmailPreview } from '../components/emails/EmailPreview';
+import { SentList } from '../components/emails/SentList';
+import type { SentEmail } from '../components/emails/SentList';
 import { ComposeModal } from '../components/emails/ComposeModal';
 import { useAuthStore } from '../store/auth-store';
 import { ROUTES } from '../config/routes';
@@ -19,6 +24,7 @@ declare const window: Window & { __env__?: { API_URL?: string } };
 const API_URL = window.__env__?.API_URL ?? import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
 type ComposeMode = 'compose' | 'reply' | 'client';
+type ActiveTab = 'inbox' | 'sent';
 
 interface ComposeState {
   open: boolean;
@@ -29,24 +35,78 @@ interface ComposeState {
 }
 
 const COMPOSE_CLOSED: ComposeState = {
-  open: false,
-  mode: 'compose',
-  initialTo: '',
-  initialSubject: '',
-  initialBody: '',
+  open: false, mode: 'compose', initialTo: '', initialSubject: '', initialBody: '',
 };
+
+function SentEmailDetail({ email }: { email: SentEmail | null }) {
+  if (!email) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-slate-400 p-8 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+          <Send className="w-7 h-7 text-slate-300" />
+        </div>
+        <p className="text-sm font-medium text-slate-500">Select a sent email to view</p>
+        <p className="text-xs text-slate-400 mt-1">Choose a message from the list</p>
+      </div>
+    );
+  }
+
+  const subject = email.content.split('\n')[0]?.trim().slice(0, 80) || 'Email sent via AIOS';
+  const date = new Date(email.created_at);
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="px-6 py-4 border-b border-slate-200 bg-white flex-shrink-0">
+        <h2 className="text-[15px] font-semibold text-slate-900 mb-3 leading-snug">{subject}</h2>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-full bg-cyan-50 border border-cyan-200 flex items-center justify-center flex-shrink-0">
+              <Send className="w-3.5 h-3.5 text-cyan-600" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-slate-800">Outbound email</p>
+              <p className="text-xs text-slate-400">Sent via AIOS Agent</p>
+            </div>
+          </div>
+          <div className="text-right flex-shrink-0">
+            <p className="text-xs text-slate-500">
+              {date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </p>
+            <p className="text-xs text-slate-400">
+              {date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+            </p>
+          </div>
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto px-6 py-4 bg-white">
+        <div className="prose prose-sm max-w-none text-slate-700 leading-relaxed whitespace-pre-wrap font-sans text-[13.5px]">
+          {email.content}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function EmailsPage() {
   const user = useAuthStore((s) => s.user);
   const token = useAuthStore((s) => s.token);
   const navigate = useNavigate();
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
+  const [selectedSent, setSelectedSent] = useState<SentEmail | null>(null);
+  const [activeTab, setActiveTab] = useState<ActiveTab>('inbox');
   const [search, setSearch] = useState('');
   const [compose, setCompose] = useState<ComposeState>(COMPOSE_CLOSED);
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
 
   const { data: emails, loading, error } = useQuery<Email>('emails', {
     order: 'received_at.desc',
+    limit: 100,
+  });
+
+  const { data: sentRaw, loading: sentLoading } = useQuery<SentEmail>('interactions', {
+    select: 'id,content,created_at',
+    filters: { channel: 'eq.email', role: 'eq.assistant' },
+    order: 'created_at.desc',
     limit: 100,
   });
 
@@ -66,17 +126,17 @@ export default function EmailsPage() {
     }
   }, [selectedEmail, token]);
 
-  const { data: sentInteractions } = useQuery<{ id: string }>('interactions', {
-    select: 'id',
-    filters: { channel: 'eq.email', role: 'eq.assistant' },
-    limit: 500,
-  });
-
   async function handleSelect(email: Email) {
     setSelectedEmail(email);
+    setSelectedSent(null);
     if (!email.is_read) {
       await postgrest.patch<Email>('emails', { id: `eq.${email.id}` }, { is_read: true });
     }
+  }
+
+  function handleSelectSent(sent: SentEmail) {
+    setSelectedSent(sent);
+    setSelectedEmail(null);
   }
 
   function handleReply(email: Email) {
@@ -105,16 +165,9 @@ export default function EmailsPage() {
 
   const allEmails = (emails ?? []).filter((e) => !deletedIds.has(e.id));
   const unreadCount = allEmails.filter((e) => !e.is_read).length;
-  const readCount = allEmails.filter((e) => e.is_read).length;
   const totalCount = allEmails.length;
-  const sentCount = (sentInteractions ?? []).length;
-
-  const STAT_CARDS = [
-    { label: T.email.totalInbox, value: totalCount, icon: Mail, gradient: 'from-indigo-600 to-violet-600', shadow: 'shadow-indigo-500/25' },
-    { label: T.email.unread, value: unreadCount, icon: MailOpen, gradient: 'from-amber-500 to-orange-500', shadow: 'shadow-amber-500/25' },
-    { label: T.email.read, value: readCount, icon: MailCheck, gradient: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/25' },
-    { label: T.email.sent, value: sentCount, icon: Send, gradient: 'from-cyan-500 to-sky-600', shadow: 'shadow-cyan-500/25' },
-  ];
+  const sentEmails = sentRaw ?? [];
+  const sentCount = sentEmails.length;
 
   return (
     <PageTransition>
@@ -122,8 +175,8 @@ export default function EmailsPage() {
         title={t('pages.emails.title')}
         description={T.email.unreadDesc(unreadCount)}
         actions={
-          <div className="flex items-center gap-3">
-            <div className="w-56">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="w-48">
               <SearchInput
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -133,17 +186,17 @@ export default function EmailsPage() {
             </div>
             <button
               onClick={() => navigate(ROUTES.BrochureMembership)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-700 text-sm font-semibold transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-semibold transition-colors"
             >
-              <ExternalLink className="w-4 h-4" />
-              Membership Brochure
+              <ExternalLink className="w-3.5 h-3.5" />
+              Membership
             </button>
             <button
               onClick={() => navigate(ROUTES.BrochureTreatments)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm font-semibold transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold transition-colors"
             >
-              <ExternalLink className="w-4 h-4" />
-              Treatments Brochure
+              <ExternalLink className="w-3.5 h-3.5" />
+              Treatments
             </button>
             {canCompose && (
               <button
@@ -158,23 +211,83 @@ export default function EmailsPage() {
         }
       />
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-        {STAT_CARDS.map(({ label, value, icon: Icon, gradient, shadow }) => (
-          <div key={label} className={`bg-gradient-to-br ${gradient} rounded-2xl p-4 text-white shadow-lg ${shadow}`}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center">
-                <Icon className="w-4 h-4 text-white" />
+      {/* Premium stat cards — 2 large premium cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        {/* Inbox card */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm relative overflow-hidden hover:border-indigo-200 hover:shadow-md transition-all duration-200">
+          <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-indigo-500 to-violet-500 rounded-t-2xl" />
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center">
+                <Mail className="w-5 h-5 text-indigo-600" />
               </div>
-              <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Inbox</p>
+                <p className="text-[11px] text-slate-400">Gmail connected</p>
+              </div>
             </div>
-            <p className="text-2xl font-bold leading-none mb-1">{loading ? '—' : value}</p>
-            <p className="text-[11px] text-white/70 font-medium uppercase tracking-wide">{label}</p>
+            {unreadCount > 0 ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-[11px] font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                {unreadCount} unread
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-[11px] font-bold">
+                <CheckCircle2 className="w-3 h-3" />
+                All read
+              </span>
+            )}
           </div>
-        ))}
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-[42px] font-bold text-slate-900 leading-none tracking-tight">
+                {loading ? '—' : totalCount}
+              </p>
+              <p className="text-sm font-medium text-slate-500 mt-1">Total messages</p>
+            </div>
+            <div className="text-right pb-0.5">
+              <p className="text-xs text-slate-400 mb-0.5">
+                <span className="font-semibold text-slate-600">{loading ? '—' : totalCount - unreadCount}</span> read
+              </p>
+              <p className="text-xs text-slate-400">
+                <span className="font-semibold text-indigo-600">{loading ? '—' : unreadCount}</span> unread
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Sent card */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm relative overflow-hidden hover:border-cyan-200 hover:shadow-md transition-all duration-200">
+          <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-cyan-500 to-sky-500 rounded-t-2xl" />
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-cyan-50 border border-cyan-100 flex items-center justify-center">
+                <Send className="w-5 h-5 text-cyan-600" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Sent</p>
+                <p className="text-[11px] text-slate-400">via AIOS Agent</p>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-600 text-[11px] font-bold">
+              <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+              Delivered
+            </span>
+          </div>
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-[42px] font-bold text-slate-900 leading-none tracking-tight">
+                {sentLoading ? '—' : sentCount}
+              </p>
+              <p className="text-sm font-medium text-slate-500 mt-1">Emails sent</p>
+            </div>
+            <ArrowUpRight className="w-6 h-6 text-slate-200 mb-0.5" />
+          </div>
+        </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col md:flex-row h-auto md:h-[calc(100vh-20rem)]">
+      {/* Main panel */}
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col md:flex-row h-auto md:h-[calc(100vh-22rem)]">
         {loading ? (
           <div className="p-4 space-y-3 w-full">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -185,31 +298,77 @@ export default function EmailsPage() {
           <div className="p-8 text-center text-red-500 w-full text-sm">{error}</div>
         ) : (
           <>
-            {/* Left: email list */}
-            <div className="w-full md:w-2/5 border-b md:border-b-0 md:border-r border-slate-200 overflow-y-auto flex-shrink-0 max-h-[40vh] md:max-h-none">
-              <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                  {T.email.inbox}
-                </span>
-                <span className="text-xs text-slate-400">{(emails ?? []).length} messages</span>
+            {/* Left: tabs + list */}
+            <div className="w-full md:w-2/5 border-b md:border-b-0 md:border-r border-slate-200 flex flex-col flex-shrink-0 max-h-[40vh] md:max-h-none">
+              {/* Tab bar */}
+              <div className="flex border-b border-slate-200 bg-slate-50/60 flex-shrink-0">
+                <button
+                  onClick={() => setActiveTab('inbox')}
+                  className={`flex items-center gap-1.5 px-5 py-3 text-xs font-semibold transition-colors border-b-2 -mb-px ${
+                    activeTab === 'inbox'
+                      ? 'border-indigo-500 text-indigo-700 bg-white'
+                      : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <Inbox className="w-3.5 h-3.5" />
+                  Inbox
+                  {unreadCount > 0 && (
+                    <span className="ml-0.5 px-1.5 py-0.5 rounded-full bg-indigo-500 text-white text-[10px] font-bold leading-none">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={() => setActiveTab('sent')}
+                  className={`flex items-center gap-1.5 px-5 py-3 text-xs font-semibold transition-colors border-b-2 -mb-px ${
+                    activeTab === 'sent'
+                      ? 'border-cyan-500 text-cyan-700 bg-white'
+                      : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  Sent
+                  {sentCount > 0 && (
+                    <span className="ml-0.5 px-1.5 py-0.5 rounded-full bg-slate-300 text-white text-[10px] font-bold leading-none">
+                      {sentCount}
+                    </span>
+                  )}
+                </button>
               </div>
-              <EmailList
-                emails={allEmails}
-                selectedId={selectedEmail?.id ?? null}
-                onSelect={(email) => void handleSelect(email)}
-                onDelete={canCompose ? handleDelete : undefined}
-                search={search}
-              />
+
+              {/* List */}
+              <div className="flex-1 overflow-y-auto">
+                {activeTab === 'inbox' ? (
+                  <EmailList
+                    emails={allEmails}
+                    selectedId={selectedEmail?.id ?? null}
+                    onSelect={(email) => void handleSelect(email)}
+                    onDelete={canCompose ? handleDelete : undefined}
+                    search={search}
+                  />
+                ) : (
+                  <SentList
+                    emails={sentEmails}
+                    selectedId={selectedSent?.id ?? null}
+                    onSelect={handleSelectSent}
+                    search={search}
+                  />
+                )}
+              </div>
             </div>
 
-            {/* Right: email preview */}
+            {/* Right: reader panel */}
             <div className="flex-1 overflow-hidden">
-              <EmailPreview
-                email={selectedEmail}
-                onReply={canCompose ? handleReply : undefined}
-                onSendToClient={canCompose ? handleSendToClient : undefined}
-                onDelete={canCompose ? handleDelete : undefined}
-              />
+              {activeTab === 'inbox' ? (
+                <EmailPreview
+                  email={selectedEmail}
+                  onReply={canCompose ? handleReply : undefined}
+                  onSendToClient={canCompose ? handleSendToClient : undefined}
+                  onDelete={canCompose ? handleDelete : undefined}
+                />
+              ) : (
+                <SentEmailDetail email={selectedSent} />
+              )}
             </div>
           </>
         )}
