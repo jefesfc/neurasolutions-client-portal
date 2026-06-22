@@ -23,34 +23,49 @@ function renderInline(
   text: string,
   onLink: (name: string) => void
 ): React.ReactNode[] {
-  // First split on **bold**, then scan each plain segment for treatment names
-  const boldParts = text.split(/(\*\*[^*]+\*\*)/g);
   const result: React.ReactNode[] = [];
-  let idx = 0;
+  let key = 0;
 
-  for (const part of boldParts) {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      const inner = part.slice(2, -2);
-      result.push(<strong key={idx++} className="font-semibold text-slate-900">{inner}</strong>);
+  // Split on [label](url) markdown links first
+  const linkParts = text.split(/(\[[^\]]+\]\(https?:\/\/[^\s)]+\))/g);
+
+  for (const part of linkParts) {
+    const linkMatch = part.match(/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/);
+    if (linkMatch) {
+      result.push(
+        <a
+          key={key++}
+          href={linkMatch[2]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-indigo-600 font-semibold underline underline-offset-2 hover:text-indigo-800 transition-colors"
+        >
+          {linkMatch[1]} ↗
+        </a>
+      );
     } else {
-      // Scan for treatment/membership names within plain text
-      const segments = part.split(NAMES_REGEX);
-      for (const seg of segments) {
-        if (!seg) continue;
-        const t = findTreatment(seg);
-        const m = findMembership(seg);
-        if (t || m) {
-          result.push(
-            <button
-              key={idx++}
-              onClick={() => onLink(seg)}
-              className="inline text-indigo-600 font-medium underline decoration-dotted underline-offset-2 hover:text-indigo-800 hover:decoration-solid transition-colors cursor-pointer"
-            >
-              {seg}
-            </button>
-          );
+      // **bold** then treatment/membership names
+      const boldParts = part.split(/(\*\*[^*]+\*\*)/g);
+      for (const bp of boldParts) {
+        if (bp.startsWith("**") && bp.endsWith("**")) {
+          result.push(<strong key={key++} className="font-semibold text-slate-900">{bp.slice(2, -2)}</strong>);
         } else {
-          result.push(<span key={idx++}>{seg}</span>);
+          const segments = bp.split(NAMES_REGEX);
+          for (const seg of segments) {
+            if (!seg) continue;
+            const t = findTreatment(seg);
+            const m = findMembership(seg);
+            if (t || m) {
+              result.push(
+                <button key={key++} onClick={() => onLink(seg)}
+                  className="inline text-indigo-600 font-medium underline decoration-dotted underline-offset-2 hover:text-indigo-800 hover:decoration-solid transition-colors cursor-pointer">
+                  {seg}
+                </button>
+              );
+            } else {
+              result.push(<span key={key++}>{seg}</span>);
+            }
+          }
         }
       }
     }
@@ -368,7 +383,7 @@ export function ChatBubble() {
                               {msg.content}
                             </div>
                           ) : (
-                            <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-bl-sm bg-white border border-slate-200/80 shadow-sm">
+                            <div className="max-w-[85%] min-w-0 px-4 py-3 rounded-2xl rounded-bl-sm bg-white border border-slate-200/80 shadow-sm break-words">
                               <MarkdownMessage content={msg.content} onLink={handleLink} />
                             </div>
                           )}

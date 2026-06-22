@@ -45,6 +45,7 @@ function formatReportForTelegram(r: TgReport): string {
 
 function prepareForTelegram(text: string): string {
   return text
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2">$1</a>')
     .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
     .replace(/\*(.+?)\*/g, '<i>$1</i>')
     .replace(/`(.+?)`/g, '<code>$1</code>')
