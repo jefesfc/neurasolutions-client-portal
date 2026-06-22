@@ -252,9 +252,9 @@ export default function ClientsPage() {
       </div>
 
       {/* Split-view grid */}
-      <div className={`grid gap-4 ${selectedClient ? 'grid-cols-5' : 'grid-cols-1'}`}>
+      <div className={`grid gap-4 ${selectedClient ? 'lg:grid-cols-5' : 'grid-cols-1'}`}>
         {/* Table */}
-        <div className={`bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm ${selectedClient ? 'col-span-2' : ''}`}>
+        <div className={`bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm ${selectedClient ? 'lg:col-span-2' : ''} ${selectedClient ? 'hidden lg:block' : ''}`}>
           {loading ? (
             <div className="p-4 space-y-3">
               {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 rounded-lg" />)}
@@ -264,7 +264,8 @@ export default function ClientsPage() {
           ) : filtered.length === 0 ? (
             <div className="p-12 text-center text-slate-400">{T.clients.notFound}</div>
           ) : (
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[600px]">
               <thead>
                 <tr className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
                   {!selectedClient && canEdit && (
@@ -443,20 +444,34 @@ export default function ClientsPage() {
                 })}
               </tbody>
             </table>
+            </div>
           )}
         </div>
 
-        {/* Detail panel */}
+        {/* Detail panel — full-screen overlay on mobile, side panel on desktop */}
         {selectedClient && (
-          <div className="col-span-3">
-            <ClientDetailPanel
-              client={selectedClient}
-              canEdit={canEdit}
-              onEdit={openEdit}
-              onDelete={() => void handleDelete()}
-              onClose={() => setSelectedClient(null)}
-            />
-          </div>
+          <>
+            {/* Mobile overlay */}
+            <div className="lg:hidden fixed inset-0 z-40 bg-slate-100 overflow-y-auto pb-20 pt-2 px-3">
+              <ClientDetailPanel
+                client={selectedClient}
+                canEdit={canEdit}
+                onEdit={openEdit}
+                onDelete={() => void handleDelete()}
+                onClose={() => setSelectedClient(null)}
+              />
+            </div>
+            {/* Desktop side panel */}
+            <div className="hidden lg:block lg:col-span-3">
+              <ClientDetailPanel
+                client={selectedClient}
+                canEdit={canEdit}
+                onEdit={openEdit}
+                onDelete={() => void handleDelete()}
+                onClose={() => setSelectedClient(null)}
+              />
+            </div>
+          </>
         )}
       </div>
 

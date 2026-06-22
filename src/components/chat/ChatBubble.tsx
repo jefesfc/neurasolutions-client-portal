@@ -283,7 +283,7 @@ export function ChatBubble() {
             } : { transformOrigin: "bottom right" }}
             className={fullscreen
               ? "bg-slate-50 flex flex-col overflow-hidden"
-              : "fixed bottom-20 right-6 z-50 w-[400px] h-[560px] bg-white rounded-2xl shadow-[0_8px_40px_-8px_rgba(99,102,241,0.18),0_2px_16px_-4px_rgba(0,0,0,0.10)] border border-slate-200 flex flex-col overflow-hidden"
+              : "fixed bottom-[152px] right-3 left-3 lg:left-auto lg:bottom-20 lg:right-6 lg:w-[400px] z-50 h-[70vh] lg:h-[560px] bg-white rounded-2xl shadow-[0_8px_40px_-8px_rgba(99,102,241,0.18),0_2px_16px_-4px_rgba(0,0,0,0.10)] border border-slate-200 flex flex-col overflow-hidden"
             }
           >
             {/* Header */}
@@ -442,8 +442,8 @@ export function ChatBubble() {
 
       <TreatmentCard item={activeCard} onClose={() => setActiveCard(null)} />
 
-      {/* Bubble button */}
-      <div className="fixed bottom-6 right-6 z-50">
+      {/* Bubble button — sits above MobileNav on mobile (nav = 64px) */}
+      <div className="fixed bottom-[88px] right-5 lg:bottom-6 lg:right-6 z-50">
         {!open && (
           <span className="absolute inset-0 rounded-full bg-indigo-400 animate-ping opacity-30" />
         )}

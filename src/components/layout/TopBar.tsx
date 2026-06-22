@@ -47,7 +47,7 @@ function NotifDropdown({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className={cn("absolute top-11 w-80 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden", isRTL ? "left-0" : "right-0")}>
+    <div className={cn("absolute top-11 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden", "w-[calc(100vw-24px)] sm:w-80", isRTL ? "left-0" : "right-0 sm:right-0", "max-w-sm")}>
       <div className={cn("flex items-center justify-between px-4 py-3 border-b border-slate-100", isRTL && "flex-row-reverse")}>
         <div className={cn("flex items-center gap-2", isRTL && "flex-row-reverse")}>
           <span className="text-sm font-semibold text-slate-800">{t('topbar.notifications')}</span>
