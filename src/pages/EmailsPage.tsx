@@ -123,10 +123,15 @@ function SentEmailDetail({ email }: { email: SentEmail | null }) {
           </div>
           <div className="pt-2 border-t border-slate-100">
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Message</p>
-            <p className="text-[13px] text-slate-400 italic leading-relaxed">
-              This email was sent automatically by the AIOS AI Agent.
-              The full message body is not stored for privacy.
-            </p>
+            {p.body ? (
+              <div className="text-[13.5px] text-slate-700 leading-relaxed whitespace-pre-wrap font-sans">
+                {p.body}
+              </div>
+            ) : (
+              <p className="text-[13px] text-slate-400 italic leading-relaxed">
+                Body not available for emails sent before this update.
+              </p>
+            )}
           </div>
           {p.attachments > 0 && (
             <div className="pt-2 border-t border-slate-100">

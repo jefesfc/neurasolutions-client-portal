@@ -12,19 +12,23 @@ export interface ParsedSent {
   toEmail: string;
   subject: string;
   attachments: number;
+  body: string;
 }
 
 export function parseSentContent(content: string): ParsedSent {
-  const match = content.match(/sent to (.+?) <([^>]+)>:\s*(.+?)(\s*\(\+(\d+) attach[^)]*\))?$/i);
+  const [header, ...bodyParts] = content.split('\n\n---\n\n');
+  const body = bodyParts.join('\n\n---\n\n').trim();
+  const match = (header ?? '').match(/sent to (.+?) <([^>]+)>:\s*(.+?)(\s*\(\+(\d+) attach[^)]*\))?$/i);
   if (match) {
     return {
       toName: match[1]?.trim() ?? '',
       toEmail: match[2]?.trim() ?? '',
       subject: match[3]?.trim() ?? '',
       attachments: match[5] ? parseInt(match[5]) : 0,
+      body,
     };
   }
-  return { toName: '', toEmail: '', subject: content.slice(0, 60), attachments: 0 };
+  return { toName: '', toEmail: '', subject: content.slice(0, 60), attachments: 0, body };
 }
 
 function formatTime(iso: string): string {

@@ -296,7 +296,7 @@ router.post(
         [
           req.user!.tenant_id,
           req.user!.user_id,
-          `Outbound email sent to ${client_name ?? to} <${to}>: ${subject}${files?.length ? ` (+${files.length} attachment${files.length > 1 ? 's' : ''})` : ''}`,
+          `Outbound email sent to ${client_name ?? to} <${to}>: ${subject}${files?.length ? ` (+${files.length} attachment${files.length > 1 ? 's' : ''})` : ''}\n\n---\n\n${body}`,
         ]
       ).catch(() => {});
 
