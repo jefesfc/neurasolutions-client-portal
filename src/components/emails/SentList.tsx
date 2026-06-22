@@ -53,7 +53,6 @@ export function SentList({ emails, selectedId, onSelect, search }: SentListProps
     <ul className="px-2 py-2 space-y-1.5">
       {filtered.map((email) => {
         const isSelected = selectedId === email.id;
-        const recipient = getRecipient(email);
         const subject = getSubject(email);
 
         return (
