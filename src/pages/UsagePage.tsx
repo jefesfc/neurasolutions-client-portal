@@ -147,7 +147,8 @@ export default function UsagePage() {
             {filtered.length === 0 ? (
               <div className="p-12 text-center text-slate-400">No usage records found</div>
             ) : (
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[560px]">
                 <thead>
                   <tr className="border-b border-slate-100 bg-slate-50">
                     <th className="text-left px-4 py-3 font-medium text-slate-500">Agent</th>
@@ -173,6 +174,7 @@ export default function UsagePage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </>

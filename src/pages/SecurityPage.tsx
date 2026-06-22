@@ -194,7 +194,7 @@ export default function SecurityPage() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(270px, 100%), 1fr))', gap: 10 }}>
             {OPERATIONAL_MODEL.map(item => {
               const isHovered = tileHover === item.actionKey;
               const c = isHovered ? '#06b6d4' : item.color;
@@ -280,7 +280,7 @@ export default function SecurityPage() {
           <SecurityAnalysisPanel token={token} range={range} />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 16, minHeight: 500 }}>
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4" style={{ minHeight: 500 }}>
           <ThreatTimeline events={events} loading={loading} onSelect={setSelected} />
           <EventsTable
             events={events}

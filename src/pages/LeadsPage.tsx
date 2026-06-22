@@ -125,7 +125,8 @@ export default function LeadsPage() {
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center text-slate-400">{T.leads.notFound}</div>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50">
                 <th className="text-left px-4 py-3 font-medium text-slate-500">{T.leads.colName}</th>
@@ -184,6 +185,7 @@ export default function LeadsPage() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

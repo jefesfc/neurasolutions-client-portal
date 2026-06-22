@@ -57,19 +57,19 @@ export default function CalendarPage() {
       />
 
       {loading ? (
-        <div className="grid grid-cols-5 gap-6 h-[calc(100vh-13rem)]">
-          <div className="col-span-2 space-y-3">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <div className="lg:col-span-2 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-8 rounded-lg" />)}
           </div>
-          <div className="col-span-3 space-y-3">
+          <div className="lg:col-span-3 space-y-3">
             {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-lg" />)}
           </div>
         </div>
       ) : error ? (
         <div className="p-8 text-center text-red-500">{error}</div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex h-[calc(100vh-13rem)]">
-          <div className="w-2/5 border-r border-slate-200 p-5 flex-shrink-0">
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-13rem)]">
+          <div className="w-full lg:w-2/5 border-b lg:border-b-0 lg:border-r border-slate-200 p-5 flex-shrink-0">
             <CalendarGrid
               events={events}
               selectedDate={selectedDate}

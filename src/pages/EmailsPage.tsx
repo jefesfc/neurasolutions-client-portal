@@ -159,7 +159,7 @@ export default function EmailsPage() {
       />
 
       {/* Stat cards */}
-      <div className="grid grid-cols-4 gap-3 mb-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
         {STAT_CARDS.map(({ label, value, icon: Icon, gradient, shadow }) => (
           <div key={label} className={`bg-gradient-to-br ${gradient} rounded-2xl p-4 text-white shadow-lg ${shadow}`}>
             <div className="flex items-center justify-between mb-3">
@@ -174,7 +174,7 @@ export default function EmailsPage() {
         ))}
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex h-[calc(100vh-20rem)]">
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col md:flex-row h-auto md:h-[calc(100vh-20rem)]">
         {loading ? (
           <div className="p-4 space-y-3 w-full">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -186,7 +186,7 @@ export default function EmailsPage() {
         ) : (
           <>
             {/* Left: email list */}
-            <div className="w-2/5 border-r border-slate-200 overflow-y-auto flex-shrink-0">
+            <div className="w-full md:w-2/5 border-b md:border-b-0 md:border-r border-slate-200 overflow-y-auto flex-shrink-0 max-h-[40vh] md:max-h-none">
               <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                   {T.email.inbox}

@@ -183,7 +183,7 @@ export default function InvoicingPage() {
         <InvoicingSummaryCards summary={summary} loading={loading} />
 
         {/* 4 Panel Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {PANELS.map(panel => {
             const isActive = activePanel === panel.key;
             const isCyan   = hoveredCard === panel.key && !isActive;
