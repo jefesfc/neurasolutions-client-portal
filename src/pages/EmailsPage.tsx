@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   PenSquare, Mail, Send, ExternalLink,
-  CheckCircle2, Inbox, ArrowUpRight,
+  CheckCircle2, Inbox, ArrowUpRight, Paperclip,
 } from 'lucide-react';
 import { useQuery } from '../hooks/useQuery';
 import { postgrest } from '../lib/postgrest';
@@ -13,7 +13,7 @@ import { SearchInput } from '../components/shared/SearchInput';
 import { Skeleton } from '../components/ui/Skeleton';
 import { EmailList } from '../components/emails/EmailList';
 import { EmailPreview } from '../components/emails/EmailPreview';
-import { SentList } from '../components/emails/SentList';
+import { SentList, parseSentContent } from '../components/emails/SentList';
 import type { SentEmail } from '../components/emails/SentList';
 import { ComposeModal } from '../components/emails/ComposeModal';
 import { useAuthStore } from '../store/auth-store';
@@ -38,6 +38,11 @@ const COMPOSE_CLOSED: ComposeState = {
   open: false, mode: 'compose', initialTo: '', initialSubject: '', initialBody: '',
 };
 
+function getInitials(name: string, email: string): string {
+  if (name && name !== email) return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  return email[0]?.toUpperCase() ?? '?';
+}
+
 function SentEmailDetail({ email }: { email: SentEmail | null }) {
   if (!email) {
     return (
@@ -51,21 +56,28 @@ function SentEmailDetail({ email }: { email: SentEmail | null }) {
     );
   }
 
-  const subject = email.content.split('\n')[0]?.trim().slice(0, 80) || 'Email sent via AIOS';
+  const p = parseSentContent(email.content);
   const date = new Date(email.created_at);
+  const displayName = p.toName && p.toName !== p.toEmail ? p.toName : p.toEmail;
+  const initials = getInitials(p.toName, p.toEmail);
 
   return (
     <div className="flex flex-col h-full">
+      {/* Header */}
       <div className="px-6 py-4 border-b border-slate-200 bg-white flex-shrink-0">
-        <h2 className="text-[15px] font-semibold text-slate-900 mb-3 leading-snug">{subject}</h2>
+        <h2 className="text-[15px] font-semibold text-slate-900 mb-3 leading-snug">
+          {p.subject || '(no subject)'}
+        </h2>
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-full bg-cyan-50 border border-cyan-200 flex items-center justify-center flex-shrink-0">
-              <Send className="w-3.5 h-3.5 text-cyan-600" />
+            <div className="w-9 h-9 rounded-full bg-cyan-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              {initials}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-800">Outbound email</p>
-              <p className="text-xs text-slate-400">Sent via AIOS Agent</p>
+              <p className="text-sm font-semibold text-slate-800">To: {displayName}</p>
+              {p.toName && p.toName !== p.toEmail && (
+                <p className="text-xs text-slate-400 truncate">{p.toEmail}</p>
+              )}
             </div>
           </div>
           <div className="text-right flex-shrink-0">
@@ -77,10 +89,54 @@ function SentEmailDetail({ email }: { email: SentEmail | null }) {
             </p>
           </div>
         </div>
+        <div className="flex items-center gap-3 mt-3 pt-3 border-t border-slate-100">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-[11px] font-semibold">
+            <CheckCircle2 className="w-3 h-3" />
+            Delivered
+          </span>
+          <span className="inline-flex items-center gap-1 text-[11px] text-slate-400">
+            <Send className="w-3 h-3" />
+            Sent via AIOS Agent
+          </span>
+          {p.attachments > 0 && (
+            <span className="inline-flex items-center gap-1 text-[11px] text-slate-400">
+              <Paperclip className="w-3 h-3" />
+              {p.attachments} attachment{p.attachments > 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
       </div>
-      <div className="flex-1 overflow-y-auto px-6 py-4 bg-white">
-        <div className="prose prose-sm max-w-none text-slate-700 leading-relaxed whitespace-pre-wrap font-sans text-[13.5px]">
-          {email.content}
+
+      {/* Body */}
+      <div className="flex-1 overflow-y-auto px-6 py-5 bg-slate-50/40">
+        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Subject</p>
+            <p className="text-sm font-semibold text-slate-800">{p.subject || '(no subject)'}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Recipient</p>
+            <p className="text-sm text-slate-700">{displayName}</p>
+            {p.toName && p.toName !== p.toEmail && (
+              <p className="text-xs text-slate-400">{p.toEmail}</p>
+            )}
+          </div>
+          <div className="pt-2 border-t border-slate-100">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Message</p>
+            <p className="text-[13px] text-slate-400 italic leading-relaxed">
+              This email was sent automatically by the AIOS AI Agent.
+              The full message body is not stored for privacy.
+            </p>
+          </div>
+          {p.attachments > 0 && (
+            <div className="pt-2 border-t border-slate-100">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Attachments</p>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium">
+                <Paperclip className="w-3.5 h-3.5" />
+                {p.attachments} file{p.attachments > 1 ? 's' : ''} attached
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
